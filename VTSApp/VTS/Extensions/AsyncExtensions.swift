@@ -1,7 +1,7 @@
 import Foundation
 
 extension AsyncThrowingStream {
-    static func makeStream(of elementType: Element.Type = Element.self) -> (stream: AsyncThrowingStream<Element, Error>, continuation: AsyncThrowingStream<Element, Error>.Continuation) {
+    public static func makeStream(of elementType: Element.Type = Element.self) -> (stream: AsyncThrowingStream<Element, Error>, continuation: AsyncThrowingStream<Element, Error>.Continuation) {
         var continuation: AsyncThrowingStream<Element, Error>.Continuation!
         let stream = AsyncThrowingStream<Element, Error> { cont in
             continuation = cont

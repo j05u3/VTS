@@ -1,9 +1,9 @@
 import Foundation
 
-public class GroqProvider: STTProvider {
-    public let providerType: STTProviderType = .groq
+public class OpenAIProvider: STTProvider {
+    public let providerType: STTProviderType = .openai
     
-    private let baseURL = "https://api.groq.com/openai/v1"
+    private let baseURL = "https://api.openai.com/v1"
     private let session = URLSession.shared
     
     public init() {}
@@ -16,35 +16,35 @@ public class GroqProvider: STTProvider {
             Task {
                 do {
                     var audioData = Data()
-                    print("Groq: Starting audio collection...")
+                    print("OpenAI: Starting audio collection...")
                     
-                    // Collect audio data for batch processing
+                    // Collect audio data
                     for try await chunk in stream {
                         audioData.append(chunk)
-                        print("Groq: Received audio chunk of \(chunk.count) bytes, total: \(audioData.count)")
+                        print("OpenAI: Received audio chunk of \(chunk.count) bytes, total: \(audioData.count)")
                     }
                     
-                    print("Groq: Audio collection completed, total size: \(audioData.count) bytes")
+                    print("OpenAI: Audio collection completed, total size: \(audioData.count) bytes")
                     
                     // Only send if we have enough audio data (at least 1 second worth)
                     let minimumBytes = Int(16000 * 2) // 1 second of 16kHz 16-bit audio
                     guard audioData.count >= minimumBytes else {
-                        print("Groq: Not enough audio data (\(audioData.count) bytes, minimum: \(minimumBytes))")
+                        print("OpenAI: Not enough audio data (\(audioData.count) bytes, minimum: \(minimumBytes))")
                         continuation.finish()
                         return
                     }
                     
-                    // Send to Groq - simplified non-streaming for now
-                    print("Groq: Sending transcription request...")
+                    // Send to OpenAI
+                    print("OpenAI: Sending transcription request...")
                     let result = try await sendTranscriptionRequest(audioData: audioData, config: config)
-                    print("Groq: Received transcription result: \(result)")
+                    print("OpenAI: Received transcription result: \(result)")
                     
                     // Return final result
                     let chunk = TranscriptionChunk(text: result, isFinal: true)
                     continuation.yield(chunk)
                     continuation.finish()
                 } catch {
-                    print("Groq: Transcription error: \(error)")
+                    print("OpenAI: Transcription error: \(error)")
                     continuation.finish()
                 }
             }
@@ -56,7 +56,7 @@ public class GroqProvider: STTProvider {
             throw STTError.invalidAPIKey
         }
         
-        guard STTProviderType.groq.defaultModels.contains(config.model) else {
+        guard STTProviderType.openai.defaultModels.contains(config.model) else {
             throw STTError.invalidModel
         }
     }

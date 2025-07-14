@@ -1,5 +1,4 @@
 import SwiftUI
-import VTS
 
 @main
 struct VTSApp: App {
@@ -7,6 +6,7 @@ struct VTSApp: App {
         WindowGroup {
             ContentView()
         }
-        .windowResizability(.contentSize)
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: 500, height: 800)
     }
 }

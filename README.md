@@ -1,152 +1,202 @@
 # VTS - Voice to Text Service
 
-A modern macOS speech-to-text application that supports OpenAI and Groq APIs.
+A modern macOS speech-to-text application that provides real-time transcription using OpenAI and Groq APIs.
 
 ## Features (v0.2)
 
 - ✅ **Multiple STT Providers**: OpenAI Whisper and Groq support
-- ✅ **Real-time Transcription**: Streaming partial results
-- ✅ **Microphone Management**: Device priority lists and selection
-- ✅ **Custom Prompts**: System prompt customization for better context
-- ✅ **Native UI**: SwiftUI-based interface
-- ✅ **Comprehensive Tests**: Unit and integration test coverage
+- ✅ **Real-time Transcription**: Streaming partial results with live updates
+- ✅ **Microphone Priority Management**: Full device priority lists with automatic fallback
+- ✅ **Custom System Prompts**: Improve transcription accuracy with context
+- ✅ **Native macOS UI**: Modern SwiftUI interface optimized for macOS
+- ✅ **Comprehensive Device Support**: Real-time device detection and switching
+- ✅ **Resizable Interface**: Adaptive UI that grows with your workflow
 
 ## Requirements
 
-- macOS 14.0+
-- Swift 5.10+
-- API key from OpenAI or Groq
+- **macOS 14.0+** (Apple Silicon & Intel supported)
+- **Xcode 15+** for building
+- **API key** from OpenAI or Groq
 
 ## Quick Start
 
-### 1. Clone and Build
+### 1. Get API Keys
+
+Sign up and get your API key:
+- **OpenAI**: https://platform.openai.com/api-keys
+- **Groq**: https://console.groq.com/keys
+
+### 2. Clone and Build
 
 ```bash
 git clone <your-repo-url>
 cd VTS
-swift build
+open VTSApp.xcodeproj
 ```
 
-### 2. Run the App
+### 3. Run the App
 
-#### Option A: Using Swift Package Manager
-```bash
-swift run VTSApp
-```
-
-#### Option B: Create Xcode Project (Recommended for GUI)
-```bash
-# Generate Xcode project
-swift package generate-xcodeproj
-
-# Open in Xcode
-open VTS.xcodeproj
-```
-
-Then in Xcode:
-1. Select the `VTSApp` scheme
-2. Build and run (⌘R)
-
-### 3. Setup API Keys
-
-Get your API key from:
-- **OpenAI**: https://platform.openai.com/api-keys
-- **Groq**: https://console.groq.com/keys
-
-### 4. Grant Microphone Permission
-
-When you first run the app, macOS will ask for microphone permission. Grant it to enable audio recording.
+1. In Xcode, select the **VTSApp** scheme
+2. Build and run with **⌘R**
+3. Grant microphone permission when prompted
 
 ## Usage
 
-1. **Configure Provider**: Choose OpenAI or Groq
-2. **Select Model**: Pick from available models (whisper-1, whisper-large-v3, etc.)
-3. **Enter API Key**: Paste your API key (kept secure, not stored permanently)
-4. **Optional System Prompt**: Add context for better transcription
-5. **Start Recording**: Click the microphone button
-6. **Speak**: Talk normally, see real-time transcription
-7. **Stop Recording**: Click stop, final text will appear
-8. **Copy/Clear**: Use buttons to copy text or clear results
+### Basic Transcription
+1. **Choose Provider**: Select OpenAI or Groq from the dropdown
+2. **Select Model**: Pick whisper-1, whisper-large-v3, or other available models
+3. **Enter API Key**: Paste your API key in the secure field
+4. **Start Recording**: Click the microphone button and speak
+5. **View Results**: See real-time transcription with streaming updates
+6. **Copy/Clear**: Use buttons to copy text or clear the transcript
 
-## Testing
+### Advanced Features
 
-Run the comprehensive test suite:
+#### Microphone Priority Management
+- **View Available Devices**: See all connected microphones with system default indicators
+- **Set Priority Order**: Add devices to priority list with + buttons
+- **Automatic Fallback**: App automatically uses highest-priority available device
+- **Real-time Switching**: Seamlessly switches when preferred devices connect/disconnect
+- **Remove from Priority**: Use − buttons to remove devices from priority list
 
-```bash
-swift test
-```
+#### Custom System Prompts
+- Add context-specific prompts to improve transcription accuracy
+- Examples: "Medical terminology", "Technical jargon", "Names: John, Sarah, Mike"
+- Prompts help the AI better understand domain-specific language
 
-Tests cover:
-- Core transcription functionality
-- Provider validation
-- Device management
-- Error handling
-- Integration flows
+#### Responsive Interface
+- **Resizable Window**: Drag corners to adjust size for your workflow
+- **Adaptive Layout**: UI elements scale appropriately with window size
+- **Minimum Size**: Ensures all controls remain accessible
 
-## Development
-
-### Project Structure
+## Project Structure
 
 ```
 VTS/
-├── Sources/
-│   ├── VTS/                 # Core library
-│   │   ├── Models/          # Data models
-│   │   ├── Protocols/       # STT provider interface
-│   │   ├── Services/        # Core services
-│   │   ├── Providers/       # OpenAI & Groq implementations
-│   │   └── Extensions/      # Utility extensions
-│   └── VTSApp/             # GUI application
-│       ├── main.swift
-│       ├── ContentView.swift
-│       └── Info.plist
-├── Tests/                   # Test suite
-└── Package.swift           # Swift Package Manager config
+├── VTSApp.xcodeproj/          # Xcode project (main entry point)
+├── VTSApp/                    # SwiftUI application
+│   ├── VTSApp.swift          # App entry point (@main)
+│   ├── ContentView.swift     # Main UI with all features
+│   ├── Assets.xcassets       # App icons and resources
+│   ├── Info.plist           # App configuration & permissions
+│   ├── VTSApp.entitlements  # Microphone & network permissions
+│   └── VTS/                 # Embedded core library
+│       ├── Services/        # Core services
+│       │   ├── CaptureEngine.swift      # Audio capture & device management
+│       │   ├── DeviceManager.swift      # Microphone priority & enumeration
+│       │   └── TranscriptionService.swift # STT orchestration
+│       ├── Providers/       # STT provider implementations
+│       │   ├── OpenAIProvider.swift     # OpenAI Whisper integration
+│       │   └── GroqProvider.swift       # Groq integration
+│       ├── Protocols/       # Provider abstraction
+│       │   └── STTProvider.swift        # Common STT interface
+│       ├── Models/          # Data models
+│       │   └── TranscriptionModels.swift # Configuration & response models
+│       └── Extensions/      # Utility extensions
+│           └── AsyncExtensions.swift    # Async/await helpers
+├── Sources/VTS/              # Swift Package library (for SPM compatibility)
+├── Tests/                    # Comprehensive test suite
+├── Package.swift            # Swift Package Manager configuration
+├── OBJECTIVE.md             # Project goals and requirements
+├── PLAN.md                  # Detailed technical specification
+└── README.md               # This file
 ```
 
-### Adding New Providers
+## Architecture
 
-1. Implement `STTProvider` protocol
-2. Add to `STTProviderType` enum
-3. Update UI provider selection
-4. Add tests
+VTS follows a clean, modular architecture:
+
+- **CaptureEngine**: Handles audio capture using AVAudioEngine with Core Audio device management
+- **DeviceManager**: Manages microphone priority lists and automatic device selection
+- **TranscriptionService**: Orchestrates streaming transcription with provider abstraction
+- **STTProvider Protocol**: Clean interface allowing easy addition of new providers
+- **Modern SwiftUI**: Reactive UI with proper state management and real-time updates
+
+## Development
+
+### Building
+
+```bash
+# Open in Xcode (recommended)
+open VTSApp.xcodeproj
+
+# Or build via command line
+xcodebuild -project VTSApp.xcodeproj -scheme VTSApp build
+```
+
+### Testing
+
+```bash
+# Run comprehensive test suite
+swift test
+
+# Tests cover:
+# - Core transcription functionality
+# - Provider validation and error handling
+# - Device management and priority logic
+# - Integration flows and edge cases
+```
+
+### Adding New STT Providers
+
+1. **Implement STTProvider protocol** in `Providers/`
+2. **Add to STTProviderType enum** in `TranscriptionModels.swift`
+3. **Update provider selection** in `ContentView.swift`
+4. **Add comprehensive tests** in `Tests/`
 
 ## Troubleshooting
 
-### Build Issues
-- Ensure you have Xcode 15+ installed
-- Run `swift package clean` then `swift build`
-
 ### Microphone Issues
-- Check System Preferences > Security & Privacy > Microphone
-- Ensure VTS has permission enabled
+- **Permission Denied**: Check System Settings > Privacy & Security > Microphone
+- **No Devices Found**: Click "Refresh" in Microphone Priority section
+- **Wrong Device Active**: Set priority order or check device connections
 
 ### API Issues
-- Verify your API key is valid
-- Check your account has credits/quota
-- Ensure internet connectivity
+- **Invalid Key**: Verify API key format and account status
+- **Rate Limits**: Check your account quotas and billing
+- **Network Errors**: Ensure stable internet connection
 
-### Performance
-- For better performance, use Groq (faster) vs OpenAI (higher quality)
-- Shorter recordings process faster
-- Good internet connection improves streaming
+### Performance Tips
+- **Groq**: Faster streaming, good for real-time use
+- **OpenAI**: Higher quality, better for accuracy-critical applications
+- **Shorter Sessions**: Process faster and use less quota
+- **Good Internet**: Improves streaming performance significantly
 
-## Next Steps (v0.3+)
+## Roadmap
 
-- [ ] Global hotkey support (⌘⇧;)
-- [ ] Menu bar integration
-- [ ] Multiple API key management
-- [ ] Auto-update system
-- [ ] Advanced audio preprocessing
+### v0.3 (Next)
+- [ ] **Global Hotkey Support**: ⌘⇧; toggle recording system-wide
+- [ ] **Menu Bar Integration**: Lightweight menu bar interface
+- [ ] **Multiple API Key Management**: Store and switch between multiple keys
+- [ ] **Status Bar Indicators**: Visual recording state in menu bar
+
+### v1.0 (Future)
+- [ ] **Dictation Replacement**: Full macOS dictation system integration
+- [ ] **Auto-update System**: Seamless updates via Sparkle framework
+- [ ] **Advanced Audio Processing**: Noise reduction and gain control
+- [ ] **Accessibility Features**: VoiceOver support and high contrast modes
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Add tests** for new functionality
+4. **Ensure** all tests pass (`swift test`)
+5. **Commit** changes (`git commit -m 'Add amazing feature'`)
+6. **Push** to branch (`git push origin feature/amazing-feature`)
+7. **Open** a Pull Request
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## Privacy & Security
+
+- **No audio storage**: Audio is processed in real-time, never stored locally
+- **API keys in memory only**: Keys are not persisted between sessions (v0.2)
+- **TLS encryption**: All API communication uses HTTPS
+- **Microphone permission**: Explicit user consent required for audio access
+
+---
+
+**Made with ❤️ for the macOS community**

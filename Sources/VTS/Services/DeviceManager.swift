@@ -45,7 +45,7 @@ public class DeviceManager: ObservableObject {
         }
     }
     
-    private func updateAvailableDevices() {
+    public func updateAvailableDevices() {
         // For now, create a mock default device until we implement proper device enumeration
         let defaultDevice = AudioDevice(id: "default", name: "Default Microphone", isDefault: true)
         availableDevices = [defaultDevice]
@@ -72,9 +72,26 @@ public class DeviceManager: ObservableObject {
     }
     
     public func moveDevice(from source: IndexSet, to destination: Int) {
-        devicePriorities.move(fromOffsets: source, toOffset: destination)
-        saveDevicePriorities()
-        updatePreferredDevice()
+        var newPriorities = devicePriorities
+        
+        // Simple implementation of move functionality
+        let sourceIndices = source.sorted(by: >)
+        var elementsToMove: [String] = []
+        
+        // Remove elements from back to front to maintain indices
+        for index in sourceIndices {
+            if index < newPriorities.count {
+                elementsToMove.insert(newPriorities.remove(at: index), at: 0)
+            }
+        }
+        
+        // Insert at destination
+        let insertIndex = min(destination, newPriorities.count)
+        for (offset, element) in elementsToMove.enumerated() {
+            newPriorities.insert(element, at: insertIndex + offset)
+        }
+        
+        setDevicePriorities(newPriorities)
     }
     
     public func addDeviceToPriorities(_ deviceID: String) {

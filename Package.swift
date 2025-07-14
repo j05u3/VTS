@@ -7,7 +7,6 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "VTSApp", targets: ["VTSApp"]),
         .library(name: "VTS", targets: ["VTS"])
     ],
     dependencies: [
@@ -15,18 +14,6 @@ let package = Package(
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.0.0")
     ],
     targets: [
-        .executableTarget(
-            name: "VTSApp",
-            dependencies: [
-                "VTS",
-                "KeychainAccess",
-                "KeyboardShortcuts"
-            ],
-            path: "Sources/VTSApp",
-            resources: [
-                .process("Info.plist")
-            ]
-        ),
         .target(
             name: "VTS",
             dependencies: [
