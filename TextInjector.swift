@@ -56,19 +56,16 @@ public class TextInjector {
             return
         }
         
-        // Request permission with system prompt
+        // Request permission with system prompt (dialog)
         let promptOptions = [
             kAXTrustedCheckOptionPrompt.takeUnretainedValue() as CFString: true as CFBoolean
         ] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(promptOptions)
         
-        // Open System Settings as backup
-        openSystemSettings()
-        
         // Start monitoring for permission changes
         startMonitoring()
     }
-    
+
     private func openSystemSettings() {
         let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
         NSWorkspace.shared.open(url)
