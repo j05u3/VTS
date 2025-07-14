@@ -10,8 +10,14 @@ public class TranscriptionService: ObservableObject {
     private var provider: STTProvider?
     private var transcriptionTask: Task<Void, Never>?
     private var partialResults: [TranscriptionChunk] = []
+    private let textInjector = TextInjector()
+    private var lastInjectedText = ""
     
     public init() {}
+    
+    public var injector: TextInjector {
+        return textInjector
+    }
     
     public func setProvider(_ provider: STTProvider) {
         self.provider = provider
@@ -32,6 +38,7 @@ public class TranscriptionService: ObservableObject {
         error = nil
         currentText = ""
         partialResults = []
+        lastInjectedText = ""
         
         transcriptionTask = Task { @MainActor in
             do {
@@ -64,6 +71,16 @@ public class TranscriptionService: ObservableObject {
             currentText = finalText
             partialResults.removeAll()
             print("Updated current text to: '\(finalText)'")
+            
+            // Inject the new text at cursor location
+            let newText = chunk.text.trimmingCharacters(in: .whitespaces)
+            if !newText.isEmpty {
+                // If we have previous injected text, replace it
+                let replaceText = lastInjectedText.isEmpty ? nil : lastInjectedText
+                textInjector.insertText(newText, replaceLastText: replaceText)
+                lastInjectedText = newText
+                print("Injected text: '\(newText)'")
+            }
         } else if streamPartials {
             // Update partial results
             partialResults.append(chunk)

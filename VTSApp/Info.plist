@@ -24,5 +24,7 @@
     <string>VTS needs access to your microphone to record audio for speech-to-text transcription.</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>LSUIElement</key>
+    <true/>
 </dict>
 </plist>
