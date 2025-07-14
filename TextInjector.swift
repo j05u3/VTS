@@ -3,44 +3,118 @@ import AppKit
 import CoreGraphics
 
 @MainActor
-public class TextInjector: ObservableObject {
-    @Published public var hasAccessibilityPermission = false
+@Observable
+public class TextInjector {
+    public private(set) var hasAccessibilityPermission = false
     
     public init() {
-        checkAccessibilityPermission()
+        updatePermissionStatus()
+        setupNotifications()
     }
     
-    public func checkAccessibilityPermission() {
-        hasAccessibilityPermission = AXIsProcessTrustedWithOptions([
-            kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true
-        ] as CFDictionary)
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
-    public func insertText(_ text: String, replaceLastText: String? = nil) {
-        guard !text.isEmpty else { return }
+    private func setupNotifications() {
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.updatePermissionStatus()
+        }
+    }
+    
+    public func updatePermissionStatus() {
+        let wasGranted = hasAccessibilityPermission
         
-        print("TextInjector: Attempting to insert text: '\(text)'")
+        // Safe permission check without prompting
+        let options = [
+            kAXTrustedCheckOptionPrompt.takeUnretainedValue() as CFString: false as CFBoolean
+        ] as CFDictionary
         
-        // If we need to replace previous text, delete it first
+        hasAccessibilityPermission = AXIsProcessTrustedWithOptions(options)
+        
+        if hasAccessibilityPermission != wasGranted {
+            print("TextInjector: Permission status changed to: \(hasAccessibilityPermission)")
+        }
+    }
+    
+    public func refreshPermissionStatus() {
+        print("TextInjector: Manually refreshing permission status...")
+        updatePermissionStatus()
+    }
+    
+    public func requestAccessibilityPermission() {
+        print("TextInjector: Requesting accessibility permission...")
+        
+        // Check current status
+        updatePermissionStatus()
+        if hasAccessibilityPermission {
+            print("TextInjector: Already have permission")
+            return
+        }
+        
+        // Request permission with system prompt
+        let promptOptions = [
+            kAXTrustedCheckOptionPrompt.takeUnretainedValue() as CFString: true as CFBoolean
+        ] as CFDictionary
+        _ = AXIsProcessTrustedWithOptions(promptOptions)
+        
+        // Open System Settings as backup
+        openSystemSettings()
+        
+        // Start monitoring for permission changes
+        startMonitoring()
+    }
+    
+    private func openSystemSettings() {
+        let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+        NSWorkspace.shared.open(url)
+        print("TextInjector: Opened System Settings")
+    }
+    
+    private func startMonitoring() {
+        print("TextInjector: Starting permission monitoring...")
+        
+        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+            guard let self = self else {
+                timer.invalidate()
+                return
+            }
+            
+            self.updatePermissionStatus()
+            
+            if self.hasAccessibilityPermission {
+                print("TextInjector: Permission granted!")
+                timer.invalidate()
+            }
+        }
+    }
+    
+    public func injectText(_ text: String, replaceLastText: String? = nil) {
+        guard hasAccessibilityPermission else {
+            print("TextInjector: No accessibility permission - cannot inject text")
+            return
+        }
+        
+        print("TextInjector: Injecting text: '\(text)'" + (replaceLastText != nil ? " (replacing: '\(replaceLastText!)')" : ""))
+        
+        // Delete previous text if needed
         if let lastText = replaceLastText, !lastText.isEmpty {
             deleteText(count: lastText.count)
         }
         
-        // Try accessibility-based insertion first (most reliable)
-        if hasAccessibilityPermission && tryAccessibilityInsertion(text) {
-            print("TextInjector: Successfully inserted via accessibility")
+        // Try accessibility API first
+        if tryAccessibilityInsertion(text) {
+            print("TextInjector: Successfully injected via Accessibility API")
             return
         }
         
-        // Fallback to CGEvent keyboard simulation
-        if tryCGEventInsertion(text) {
-            print("TextInjector: Successfully inserted via CGEvent")
-            return
-        }
-        
-        // Final fallback to pasteboard + Cmd+V
-        tryPasteboardInsertion(text)
-        print("TextInjector: Used pasteboard fallback")
+        // Fallback to clipboard method
+        print("TextInjector: Using clipboard fallback")
+        useClipboardFallback(text)
     }
     
     private func deleteText(count: Int) {
@@ -48,120 +122,94 @@ public class TextInjector: ObservableObject {
         
         print("TextInjector: Deleting \(count) characters")
         
-        // Try to select the last characters by using Shift+Left Arrow
-        for _ in 0..<count {
-            let keyDown = CGEvent(keyboardEventSource: nil, virtualKey: 123, keyDown: true) // Left arrow
-            let keyUp = CGEvent(keyboardEventSource: nil, virtualKey: 123, keyDown: false)
-            
-            keyDown?.flags = .maskShift // Hold shift to select
-            keyUp?.flags = .maskShift
-            
-            keyDown?.post(tap: .cghidEventTap)
-            keyUp?.post(tap: .cghidEventTap)
-            
-            usleep(1000) // Small delay between key presses
+        // Try accessibility deletion first
+        if tryAccessibilityDeletion(count: count) {
+            return
         }
         
-        // Now delete the selected text
-        let deleteKeyDown = CGEvent(keyboardEventSource: nil, virtualKey: 51, keyDown: true) // Delete key
-        let deleteKeyUp = CGEvent(keyboardEventSource: nil, virtualKey: 51, keyDown: false)
+        // Fallback to keyboard simulation
+        for _ in 0..<count {
+            let deleteEvent = CGEvent(keyboardEventSource: nil, virtualKey: 51, keyDown: true)
+            deleteEvent?.post(tap: .cghidEventTap)
+            let deleteUpEvent = CGEvent(keyboardEventSource: nil, virtualKey: 51, keyDown: false)
+            deleteUpEvent?.post(tap: .cghidEventTap)
+            Thread.sleep(forTimeInterval: 0.01)
+        }
+    }
+    
+    private func tryAccessibilityDeletion(count: Int) -> Bool {
+        let systemWideElement = AXUIElementCreateSystemWide()
         
-        deleteKeyDown?.post(tap: .cghidEventTap)
-        deleteKeyUp?.post(tap: .cghidEventTap)
+        var focusedApp: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(systemWideElement, kAXFocusedApplicationAttribute as CFString, &focusedApp) == .success,
+              let app = focusedApp else { return false }
+        
+        var focusedElement: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app as! AXUIElement, kAXFocusedUIElementAttribute as CFString, &focusedElement) == .success,
+              let element = focusedElement else { return false }
+        
+        // Get current value and remove last 'count' characters
+        var currentValue: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element as! AXUIElement, kAXValueAttribute as CFString, &currentValue) == .success,
+              let currentText = currentValue as? String,
+              currentText.count >= count else { return false }
+        
+        let newText = String(currentText.dropLast(count))
+        let newValue = newText as CFString
+        return AXUIElementSetAttributeValue(element as! AXUIElement, kAXValueAttribute as CFString, newValue) == .success
     }
     
     private func tryAccessibilityInsertion(_ text: String) -> Bool {
-        guard hasAccessibilityPermission else { return false }
-        
-        // Get the focused element
         let systemWideElement = AXUIElementCreateSystemWide()
+        
         var focusedApp: CFTypeRef?
-        var focusedElement: CFTypeRef?
-        
-        let appResult = AXUIElementCopyAttributeValue(
-            systemWideElement,
-            kAXFocusedApplicationAttribute as CFString,
-            &focusedApp
-        )
-        
-        guard appResult == .success,
+        guard AXUIElementCopyAttributeValue(systemWideElement, kAXFocusedApplicationAttribute as CFString, &focusedApp) == .success,
               let app = focusedApp else { return false }
         
-        let elementResult = AXUIElementCopyAttributeValue(
-            app as! AXUIElement,
-            kAXFocusedUIElementAttribute as CFString,
-            &focusedElement
-        )
-        
-        guard elementResult == .success,
+        var focusedElement: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app as! AXUIElement, kAXFocusedUIElementAttribute as CFString, &focusedElement) == .success,
               let element = focusedElement else { return false }
         
-        // Try to insert text directly
-        let insertResult = AXUIElementSetAttributeValue(
-            element as! AXUIElement,
-            kAXSelectedTextAttribute as CFString,
-            text as CFString
-        )
-        
-        return insertResult == .success
-    }
-    
-    private func tryCGEventInsertion(_ text: String) -> Bool {
-        // Convert text to UTF-16 for CGEvent
-        let utf16Text = Array(text.utf16)
-        
-        for codeUnit in utf16Text {
-            let keyDown = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true)
-            let keyUp = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false)
-            
-            keyDown?.keyboardSetUnicodeString(stringLength: 1, unicodeString: [codeUnit])
-            keyUp?.keyboardSetUnicodeString(stringLength: 1, unicodeString: [codeUnit])
-            
-            keyDown?.post(tap: .cghidEventTap)
-            keyUp?.post(tap: .cghidEventTap)
-            
-            // Small delay between characters to prevent issues
-            usleep(5000) // 5ms delay
+        // Try to set the value directly
+        let textValue = text as CFString
+        if AXUIElementSetAttributeValue(element as! AXUIElement, kAXValueAttribute as CFString, textValue) == .success {
+            return true
         }
         
-        return true
+        // Try to set selected text
+        var selectedRange: CFTypeRef?
+        if AXUIElementCopyAttributeValue(element as! AXUIElement, kAXSelectedTextRangeAttribute as CFString, &selectedRange) == .success {
+            return AXUIElementSetAttributeValue(element as! AXUIElement, kAXSelectedTextAttribute as CFString, textValue) == .success
+        }
+        
+        return false
     }
     
-    private func tryPasteboardInsertion(_ text: String) {
-        // Save current pasteboard content
+    private func useClipboardFallback(_ text: String) {
         let pasteboard = NSPasteboard.general
-        let currentContents = pasteboard.string(forType: .string)
+        let previousContents = pasteboard.string(forType: .string)
         
-        // Set our text to pasteboard
+        // Set our text to clipboard
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
         
         // Simulate Cmd+V
-        let vKeyDown = CGEvent(keyboardEventSource: nil, virtualKey: 9, keyDown: true) // V key
-        let vKeyUp = CGEvent(keyboardEventSource: nil, virtualKey: 9, keyDown: false)
+        let source = CGEventSource(stateID: .hidSystemState)
+        let cmdVDown = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: true)
+        let cmdVUp = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: false)
         
-        vKeyDown?.flags = .maskCommand
-        vKeyUp?.flags = .maskCommand
+        cmdVDown?.flags = .maskCommand
+        cmdVUp?.flags = .maskCommand
         
-        vKeyDown?.post(tap: .cghidEventTap)
-        vKeyUp?.post(tap: .cghidEventTap)
+        cmdVDown?.post(tap: .cghidEventTap)
+        cmdVUp?.post(tap: .cghidEventTap)
         
-        // Restore previous pasteboard content after a delay
+        // Restore clipboard after a short delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            if let previousContent = currentContents {
+            if let previous = previousContents {
                 pasteboard.clearContents()
-                pasteboard.setString(previousContent, forType: .string)
+                pasteboard.setString(previous, forType: .string)
             }
-        }
-    }
-    
-    public func requestAccessibilityPermission() {
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
-        AXIsProcessTrustedWithOptions(options)
-        
-        // Check again after a short delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            self.checkAccessibilityPermission()
         }
     }
 } 

@@ -77,7 +77,7 @@ public class TranscriptionService: ObservableObject {
             if !newText.isEmpty {
                 // If we have previous injected text, replace it
                 let replaceText = lastInjectedText.isEmpty ? nil : lastInjectedText
-                textInjector.insertText(newText, replaceLastText: replaceText)
+                textInjector.injectText(newText, replaceLastText: replaceText)
                 lastInjectedText = newText
                 print("Injected text: '\(newText)'")
             }
