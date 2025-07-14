@@ -2,9 +2,30 @@ import SwiftUI
 
 struct PreferencesView: View {
     @EnvironmentObject var appState: AppState
-    @StateObject private var captureEngine = CaptureEngine()
-    @StateObject private var transcriptionService = TranscriptionService()
-    @StateObject private var deviceManager = DeviceManager()
+    @ObservedObject var apiKeyManager: APIKeyManager
+    
+    // Access shared instances from AppState instead of creating new ones
+    private var captureEngine: CaptureEngine {
+        appState.captureEngineService
+    }
+    
+    private var transcriptionService: TranscriptionService {
+        appState.transcriptionServiceInstance
+    }
+    
+    private var deviceManager: DeviceManager {
+        appState.deviceManagerService
+    }
+    
+    init(apiKeyManager: APIKeyManager) {
+        self.apiKeyManager = apiKeyManager
+    }
+    
+    // State for adding new API keys
+    @State private var newAPIKey = ""
+    @State private var newKeyProvider: STTProviderType = .groq
+    @State private var newKeyLabel = ""
+    @State private var showingAddKeySheet = false
     
     var body: some View {
         TabView {
@@ -20,35 +41,30 @@ struct PreferencesView: View {
                         HStack {
                             Text("Provider:")
                                 .frame(width: 100, alignment: .leading)
-                            Picker("Provider", selection: $appState.selectedProvider) {
+                            Picker("Provider", selection: Binding(
+                                get: { appState.selectedProvider },
+                                set: { appState.selectedProvider = $0 }
+                            )) {
                                 ForEach(STTProviderType.allCases, id: \.self) { provider in
                                     Text(provider.rawValue).tag(provider)
                                 }
                             }
                             .pickerStyle(.segmented)
-                            .onChange(of: appState.selectedProvider) { _, newProvider in
-                                appState.selectedModel = newProvider.defaultModels.first ?? ""
-                            }
                         }
                         
                         // Model Selection
                         HStack {
                             Text("Model:")
                                 .frame(width: 100, alignment: .leading)
-                            Picker("Model", selection: $appState.selectedModel) {
+                            Picker("Model", selection: Binding(
+                                get: { appState.selectedModel },
+                                set: { appState.selectedModel = $0 }
+                            )) {
                                 ForEach(appState.selectedProvider.defaultModels, id: \.self) { model in
                                     Text(model).tag(model)
                                 }
                             }
                             .pickerStyle(.menu)
-                        }
-                        
-                        // API Key
-                        HStack {
-                            Text("API Key:")
-                                .frame(width: 100, alignment: .leading)
-                            SecureField("Enter your API key", text: $appState.apiKey)
-                                .textFieldStyle(.roundedBorder)
                         }
                         
                         // System Prompt
@@ -74,6 +90,67 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
+                GroupBox("API Keys") {
+                    VStack(alignment: .leading, spacing: 15) {
+                        HStack {
+                            Text("Stored API Keys")
+                                .font(.headline)
+                            Spacer()
+                            Button("Add Key") {
+                                newAPIKey = ""
+                                newKeyLabel = ""
+                                newKeyProvider = .groq
+                                showingAddKeySheet = true
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        
+                        if apiKeyManager.availableKeys.isEmpty {
+                            VStack(spacing: 10) {
+                                Image(systemName: "key.slash")
+                                    .font(.title2)
+                                    .foregroundColor(.secondary)
+                                Text("No API keys stored")
+                                    .foregroundColor(.secondary)
+                                Text("Add an API key to start using voice transcription")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 20)
+                        } else {
+                            ForEach(apiKeyManager.availableKeys) { key in
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(key.displayName)
+                                            .font(.body)
+                                            .fontWeight(.medium)
+                                        Text("Added \(key.createdAt.formatted(date: .abbreviated, time: .shortened))")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    // Current selection indicator
+                                    if key.provider == appState.selectedProvider {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green)
+                                    }
+                                    
+                                    Button("Delete") {
+                                        deleteAPIKey(key)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .foregroundColor(.red)
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        }
+                    }
+                    .padding()
+                }
+                
                 Spacer()
             }
             .padding()
@@ -82,7 +159,7 @@ struct PreferencesView: View {
                 Text("API Keys")
             }
             
-            // Microphone Tab
+            // Microphone Tab (unchanged)
             VStack(spacing: 20) {
                 Text("Microphone Settings")
                     .font(.largeTitle)
@@ -178,7 +255,7 @@ struct PreferencesView: View {
                 Text("Microphones")
             }
             
-            // Permissions Tab
+            // Permissions Tab (unchanged)
             VStack(spacing: 20) {
                 Text("Permissions & Accessibility")
                     .font(.largeTitle)
@@ -283,10 +360,107 @@ struct PreferencesView: View {
             }
         }
         .frame(width: 600, height: 500)
+        .sheet(isPresented: $showingAddKeySheet) {
+            AddAPIKeySheet(
+                provider: $newKeyProvider,
+                label: $newKeyLabel,
+                apiKey: $newAPIKey,
+                onSave: { provider, label, key in
+                    saveNewAPIKey(provider: provider, label: label, key: key)
+                }
+            )
+        }
+    }
+    
+    private func deleteAPIKey(_ key: ProviderAPIKey) {
+        do {
+            try apiKeyManager.deleteAPIKey(withId: key.id)
+        } catch {
+            print("Failed to delete API key: \(error)")
+        }
+    }
+    
+    private func saveNewAPIKey(provider: STTProviderType, label: String, key: String) {
+        do {
+            let finalLabel = label.isEmpty ? provider.defaultLabel : label
+            try apiKeyManager.storeAPIKey(key, for: provider, label: finalLabel)
+            showingAddKeySheet = false
+        } catch {
+            print("Failed to store API key: \(error)")
+        }
+    }
+}
+
+struct AddAPIKeySheet: View {
+    @Binding var provider: STTProviderType
+    @Binding var label: String
+    @Binding var apiKey: String
+    let onSave: (STTProviderType, String, String) -> Void
+    
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Add API Key")
+                .font(.title2)
+                .fontWeight(.bold)
+            
+            VStack(alignment: .leading, spacing: 15) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Provider:")
+                        .font(.headline)
+                    Picker("Provider", selection: $provider) {
+                        ForEach(STTProviderType.allCases, id: \.self) { provider in
+                            Text(provider.rawValue).tag(provider)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Label (optional):")
+                        .font(.headline)
+                    TextField("e.g., Personal, Work", text: $label)
+                        .textFieldStyle(.roundedBorder)
+                    Text("Leave empty to use default label")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("API Key:")
+                        .font(.headline)
+                    SecureField("Enter your \(provider.rawValue) API key", text: $apiKey)
+                        .textFieldStyle(.roundedBorder)
+                    
+                    Text("Your API key will be stored securely in your macOS keychain")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            HStack {
+                Button("Cancel") {
+                    dismiss()
+                }
+                .buttonStyle(.bordered)
+                
+                Spacer()
+                
+                Button("Save") {
+                    onSave(provider, label, apiKey)
+                    dismiss()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(apiKey.isEmpty)
+            }
+        }
+        .padding()
+        .frame(width: 400)
     }
 }
 
 #Preview {
-    PreferencesView()
+    PreferencesView(apiKeyManager: APIKeyManager())
         .environmentObject(AppState())
 } 

@@ -28,7 +28,7 @@ public struct ProviderConfig {
     }
 }
 
-public enum STTProviderType: String, CaseIterable {
+public enum STTProviderType: String, CaseIterable, Codable {
     case openai = "OpenAI"
     case groq = "Groq"
     

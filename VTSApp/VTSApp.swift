@@ -1,5 +1,6 @@
 import SwiftUI
 import KeyboardShortcuts
+import KeychainAccess
 
 extension KeyboardShortcuts.Name {
     static let toggleRecording = Self("toggleRecording", default: .init(.semicolon, modifiers: [.command, .shift]))
@@ -16,21 +17,202 @@ struct VTSApp: App {
     }
 }
 
+// MARK: - API Key Management
+
+@MainActor
+public class APIKeyManager: ObservableObject {
+    private let keychain: Keychain
+    private let userDefaults = UserDefaults.standard
+    
+    // Keys for storing which provider/model is currently selected
+    private let selectedProviderKey = "selectedProvider"
+    private let selectedModelKey = "selectedModel"
+    
+    @Published public var availableKeys: [ProviderAPIKey] = []
+    
+    public init() {
+        // Create keychain with app-specific service identifier
+        keychain = Keychain(service: "com.vts.apikeys")
+            .accessibility(.whenUnlocked)
+        
+        loadAvailableKeys()
+    }
+    
+    // MARK: - API Key Management
+    
+    public func storeAPIKey(_ key: String, for provider: STTProviderType, label: String? = nil) throws {
+        let keyIdentifier = createKeyIdentifier(provider: provider, label: label)
+        
+        try keychain.set(key, key: keyIdentifier)
+        
+        // Store metadata in UserDefaults
+        var existingKeys = getStoredKeyMetadata()
+        let newKey = ProviderAPIKey(
+            id: keyIdentifier,
+            provider: provider,
+            label: label ?? provider.defaultLabel,
+            createdAt: Date()
+        )
+        
+        // Remove any existing key with the same identifier
+        existingKeys.removeAll { $0.id == keyIdentifier }
+        existingKeys.append(newKey)
+        
+        saveKeyMetadata(existingKeys)
+        loadAvailableKeys()
+    }
+    
+    public func getAPIKey(for provider: STTProviderType, label: String? = nil) throws -> String? {
+        let keyIdentifier = createKeyIdentifier(provider: provider, label: label)
+        return try keychain.get(keyIdentifier)
+    }
+    
+    public func deleteAPIKey(withId keyId: String) throws {
+        try keychain.remove(keyId)
+        
+        var existingKeys = getStoredKeyMetadata()
+        existingKeys.removeAll { $0.id == keyId }
+        saveKeyMetadata(existingKeys)
+        loadAvailableKeys()
+    }
+    
+    public func hasAPIKey(for provider: STTProviderType) -> Bool {
+        return availableKeys.contains { $0.provider == provider }
+    }
+    
+    // MARK: - Current Selection Management
+    
+    public var selectedProvider: STTProviderType {
+        get {
+            if let rawValue = userDefaults.string(forKey: selectedProviderKey),
+               let provider = STTProviderType(rawValue: rawValue) {
+                return provider
+            }
+            return .groq // Default
+        }
+        set {
+            userDefaults.set(newValue.rawValue, forKey: selectedProviderKey)
+        }
+    }
+    
+    public var selectedModel: String {
+        get {
+            return userDefaults.string(forKey: selectedModelKey) ?? selectedProvider.defaultModels.first ?? ""
+        }
+        set {
+            userDefaults.set(newValue, forKey: selectedModelKey)
+        }
+    }
+    
+    public func getCurrentAPIKey() throws -> String? {
+        // Try to get the first available key for the selected provider
+        let providerKeys = availableKeys.filter { $0.provider == selectedProvider }
+        
+        if let firstKey = providerKeys.first {
+            return try keychain.get(firstKey.id)
+        }
+        
+        return nil
+    }
+    
+    // MARK: - Private Helpers
+    
+    private func createKeyIdentifier(provider: STTProviderType, label: String?) -> String {
+        let labelPart = label ?? "default"
+        return "\(provider.rawValue).\(labelPart)".lowercased()
+    }
+    
+    private func loadAvailableKeys() {
+        DispatchQueue.main.async {
+            self.availableKeys = self.getStoredKeyMetadata().sorted { $0.createdAt < $1.createdAt }
+        }
+    }
+    
+    private func getStoredKeyMetadata() -> [ProviderAPIKey] {
+        guard let data = userDefaults.data(forKey: "apiKeyMetadata"),
+              let keys = try? JSONDecoder().decode([ProviderAPIKey].self, from: data) else {
+            return []
+        }
+        return keys
+    }
+    
+    private func saveKeyMetadata(_ keys: [ProviderAPIKey]) {
+        if let data = try? JSONEncoder().encode(keys) {
+            userDefaults.set(data, forKey: "apiKeyMetadata")
+        }
+    }
+}
+
+// MARK: - Supporting Types
+
+public struct ProviderAPIKey: Codable, Identifiable {
+    public let id: String
+    public let provider: STTProviderType
+    public let label: String
+    public let createdAt: Date
+    
+    public var displayName: String {
+        return "\(provider.rawValue) - \(label)"
+    }
+}
+
+extension STTProviderType {
+    var defaultLabel: String {
+        switch self {
+        case .openai:
+            return "OpenAI Key"
+        case .groq:
+            return "Groq Key"
+        }
+    }
+}
+
 @MainActor
 class AppState: ObservableObject {
     private let statusBarController = StatusBarController()
     private let captureEngine = CaptureEngine()
     private let transcriptionService = TranscriptionService()
     private let deviceManager = DeviceManager()
+    private let apiKeyManager = APIKeyManager()
     
     @Published var preferencesWindow: NSWindow?
     
-    // Configuration state
-    @Published var apiKey = ""
-    @Published var selectedProvider: STTProviderType = .groq
-    @Published var selectedModel = "whisper-large-v3"
+    // Configuration state - now using APIKeyManager
     @Published var systemPrompt = ""
     @Published var isRecording = false
+    @Published var apiKeysUpdateTrigger = 0 // Triggers UI updates when API keys change
+    
+    // Computed properties that delegate to APIKeyManager
+    var selectedProvider: STTProviderType {
+        get { apiKeyManager.selectedProvider }
+        set { 
+            apiKeyManager.selectedProvider = newValue
+            // Update model to default when provider changes
+            apiKeyManager.selectedModel = newValue.defaultModels.first ?? ""
+        }
+    }
+    
+    var selectedModel: String {
+        get { apiKeyManager.selectedModel }
+        set { apiKeyManager.selectedModel = newValue }
+    }
+    
+    // Public access to services for PreferencesView
+    var captureEngineService: CaptureEngine {
+        return captureEngine
+    }
+    
+    var transcriptionServiceInstance: TranscriptionService {
+        return transcriptionService
+    }
+    
+    var deviceManagerService: DeviceManager {
+        return deviceManager
+    }
+    
+    var apiKeyManagerService: APIKeyManager {
+        return apiKeyManager
+    }
     
     init() {
         setupTranscriptionService()
@@ -102,9 +284,10 @@ class AppState: ObservableObject {
     }
     
     private func startRecording() {
-        guard !apiKey.isEmpty else {
-            print("API key is required")
-            showAlert("Error", "Please set an API key in preferences")
+        // Check if we have an API key for the selected provider
+        guard apiKeyManager.hasAPIKey(for: selectedProvider) else {
+            print("No API key found for \(selectedProvider)")
+            showAlert("Error", "Please add an API key for \(selectedProvider.rawValue) in preferences")
             return
         }
         
@@ -119,6 +302,13 @@ class AppState: ObservableObject {
         do {
             print("Starting audio capture...")
             let audioStream = try captureEngine.start(deviceID: deviceManager.preferredDeviceID)
+            
+            // Get the API key securely from keychain
+            guard let apiKey = try apiKeyManager.getCurrentAPIKey() else {
+                print("Failed to retrieve API key from keychain")
+                showAlert("Error", "Failed to retrieve API key. Please check your keychain access.")
+                return
+            }
             
             let config = ProviderConfig(
                 apiKey: apiKey,
@@ -152,8 +342,8 @@ class AppState: ObservableObject {
     
     func showPreferences() {
         if preferencesWindow == nil {
-            let preferencesView = PreferencesView()
-                .environmentObject(self)
+                    let preferencesView = PreferencesView(apiKeyManager: apiKeyManager)
+            .environmentObject(self)
             
             let hostingController = NSHostingController(rootView: preferencesView)
             

@@ -8,7 +8,6 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/kishikawakatsumi/KeychainAccess", from: "4.2.2"),
-        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.0.0"),
-        .package(url: "https://github.com/soffes/HotKey", from: "0.2.1")
+        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.0.0")
     ]
 )

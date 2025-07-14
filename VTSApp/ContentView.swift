@@ -47,10 +47,21 @@ struct ContentView: View {
                 }
                 
                 HStack {
-                    Text("API Key:")
+                    Text("API Keys:")
                         .frame(width: 70, alignment: .leading)
-                    SecureField("Required", text: $appState.apiKey)
-                        .textFieldStyle(.roundedBorder)
+                    if appState.apiKeyManagerService.hasAPIKey(for: appState.selectedProvider) {
+                        Text("✓ Configured")
+                            .foregroundColor(.green)
+                    } else {
+                        Text("⚠ Not Set")
+                            .foregroundColor(.red)
+                    }
+                    Spacer()
+                    Button("Settings") {
+                        appState.showPreferences()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                 }
             }
             
@@ -78,7 +89,7 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(appState.apiKey.isEmpty)
+                .disabled(!appState.apiKeyManagerService.hasAPIKey(for: appState.selectedProvider))
                 
                 // Hotkey hint
                 Text("Global Hotkey: ⌘⇧;")
