@@ -156,6 +156,12 @@ swift test
 - **Rate Limits**: Check your account quotas and billing
 - **Network Errors**: Ensure stable internet connection
 
+### Accessibility Permissions (Development)
+- **Permission Not Updating**: During development/testing, when the app changes (rebuild, code changes), macOS treats it as a "new" app
+- **Solution**: Remove the old app entry from System Settings > Privacy & Security > Accessibility, then re-grant permission
+- **Why This Happens**: Each build gets a different signature, so macOS sees it as a different application
+- **Quick Fix**: Check the app list in Accessibility settings and remove any old/duplicate VTS entries
+
 ### Performance Tips
 - **Groq**: Faster streaming, good for real-time use
 - **OpenAI**: Higher quality, better for accuracy-critical applications

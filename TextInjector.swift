@@ -1,11 +1,11 @@
 import Foundation
 import AppKit
 import CoreGraphics
+import Combine
 
 @MainActor
-@Observable
-public class TextInjector {
-    public private(set) var hasAccessibilityPermission = false
+public class TextInjector: ObservableObject {
+    @Published public private(set) var hasAccessibilityPermission = false
     
     public init() {
         updatePermissionStatus()
@@ -22,7 +22,9 @@ public class TextInjector {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.updatePermissionStatus()
+            Task { @MainActor in
+                self?.updatePermissionStatus()
+            }
         }
     }
     
@@ -38,6 +40,10 @@ public class TextInjector {
         
         if hasAccessibilityPermission != wasGranted {
             print("TextInjector: Permission status changed to: \(hasAccessibilityPermission)")
+            // Ensure UI updates by explicitly sending change notification
+            DispatchQueue.main.async {
+                self.objectWillChange.send()
+            }
         }
     }
     
@@ -65,12 +71,28 @@ public class TextInjector {
         // Start monitoring for permission changes
         startMonitoring()
     }
+    
+
 
     private func openSystemSettings() {
-        let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
-        NSWorkspace.shared.open(url)
-        print("TextInjector: Opened System Settings")
+        // Try the new System Settings first (macOS 13+)
+        let newSettingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+        
+        // Also try the old System Preferences format as fallback
+        let oldSettingsURL = URL(string: "x-apple.systempreferences:com.apple.SystemProfiler.AboutProfiler")!
+        
+        if NSWorkspace.shared.open(newSettingsURL) {
+            print("TextInjector: Opened System Settings (new format)")
+        } else if NSWorkspace.shared.open(oldSettingsURL) {
+            print("TextInjector: Opened System Preferences (legacy format)")
+        } else {
+            print("TextInjector: Failed to open System Settings")
+        }
     }
+    
+
+    
+
     
     private func startMonitoring() {
         print("TextInjector: Starting permission monitoring...")
@@ -81,11 +103,13 @@ public class TextInjector {
                 return
             }
             
-            self.updatePermissionStatus()
-            
-            if self.hasAccessibilityPermission {
-                print("TextInjector: Permission granted!")
-                timer.invalidate()
+            Task { @MainActor in
+                self.updatePermissionStatus()
+                
+                if self.hasAccessibilityPermission {
+                    print("TextInjector: Permission granted!")
+                    timer.invalidate()
+                }
             }
         }
     }
@@ -209,4 +233,4 @@ public class TextInjector {
             }
         }
     }
-} 
+}

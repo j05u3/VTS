@@ -305,20 +305,11 @@ struct PreferencesView: View {
                             
                             Spacer()
                             
-                            HStack {
-                                if !transcriptionService.injector.hasAccessibilityPermission {
-                                    Button("Grant") {
-                                        transcriptionService.injector.requestAccessibilityPermission()
-                                    }
-                                    .buttonStyle(.bordered)
+                            if !transcriptionService.injector.hasAccessibilityPermission {
+                                Button("Grant") {
+                                    transcriptionService.injector.requestAccessibilityPermission()
                                 }
-                                
-                                Button("Refresh") {
-                                    transcriptionService.injector.updatePermissionStatus()
-                                }
-                                .buttonStyle(.borderless)
-                                .foregroundColor(.secondary)
-                                .font(.caption)
+                                .buttonStyle(.bordered)
                             }
                         }
                     }

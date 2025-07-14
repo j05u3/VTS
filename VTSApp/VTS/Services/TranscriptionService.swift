@@ -12,8 +12,20 @@ public class TranscriptionService: ObservableObject {
     private var partialResults: [TranscriptionChunk] = []
     private let textInjector = TextInjector()
     private var lastInjectedText = ""
+    private var cancellables = Set<AnyCancellable>()
     
-    public init() {}
+    public init() {
+        setupTextInjectorObservation()
+    }
+    
+    private func setupTextInjectorObservation() {
+        // Bridge TextInjector changes to this ObservableObject
+        textInjector.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+    }
     
     public var injector: TextInjector {
         return textInjector
