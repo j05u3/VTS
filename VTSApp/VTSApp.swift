@@ -368,10 +368,11 @@ class AppState: ObservableObject {
     
     private func stopRecording() {
         captureEngine.stop()
-        transcriptionService.stopTranscription()
+        // Don't cancel transcription - let it finish processing the collected audio
+        // transcriptionService.stopTranscription()  // Removed this line
         isRecording = false
         statusBarController.updateRecordingState(false)
-        print("Recording stopped")
+        print("Recording stopped - transcription will continue processing")
     }
     
     func showPreferences() {

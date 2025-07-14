@@ -6,7 +6,7 @@ public protocol STTProvider {
     func transcribe(
         stream: AsyncThrowingStream<Data, Error>,
         config: ProviderConfig
-    ) async throws -> AsyncStream<TranscriptionChunk>
+    ) async throws -> String
     
     func validateConfig(_ config: ProviderConfig) throws
 }
