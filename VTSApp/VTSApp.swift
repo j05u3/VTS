@@ -1,6 +1,7 @@
 import SwiftUI
 import KeyboardShortcuts
 import KeychainAccess
+import Combine
 
 extension KeyboardShortcuts.Name {
     static let toggleRecording = Self("toggleRecording", default: .init(.semicolon, modifiers: [.command, .shift]))
@@ -174,6 +175,7 @@ class AppState: ObservableObject {
     private let transcriptionService = TranscriptionService()
     private let deviceManager = DeviceManager()
     private let apiKeyManager = APIKeyManager()
+    private var cancellables = Set<AnyCancellable>()
     
     @Published var preferencesWindow: NSWindow?
     
@@ -182,10 +184,11 @@ class AppState: ObservableObject {
     @Published var isRecording = false
     @Published var apiKeysUpdateTrigger = 0 // Triggers UI updates when API keys change
     
-    // Computed properties that delegate to APIKeyManager
+    // Computed properties that delegate to APIKeyManager with proper change notifications
     var selectedProvider: STTProviderType {
         get { apiKeyManager.selectedProvider }
         set { 
+            objectWillChange.send()
             apiKeyManager.selectedProvider = newValue
             // Update model to default when provider changes
             apiKeyManager.selectedModel = newValue.defaultModels.first ?? ""
@@ -194,7 +197,10 @@ class AppState: ObservableObject {
     
     var selectedModel: String {
         get { apiKeyManager.selectedModel }
-        set { apiKeyManager.selectedModel = newValue }
+        set { 
+            objectWillChange.send()
+            apiKeyManager.selectedModel = newValue 
+        }
     }
     
     // Public access to services for PreferencesView
@@ -216,11 +222,39 @@ class AppState: ObservableObject {
     
     init() {
         setupTranscriptionService()
+        setupObservableObjectBindings()
         
         // Defer UI setup until after app launch
         DispatchQueue.main.async {
             self.initializeAfterLaunch()
         }
+    }
+    
+    private func setupObservableObjectBindings() {
+        // Propagate changes from nested ObservableObjects to this AppState
+        apiKeyManager.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        deviceManager.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        transcriptionService.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        captureEngine.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
     }
     
     private func initializeAfterLaunch() {
