@@ -143,3 +143,6 @@ temp/
 # Local configuration files
 local.json
 local.plist
+
+# .specstory
+.specstory
