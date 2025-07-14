@@ -305,11 +305,33 @@ struct PreferencesView: View {
                             
                             Spacer()
                             
-                            if !transcriptionService.injector.hasAccessibilityPermission {
-                                Button("Grant") {
-                                    transcriptionService.injector.requestAccessibilityPermission()
+                            VStack(spacing: 4) {
+                                if !transcriptionService.injector.hasAccessibilityPermission {
+                                    Button("Grant") {
+                                        transcriptionService.injector.requestAccessibilityPermission()
+                                    }
+                                    .buttonStyle(.bordered)
+                                } else {
+                                    HStack(spacing: 8) {
+                                        Button("Test Injection") {
+                                            transcriptionService.injector.testTextInjection()
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.small)
+                                        
+                                        Button("Test Cursor") {
+                                            transcriptionService.injector.testCursorInjection()
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.small)
+                                    }
+                                }
+                                
+                                Button("Check Status") {
+                                    transcriptionService.injector.checkPermissionStatus()
                                 }
                                 .buttonStyle(.bordered)
+                                .controlSize(.small)
                             }
                         }
                     }
