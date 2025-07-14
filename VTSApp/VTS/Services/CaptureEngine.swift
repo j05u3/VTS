@@ -10,6 +10,7 @@ public class CaptureEngine: ObservableObject {
     
     private var audioEngine: AVAudioEngine?
     private var inputNode: AVAudioInputNode?
+    private var mixerNode: AVAudioMixerNode?
     private var audioFormat: AVAudioFormat?
     private var converter: AVAudioConverter?
     private var continuation: AsyncThrowingStream<Data, Error>.Continuation?
@@ -60,6 +61,11 @@ public class CaptureEngine: ObservableObject {
         let inputNode = engine.inputNode
         self.inputNode = inputNode
         
+        // Create a mixer node for built-in level monitoring
+        let mixerNode = AVAudioMixerNode()
+        self.mixerNode = mixerNode
+        engine.attach(mixerNode)
+        
         // Get the actual input format from the microphone
         let inputFormat = inputNode.outputFormat(forBus: 0)
         print("Input format: \(inputFormat)")
@@ -86,16 +92,22 @@ public class CaptureEngine: ObservableObject {
             print("Audio formats match, no conversion needed")
         }
         
+        // Connect input -> mixer for level monitoring
+        engine.connect(inputNode, to: mixerNode, format: inputFormat)
+        
         // Create audio stream
         let (stream, continuation) = AsyncThrowingStream.makeStream(of: Data.self)
         self.continuation = continuation
         
-        // Install audio tap with the input format (what the mic provides)
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: inputFormat) { [weak self] buffer, _ in
+        // Install audio tap on the mixer node instead of input node
+        mixerNode.installTap(onBus: 0, bufferSize: 1024, format: inputFormat) { [weak self] buffer, _ in
             Task { @MainActor in
                 self?.processAudioBuffer(buffer)
             }
         }
+        
+        // Start level monitoring timer using built-in capabilities
+        startLevelMonitoring()
         
         // Start the engine
         try engine.start()
@@ -108,11 +120,12 @@ public class CaptureEngine: ObservableObject {
         guard isRecording else { return }
         
         audioEngine?.stop()
-        inputNode?.removeTap(onBus: 0)
+        mixerNode?.removeTap(onBus: 0)
         continuation?.finish()
         
         audioEngine = nil
         inputNode = nil
+        mixerNode = nil
         audioFormat = nil
         continuation = nil
         isRecording = false
@@ -200,38 +213,32 @@ public class CaptureEngine: ObservableObject {
         continuation?.yield(outputData)
     }
     
+    private func startLevelMonitoring() {
+        // Level monitoring is now handled directly in the audio tap
+        // No need for a separate timer - the tap provides real-time updates
+    }
+    
     private func updateAudioLevel(from buffer: AVAudioPCMBuffer) {
-        // Calculate audio level regardless of format for visual feedback
+        // Simplified audio level calculation - just get peak amplitude
         let frameLength = Int(buffer.frameLength)
         guard frameLength > 0 else { return }
         
-        var level: Float = 0.0
+        var peak: Float = 0.0
         
         if let floatData = buffer.floatChannelData?[0] {
-            // Float format - most common on macOS
-            let samples = Array(UnsafeBufferPointer(start: floatData, count: frameLength))
-            let sum = samples.reduce(0) { $0 + abs($1) }
-            let average = sum / Float(frameLength)
-            level = min(average * 2.0, 1.0) // Amplify for better visualization
-        } else if let int16Data = buffer.int16ChannelData?[0] {
-            // Int16 format
-            let samples = Array(UnsafeBufferPointer(start: int16Data, count: frameLength))
-            let sum = samples.reduce(0) { $0 + abs(Int32($1)) }
-            let average = Float(sum) / Float(frameLength)
-            level = min(average / 32767.0, 1.0)
-        } else if let int32Data = buffer.int32ChannelData?[0] {
-            // Int32 format
-            let samples = Array(UnsafeBufferPointer(start: int32Data, count: frameLength))
-            let sum = samples.reduce(0) { $0 + abs(Int64($1)) }
-            let average = Float(sum) / Float(frameLength)
-            level = min(average / 2147483647.0, 1.0)
+            // Float format - find peak value
+            for i in 0..<frameLength {
+                peak = max(peak, abs(floatData[i]))
+            }
+            // Apply gentle scaling to match macOS levels better
+            peak = min(peak * 3.0, 1.0)
         }
         
         // Update audioLevel on main thread for UI
         Task { @MainActor in
-            self.audioLevel = level
-            if level > 0.01 {
-                print("Audio level: \(level)")
+            self.audioLevel = peak
+            if peak > 0.01 {
+                print("Audio level: \(peak)")
             }
         }
     }

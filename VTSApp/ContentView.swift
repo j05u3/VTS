@@ -164,10 +164,14 @@ struct ContentView: View {
                     // Audio Level Indicator
                     HStack {
                         Text("Audio Level:")
-                        ProgressView(value: captureEngine.audioLevel)
+                        ProgressView(value: captureEngine.audioLevel, total: 1.0)
                             .progressViewStyle(.linear)
                             .frame(height: 10)
                             .tint(captureEngine.audioLevel > 0.1 ? .green : .gray)
+                        Text(String(format: "%.2f", captureEngine.audioLevel))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(width: 40, alignment: .trailing)
                     }
                     
                     // Record Button
