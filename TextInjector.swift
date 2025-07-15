@@ -105,8 +105,50 @@ public class TextInjector: ObservableObject {
             print("🧪 TextInjector: Please focus on Cursor chat input now!")
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                // Force typing simulation for this test with mixed case
-                self.simulateTyping("Hello World! Testing VTS typing in Cursor. Mixed CaSe TeXt: 123 ABC def.")
+                // Test with mixed case and international characters
+                self.injectText("Hello World! Testing VTS typing in Cursor. Mixed CaSe TeXt: 123 ABC def. Español: ñáéíóú")
+            }
+        } else {
+            print("🧪 TextInjector: Cannot test - no accessibility permission")
+        }
+    }
+    
+    public func testSpanishCharacters() {
+        print("🧪 TextInjector: Starting Spanish characters test injection...")
+        checkPermissionStatus()
+        
+        if hasAccessibilityPermission {
+            print("🧪 TextInjector: Attempting Spanish characters test in 3 seconds...")
+            print("🧪 TextInjector: Please focus on any text input now!")
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                let spanishText = "Hola, ¿cómo estás? Me gusta el español: ñáéíóúüÑÁÉÍÓÚÜ"
+                print("🧪 TextInjector: Testing Spanish text: '\(spanishText)'")
+                self.injectText(spanishText)
+            }
+        } else {
+            print("🧪 TextInjector: Cannot test - no accessibility permission")
+        }
+    }
+    
+    public func testMultilingualText() {
+        print("🧪 TextInjector: Starting multilingual test injection...")
+        checkPermissionStatus()
+        
+        if hasAccessibilityPermission {
+            print("🧪 TextInjector: Attempting multilingual test in 3 seconds...")
+            print("🧪 TextInjector: Please focus on any text input now!")
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                let multilingualText = """
+                English: Hello World!
+                Español: ¡Hola Mundo! ñáéíóú
+                Français: Bonjour le monde! àèéêëîïôöùûüÿç
+                Deutsch: Hallo Welt! äöüß
+                Português: Olá Mundo! ãõáéíóúâêôç
+                """
+                print("🧪 TextInjector: Testing multilingual text")
+                self.injectText(multilingualText)
             }
         } else {
             print("🧪 TextInjector: Cannot test - no accessibility permission")
@@ -208,12 +250,26 @@ public class TextInjector: ObservableObject {
                 print("✅ TextInjector: Successfully injected via Accessibility API")
                 return
             }
-            print("⚠️ TextInjector: Accessibility method failed, trying typing simulation...")
-            simulateTyping(text)
+            print("⚠️ TextInjector: Accessibility method failed, trying Unicode typing simulation...")
+            if simulateUnicodeTyping(text) {
+                print("✅ TextInjector: Successfully injected via Unicode typing")
+                return
+            }
+            print("⚠️ TextInjector: Unicode typing failed, trying legacy typing simulation...")
+            simulateLegacyTyping(text)
+            
+        case .unicodeTyping:
+            print("🌐 TextInjector: Using Unicode typing simulation for this app...")
+            if simulateUnicodeTyping(text) {
+                print("✅ TextInjector: Successfully injected via Unicode typing")
+                return
+            }
+            print("⚠️ TextInjector: Unicode typing failed, trying legacy typing simulation...")
+            simulateLegacyTyping(text)
             
         case .typing:
-            print("⌨️ TextInjector: Using typing simulation for this app...")
-            simulateTyping(text)
+            print("⌨️ TextInjector: Using traditional typing simulation for this app...")
+            simulateLegacyTyping(text)
             
         case .clipboard:
             print("📋 TextInjector: Using clipboard method for this app...")
@@ -224,6 +280,7 @@ public class TextInjector: ObservableObject {
     private enum InjectionMethod {
         case accessibility
         case typing
+        case unicodeTyping
         case clipboard
     }
     
@@ -268,38 +325,51 @@ public class TextInjector: ObservableObject {
         let appName = appInfo.name.lowercased()
         let bundleId = appInfo.bundleIdentifier?.lowercased() ?? ""
         
-        // Apps that work best with typing simulation
-        let typingPreferredApps = [
+        // Apps that work best with Unicode typing simulation
+        let unicodeTypingPreferredApps = [
             "cursor", "visual studio code", "vscode", "code",
             "discord", "slack", "telegram", "whatsapp",
             "notion", "obsidian", "bear", "ulysses",
-            "spotify", "music"
+            "spotify", "music", "xcode"
+        ]
+        
+        // Apps that work best with traditional typing simulation
+        let typingPreferredApps = [
+            "terminal", "iterm", "hyper"
         ]
         
         // Apps that work best with clipboard
         let clipboardPreferredApps = [
-            "photoshop", "illustrator", "figma", "sketch",
-            "terminal", "iterm", "hyper"
+            "photoshop", "illustrator", "figma", "sketch"
         ]
         
-        // Check for Electron apps (often need typing simulation)
+        // Check for Electron apps (often need Unicode typing simulation)
         if bundleId.contains("electron") || 
            bundleId.contains("discord") || 
            bundleId.contains("slack") || 
            bundleId.contains("notion") ||
            bundleId.contains("cursor") {
-            print("🔍 TextInjector: Detected Electron-based app, preferring typing simulation")
-            return .typing
+            print("🔍 TextInjector: Detected Electron-based app, preferring Unicode typing simulation")
+            return .unicodeTyping
         }
         
-        // Check app name patterns
+        // Check app name patterns for Unicode typing
+        for preferredApp in unicodeTypingPreferredApps {
+            if appName.contains(preferredApp) {
+                print("🔍 TextInjector: App known to work better with Unicode typing simulation")
+                return .unicodeTyping
+            }
+        }
+        
+        // Check app name patterns for traditional typing
         for preferredApp in typingPreferredApps {
             if appName.contains(preferredApp) {
-                print("🔍 TextInjector: App known to work better with typing simulation")
+                print("🔍 TextInjector: App known to work better with traditional typing simulation")
                 return .typing
             }
         }
         
+        // Check app name patterns for clipboard
         for preferredApp in clipboardPreferredApps {
             if appName.contains(preferredApp) {
                 print("🔍 TextInjector: App known to work better with clipboard method")
@@ -307,8 +377,8 @@ public class TextInjector: ObservableObject {
             }
         }
         
-        // Default to accessibility API first
-        print("🔍 TextInjector: Using default method (accessibility with typing fallback)")
+        // Default to accessibility API first, with Unicode typing as fallback
+        print("🔍 TextInjector: Using default method (accessibility with Unicode typing fallback)")
         return .accessibility
     }
     
@@ -517,13 +587,17 @@ public class TextInjector: ObservableObject {
         let previousContents = pasteboard.string(forType: .string)
         print("📋 TextInjector: Saved previous clipboard contents")
         
-        // Set our text to clipboard
+        // Set our text to clipboard with proper Unicode handling
         pasteboard.clearContents()
         let success = pasteboard.setString(text, forType: .string)
         
         if !success {
             print("❌ TextInjector: Failed to set text to clipboard")
-            return
+            // Try alternative Unicode-safe clipboard method
+            if !setClipboardUnicodeSafe(text) {
+                print("❌ TextInjector: All clipboard methods failed")
+                return
+            }
         }
         
         print("✅ TextInjector: Text set to clipboard, simulating Cmd+V...")
@@ -542,7 +616,7 @@ public class TextInjector: ObservableObject {
         print("✅ TextInjector: Cmd+V sent, scheduling clipboard restoration...")
         
         // Restore clipboard after a short delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             if let previous = previousContents {
                 pasteboard.clearContents()
                 pasteboard.setString(previous, forType: .string)
@@ -553,9 +627,197 @@ public class TextInjector: ObservableObject {
         }
     }
     
+    private func setClipboardUnicodeSafe(_ text: String) -> Bool {
+        print("🌐 TextInjector: Attempting Unicode-safe clipboard setting...")
+        
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        
+        // Try setting with explicit UTF-8 encoding
+        guard let utf8Data = text.data(using: .utf8) else {
+            print("❌ TextInjector: Failed to encode text as UTF-8")
+            return false
+        }
+        
+        let success = pasteboard.setData(utf8Data, forType: .string)
+        if success {
+            print("✅ TextInjector: Successfully set Unicode text to clipboard")
+            return true
+        }
+        
+        print("❌ TextInjector: Unicode-safe clipboard setting failed")
+        return false
+    }
+    
+    // Alternative Unicode input method using Unicode Hex Input
+    private func simulateUnicodeHexInput(_ text: String) -> Bool {
+        print("🔢 TextInjector: Attempting Unicode Hex Input method...")
+        
+        let source = CGEventSource(stateID: .hidSystemState)
+        guard let source = source else {
+            print("❌ TextInjector: Failed to create CGEventSource for hex input")
+            return false
+        }
+        
+        // Check if Unicode Hex Input is available (this is best-effort)
+        print("🔢 TextInjector: Using Unicode Hex Input method for international characters...")
+        
+        for character in text {
+            let unicodeValue = character.unicodeScalars.first?.value ?? 0
+            
+            // For basic ASCII, use regular typing
+            if unicodeValue < 128 {
+                if let keyCode = getKeyCode(for: character) {
+                    let (_, needsShift) = keyCode
+                    
+                    if needsShift {
+                        // Press Option+Shift+hex for uppercase/special chars
+                        simulateHexInput(unicodeValue, withShift: true, source: source)
+                    } else {
+                        simulateHexInput(unicodeValue, withShift: false, source: source)
+                    }
+                } else {
+                    simulateHexInput(unicodeValue, withShift: false, source: source)
+                }
+            } else {
+                // For non-ASCII characters, use Unicode hex input
+                simulateHexInput(unicodeValue, withShift: false, source: source)
+            }
+            
+            Thread.sleep(forTimeInterval: 0.02)
+        }
+        
+        return true
+    }
+    
+    private func simulateHexInput(_ unicodeValue: UInt32, withShift: Bool, source: CGEventSource) {
+        let hexString = String(format: "%04X", unicodeValue)
+        print("🔢 TextInjector: Inputting Unicode U+\(hexString)")
+        
+        // Hold Option key
+        let optionDown = CGEvent(keyboardEventSource: source, virtualKey: 0x3A, keyDown: true) // Option key
+        optionDown?.post(tap: .cghidEventTap)
+        Thread.sleep(forTimeInterval: 0.01)
+        
+        // Type each hex digit
+        for hexChar in hexString {
+            if let keyCode = getHexKeyCode(for: hexChar) {
+                let keyDown = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true)
+                let keyUp = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: false)
+                
+                keyDown?.flags = .maskAlternate
+                keyUp?.flags = .maskAlternate
+                
+                keyDown?.post(tap: .cghidEventTap)
+                Thread.sleep(forTimeInterval: 0.01)
+                keyUp?.post(tap: .cghidEventTap)
+                Thread.sleep(forTimeInterval: 0.01)
+            }
+        }
+        
+        // Release Option key
+        let optionUp = CGEvent(keyboardEventSource: source, virtualKey: 0x3A, keyDown: false)
+        optionUp?.post(tap: .cghidEventTap)
+        Thread.sleep(forTimeInterval: 0.02)
+    }
+    
+    private func getHexKeyCode(for hexChar: Character) -> CGKeyCode? {
+        switch hexChar.lowercased().first {
+        case "0": return 0x1D
+        case "1": return 0x12
+        case "2": return 0x13
+        case "3": return 0x14
+        case "4": return 0x15
+        case "5": return 0x17
+        case "6": return 0x16
+        case "7": return 0x1A
+        case "8": return 0x1C
+        case "9": return 0x19
+        case "a": return 0x00
+        case "b": return 0x0B
+        case "c": return 0x08
+        case "d": return 0x02
+        case "e": return 0x0E
+        case "f": return 0x03
+        default: return nil
+        }
+    }
+    
     private func simulateTyping(_ text: String) {
         print("⌨️ TextInjector: Starting character-by-character typing simulation...")
         print("⌨️ TextInjector: Will type: '\(text)'")
+        
+        // Try Unicode-aware typing first (modern approach)
+        if simulateUnicodeTyping(text) {
+            print("✅ TextInjector: Unicode typing completed successfully")
+            return
+        }
+        
+        // Fallback to legacy character-by-character method
+        print("⚠️ TextInjector: Unicode typing failed, falling back to legacy method...")
+        simulateLegacyTyping(text)
+    }
+    
+    private func simulateUnicodeTyping(_ text: String) -> Bool {
+        print("🌐 TextInjector: Starting Unicode-aware typing simulation...")
+        
+        let source = CGEventSource(stateID: .hidSystemState)
+        guard let source = source else {
+            print("❌ TextInjector: Failed to create CGEventSource")
+            return false
+        }
+        
+        // Split text into chunks to handle it properly
+        let chunks = text.components(separatedBy: .newlines)
+        
+        for (chunkIndex, chunk) in chunks.enumerated() {
+            if !chunk.isEmpty {
+                // Create a keyboard event with Unicode string
+                guard let keyboardEvent = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: true) else {
+                    print("❌ TextInjector: Failed to create keyboard event")
+                    return false
+                }
+                
+                // Convert Unicode scalars to UInt16 array (UniChar)
+                let unicodeString = Array(chunk.unicodeScalars.compactMap { scalar in
+                    // CGEvent expects UniChar (UInt16), so we need to handle larger Unicode values
+                    if scalar.value <= UInt32(UInt16.max) {
+                        return UInt16(scalar.value)
+                    } else {
+                        // For larger Unicode values, we might need to split into surrogate pairs
+                        // For now, we'll skip them and log
+                        print("⚠️ TextInjector: Skipping Unicode scalar U+\(String(format: "%04X", scalar.value)) - too large for UniChar")
+                        return nil
+                    }
+                })
+                
+                // Set the Unicode string for this event
+                keyboardEvent.keyboardSetUnicodeString(stringLength: unicodeString.count, unicodeString: unicodeString)
+                
+                // Post the event
+                keyboardEvent.post(tap: .cghidEventTap)
+                
+                print("✅ TextInjector: Posted Unicode chunk: '\(chunk)'")
+                
+                // Small delay between chunks for stability
+                Thread.sleep(forTimeInterval: 0.05)
+            }
+            
+            // Add newline if not the last chunk
+            if chunkIndex < chunks.count - 1 {
+                let enterEvent = CGEvent(keyboardEventSource: source, virtualKey: 0x24, keyDown: true)
+                enterEvent?.post(tap: .cghidEventTap)
+                let enterUpEvent = CGEvent(keyboardEventSource: source, virtualKey: 0x24, keyDown: false)
+                enterUpEvent?.post(tap: .cghidEventTap)
+                Thread.sleep(forTimeInterval: 0.02)
+            }
+        }
+        
+        return true
+    }
+    
+    private func simulateLegacyTyping(_ text: String) {
+        print("⌨️ TextInjector: Starting legacy character-by-character typing simulation...")
         
         let source = CGEventSource(stateID: .hidSystemState)
         
@@ -609,7 +871,12 @@ public class TextInjector: ObservableObject {
                 // Slightly longer delay between characters to ensure clean typing
                 Thread.sleep(forTimeInterval: 0.03)
             } else {
-                print("⚠️ TextInjector: Could not map character '\(character)' to key code, skipping")
+                print("⚠️ TextInjector: Could not map character '\(character)' to key code, trying Unicode fallback...")
+                
+                // Try to inject this single character using Unicode method
+                if !simulateUnicodeTyping(String(character)) {
+                    print("❌ TextInjector: Unicode fallback also failed for character '\(character)', skipping")
+                }
             }
         }
         
@@ -617,7 +884,7 @@ public class TextInjector: ObservableObject {
         let finalShiftUp = CGEvent(keyboardEventSource: source, virtualKey: 0x38, keyDown: false)
         finalShiftUp?.post(tap: .cghidEventTap)
         
-        print("✅ TextInjector: Finished typing simulation")
+        print("✅ TextInjector: Finished legacy typing simulation")
     }
     
     private func getKeyCode(for character: Character) -> (CGKeyCode, Bool)? {
