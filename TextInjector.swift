@@ -517,47 +517,52 @@ public class TextInjector: ObservableObject {
             print("📝 TextInjector: Could not read current value, assuming empty")
         }
         
-        // Try to set the value directly
-        print("🎯 TextInjector: Attempting direct value setting...")
-        let textValue = text as CFString
-        let directResult = AXUIElementSetAttributeValue(element as! AXUIElement, kAXValueAttribute as CFString, textValue)
-        if directResult == .success {
-            print("✅ TextInjector: Accessibility API reported success")
-            
-            // Verify the change actually took effect
-            if verifyTextInsertion(element: element as! AXUIElement, expectedText: text, originalText: initialValue) {
-                print("✅ TextInjector: Verification passed - text actually inserted")
-                return true
-            } else {
-                print("⚠️ TextInjector: Verification failed - accessibility API succeeded but text didn't change")
-                print("🔄 TextInjector: App may be ignoring accessibility changes, will try alternative methods")
-            }
-        } else {
-            print("❌ TextInjector: Direct value setting failed (error: \(directResult.rawValue))")
-        }
-        
-        // Try to set selected text
-        print("🎯 TextInjector: Attempting selected text replacement...")
+        // Check if there's selected text first
         var selectedRange: CFTypeRef?
+        var selectedText: CFTypeRef?
         let rangeResult = AXUIElementCopyAttributeValue(element as! AXUIElement, kAXSelectedTextRangeAttribute as CFString, &selectedRange)
-        if rangeResult == .success {
-            print("✅ TextInjector: Found selected text range")
+        let selectedTextResult = AXUIElementCopyAttributeValue(element as! AXUIElement, kAXSelectedTextAttribute as CFString, &selectedText)
+        
+        if rangeResult == .success && selectedTextResult == .success,
+           let selectedTextString = selectedText as? String,
+           !selectedTextString.isEmpty {
+            // There's selected text - replace it
+            print("🎯 TextInjector: Found selected text: '\(selectedTextString)' - replacing it...")
+            let textValue = text as CFString
             let selectedResult = AXUIElementSetAttributeValue(element as! AXUIElement, kAXSelectedTextAttribute as CFString, textValue)
             if selectedResult == .success {
-                print("✅ TextInjector: Selected text API reported success")
+                print("✅ TextInjector: Selected text replacement reported success")
                 
                 // Verify this method worked
                 if verifyTextInsertion(element: element as! AXUIElement, expectedText: text, originalText: initialValue) {
-                    print("✅ TextInjector: Verification passed - selected text insertion worked")
+                    print("✅ TextInjector: Verification passed - selected text replacement worked")
                     return true
                 } else {
-                    print("⚠️ TextInjector: Selected text API succeeded but verification failed")
+                    print("⚠️ TextInjector: Selected text replacement succeeded but verification failed")
                 }
             } else {
-                print("❌ TextInjector: Selected text setting failed (error: \(selectedResult.rawValue))")
+                print("❌ TextInjector: Selected text replacement failed (error: \(selectedResult.rawValue))")
             }
         } else {
-            print("❌ TextInjector: Could not get selected text range (error: \(rangeResult.rawValue))")
+            // No selected text - append to existing content
+            print("🎯 TextInjector: No selected text found - appending to existing content...")
+            let combinedText = initialValue + " " + text
+            let textValue = combinedText as CFString
+            let directResult = AXUIElementSetAttributeValue(element as! AXUIElement, kAXValueAttribute as CFString, textValue)
+            if directResult == .success {
+                print("✅ TextInjector: Accessibility API reported success")
+                
+                // Verify the change actually took effect
+                if verifyTextInsertion(element: element as! AXUIElement, expectedText: text, originalText: initialValue) {
+                    print("✅ TextInjector: Verification passed - text actually inserted")
+                    return true
+                } else {
+                    print("⚠️ TextInjector: Verification failed - accessibility API succeeded but text didn't change")
+                    print("🔄 TextInjector: App may be ignoring accessibility changes, will try alternative methods")
+                }
+            } else {
+                print("❌ TextInjector: Direct value setting failed (error: \(directResult.rawValue))")
+            }
         }
         
         print("❌ TextInjector: All accessibility insertion methods failed or were ignored")
