@@ -37,7 +37,7 @@ public enum STTProviderType: String, CaseIterable, Codable {
         case .openai:
             return ["whisper-1"]
         case .groq:
-            return ["whisper-large-v3", "whisper-large-v3-turbo"]
+            return ["whisper-large-v3-turbo", "whisper-large-v3"]
         }
     }
 }
