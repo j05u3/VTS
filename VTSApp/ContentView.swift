@@ -84,6 +84,15 @@ struct ContentView: View {
                     Spacer()
                 }
                 
+                // Audio level bar
+                HStack {
+                    Text("Level:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    AudioLevelView(audioLevel: appState.audioLevel, isRecording: appState.isRecording)
+                    Spacer()
+                }
+                
                 // Hotkey hint
                 Text("Global Hotkey: \(appState.hotkeyManagerService.currentHotkeyString)")
                     .font(.caption)

@@ -149,6 +149,7 @@ class AppState: ObservableObject {
         }
     }
     @Published var isRecording = false
+    @Published var audioLevel: Float = 0.0
     
     // Computed properties that delegate to APIKeyManager with proper change notifications
     var selectedProvider: STTProviderType {
@@ -224,6 +225,13 @@ class AppState: ObservableObject {
         captureEngine.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        // Sync audio level from capture engine
+        captureEngine.$audioLevel
+            .sink { [weak self] level in
+                self?.audioLevel = level
             }
             .store(in: &cancellables)
         
