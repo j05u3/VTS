@@ -1,4 +1,5 @@
 import SwiftUI
+import KeyboardShortcuts
 
 struct PreferencesView: View {
     @EnvironmentObject var appState: AppState
@@ -432,6 +433,51 @@ struct PreferencesView: View {
             .tabItem {
                 Image(systemName: "hand.raised.fill")
                 Text("Permissions")
+            }
+            
+            // Global Hotkeys Tab
+            VStack(spacing: 20) {
+                Text("Global Hotkeys")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                
+                GroupBox("Recording Hotkey") {
+                    VStack(alignment: .leading, spacing: 15) {
+                        Text("Configure the global keyboard shortcut to toggle recording on/off.")
+                            .foregroundColor(.secondary)
+                        
+                        HStack {
+                            Text("Toggle Recording:")
+                                .frame(width: 140, alignment: .leading)
+                            
+                            KeyboardShortcuts.Recorder(for: .toggleRecording)
+                            
+                            Spacer()
+                            
+                            Button("Reset to Default") {
+                                KeyboardShortcuts.reset(.toggleRecording)
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("• The hotkey works system-wide, even when VTS is not the active application")
+                            Text("• Default shortcut: ⌘⇧; (Command + Shift + Semicolon)")
+                            Text("• Click in the recorder above to set a new shortcut")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    }
+                    .padding()
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .tabItem {
+                Image(systemName: "keyboard")
+                Text("Hotkeys")
             }
         }
         .frame(width: 600, height: 575)
