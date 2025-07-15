@@ -210,37 +210,68 @@ struct PreferencesView: View {
                             Divider()
                             
                             // Priority list
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text("Priority Order:")
-                                    .font(.headline)
+                            VStack(alignment: .leading, spacing: 10) {
+                                HStack {
+                                    Text("Priority Order:")
+                                        .font(.headline)
+                                    Spacer()
+                                    if !deviceManager.devicePriorities.isEmpty {
+                                        Text("Drag to reorder")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
                                 
                                 if deviceManager.devicePriorities.isEmpty {
                                     Text("No priority set - will use system default")
                                         .foregroundColor(.secondary)
                                         .italic()
+                                        .frame(height: 40)
                                 } else {
-                                    ForEach(Array(deviceManager.devicePriorities.enumerated()), id: \.offset) { index, deviceID in
-                                        HStack {
-                                            Text("\(index + 1).")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                            Image(systemName: "line.3.horizontal")
-                                                .foregroundColor(.secondary)
-                                            Text(deviceManager.getDeviceName(for: deviceID))
-                                                .font(.body)
-                                            if deviceID == deviceManager.preferredDeviceID {
-                                                Text("(Active)")
+                                    List {
+                                        ForEach(deviceManager.devicePriorities, id: \.self) { deviceID in
+                                            HStack(spacing: 12) {
+                                                // Priority number
+                                                Text("\(deviceManager.devicePriorities.firstIndex(of: deviceID)! + 1).")
                                                     .font(.caption)
-                                                    .foregroundColor(.green)
+                                                    .foregroundColor(.secondary)
+                                                    .frame(width: 20, alignment: .trailing)
+                                                
+                                                // Drag handle
+                                                Image(systemName: "line.3.horizontal")
+                                                    .foregroundColor(.secondary)
+                                                    .imageScale(.medium)
+                                                
+                                                // Device name
+                                                Text(deviceManager.getDeviceName(for: deviceID))
+                                                    .font(.body)
+                                                
+                                                // Active indicator
+                                                if deviceID == deviceManager.preferredDeviceID {
+                                                    Text("(Active)")
+                                                        .font(.caption)
+                                                        .foregroundColor(.green)
+                                                        .fontWeight(.medium)
+                                                }
+                                                
+                                                Spacer()
+                                                
+                                                // Remove button
+                                                Button("−") {
+                                                    deviceManager.removeDeviceFromPriorities(deviceID)
+                                                }
+                                                .buttonStyle(.bordered)
+                                                .foregroundColor(.red)
                                             }
-                                            Spacer()
-                                            Button("−") {
-                                                deviceManager.removeDeviceFromPriorities(deviceID)
-                                            }
-                                            .buttonStyle(.bordered)
+                                            .listRowSeparator(.hidden)
+                                            .listRowBackground(Color.clear)
                                         }
-                                        .padding(.vertical, 2)
+                                        .onMove(perform: { source, destination in
+                                            deviceManager.moveDevice(from: IndexSet(source), to: destination)
+                                        })
                                     }
+                                    .listStyle(.plain)
+                                    .frame(height: CGFloat(deviceManager.devicePriorities.count * 40))
                                 }
                             }
                         }
