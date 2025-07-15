@@ -142,8 +142,15 @@ class AppState: ObservableObject {
     
     private var settingsWindowController: SettingsWindowController?
     
+    // Keys for UserDefaults storage
+    private let systemPromptKey = "systemPrompt"
+    
     // Configuration state - now using APIKeyManager
-    @Published var systemPrompt = ""
+    @Published var systemPrompt = "" {
+        didSet {
+            saveSystemPrompt()
+        }
+    }
     @Published var isRecording = false
     
     // Computed properties that delegate to APIKeyManager with proper change notifications
@@ -183,6 +190,7 @@ class AppState: ObservableObject {
     }
     
     init() {
+        loadSystemPrompt()
         setupTranscriptionService()
         setupObservableObjectBindings()
         
@@ -355,5 +363,15 @@ class AppState: ObservableObject {
         alert.informativeText = message
         alert.alertStyle = .warning
         alert.runModal()
+    }
+    
+    // MARK: - System Prompt Persistence
+    
+    private func saveSystemPrompt() {
+        UserDefaults.standard.set(systemPrompt, forKey: systemPromptKey)
+    }
+    
+    private func loadSystemPrompt() {
+        systemPrompt = UserDefaults.standard.string(forKey: systemPromptKey) ?? ""
     }
 }
