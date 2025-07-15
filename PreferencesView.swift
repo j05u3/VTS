@@ -509,7 +509,7 @@ struct PreferencesView: View {
                 Text("Hotkeys")
             }
         }
-        .frame(width: 600, height: 575)
+        .frame(width: 600, height: 600)
         .sheet(isPresented: $showingTestInjectionView) {
             TextInjectionTestView(isPresented: $showingTestInjectionView)
                 .environmentObject(appState)
