@@ -26,6 +26,7 @@ struct PreferencesView: View {
     @State private var newKeyProvider: STTProviderType = .groq
     @State private var newKeyLabel = ""
     @State private var showingAddKeySheet = false
+    @State private var showingTestInjectionView = false
     
     var body: some View {
         TabView {
@@ -296,8 +297,19 @@ struct PreferencesView: View {
                                 .font(.title2)
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Accessibility Access")
-                                    .font(.headline)
+                                HStack {
+                                    Text("Accessibility Access")
+                                        .font(.headline)
+                                    
+                                    if transcriptionService.injector.hasAccessibilityPermission {
+                                        Button("Debug") {
+                                            showingTestInjectionView = true
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.mini)
+                                    }
+                                }
+                                
                                 Text(transcriptionService.injector.hasAccessibilityPermission ? "Granted - Text injection enabled" : "Required to insert text like native dictation")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
@@ -311,27 +323,7 @@ struct PreferencesView: View {
                                         transcriptionService.injector.requestAccessibilityPermission()
                                     }
                                     .buttonStyle(.bordered)
-                                } else {
-                                    HStack(spacing: 8) {
-                                        Button("Test Injection") {
-                                            transcriptionService.injector.testTextInjection()
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .controlSize(.small)
-                                        
-                                        Button("Test Cursor") {
-                                            transcriptionService.injector.testCursorInjection()
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .controlSize(.small)
-                                    }
                                 }
-                                
-                                Button("Check Status") {
-                                    transcriptionService.injector.checkPermissionStatus()
-                                }
-                                .buttonStyle(.bordered)
-                                .controlSize(.small)
                             }
                         }
                     }
@@ -382,6 +374,10 @@ struct PreferencesView: View {
             }
         }
         .frame(width: 600, height: 500)
+        .sheet(isPresented: $showingTestInjectionView) {
+            TextInjectionTestView(isPresented: $showingTestInjectionView)
+                .environmentObject(appState)
+        }
         .sheet(isPresented: $showingAddKeySheet) {
             AddAPIKeySheet(
                 provider: $newKeyProvider,
