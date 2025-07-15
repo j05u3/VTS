@@ -76,9 +76,38 @@ struct PreferencesView: View {
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
-                            TextField("Optional system prompt to improve transcription accuracy", text: $appState.systemPrompt, axis: .vertical)
-                                .textFieldStyle(.roundedBorder)
-                                .lineLimit(3...6)
+                            
+                            ZStack(alignment: .topLeading) {
+                                // Background with border similar to TextField
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(Color(NSColor.textBackgroundColor))
+                                    )
+                                
+                                // ScrollView with TextEditor for multi-line support
+                                ScrollView(.vertical, showsIndicators: true) {
+                                    TextEditor(text: $appState.systemPrompt)
+                                        .font(.system(size: 13))
+                                        .scrollContentBackground(.hidden)
+                                        .background(Color.clear)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 6)
+                                        .frame(minHeight: 60) // Approximately 3 lines
+                                }
+                                .frame(height: 60) // Fixed height for exactly 3 lines
+                                
+                                // Placeholder text when empty
+                                if appState.systemPrompt.isEmpty {
+                                    Text("Optional system prompt to improve transcription accuracy")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.secondary)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 10)
+                                        .allowsHitTesting(false)
+                                }
+                            }
                         }
                         
                         // Help text
