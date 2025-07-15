@@ -177,7 +177,7 @@ class AppState: ObservableObject {
     private let apiKeyManager = APIKeyManager()
     private var cancellables = Set<AnyCancellable>()
     
-    @Published var preferencesWindow: NSWindow?
+    private var settingsWindowController: SettingsWindowController?
     
     // Configuration state - now using APIKeyManager
     @Published var systemPrompt = ""
@@ -376,26 +376,15 @@ class AppState: ObservableObject {
     }
     
     func showPreferences() {
-        if preferencesWindow == nil {
-                    let preferencesView = PreferencesView(apiKeyManager: apiKeyManager)
-            .environmentObject(self)
-            
-            let hostingController = NSHostingController(rootView: preferencesView)
-            
-            preferencesWindow = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 600, height: 700),
-                styleMask: [.titled, .closable, .resizable],
-                backing: .buffered,
-                defer: false
-            )
-            
-            preferencesWindow?.title = "VTS Preferences"
-            preferencesWindow?.contentViewController = hostingController
-            preferencesWindow?.center()
+        if settingsWindowController == nil {
+            settingsWindowController = SettingsWindowController(appState: self)
         }
         
-        preferencesWindow?.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        settingsWindowController?.showWindow()
+    }
+    
+    func settingsWindowDidClose() {
+        settingsWindowController = nil
     }
     
     private func showAlert(_ title: String, _ message: String) {
