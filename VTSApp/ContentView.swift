@@ -49,13 +49,21 @@ struct ContentView: View {
                 HStack {
                     Text("API Keys:")
                         .frame(width: 70, alignment: .leading)
-                    if appState.apiKeyManagerService.hasAPIKey(for: appState.selectedProvider) {
-                        Text("✓ Configured")
-                            .foregroundColor(.green)
-                    } else {
-                        Text("⚠ Not Set")
-                            .foregroundColor(.red)
+                    
+                    HStack(spacing: 8) {
+                        Image(systemName: appState.selectedProvider.iconName)
+                            .foregroundColor(appState.selectedProvider == .openai ? .green : .orange)
+                        
+                        if appState.apiKeyManagerService.hasAPIKey(for: appState.selectedProvider) {
+                            Text("✓ Configured")
+                                .foregroundColor(.green)
+                        } else {
+                            Text("⚠ Not Set")
+                                .foregroundColor(.red)
+                        }
                     }
+                    .id(appState.apiKeyManagerService.keysUpdated) // Trigger UI update when keys change
+                    
                     Spacer()
                     Button("Settings") {
                         appState.showPreferences()
@@ -90,6 +98,7 @@ struct ContentView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(!appState.apiKeyManagerService.hasAPIKey(for: appState.selectedProvider))
+                .id(appState.apiKeyManagerService.keysUpdated) // Trigger UI update when keys change
                 
                 // Hotkey hint
                 Text("Global Hotkey: ⌘⇧;")

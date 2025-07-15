@@ -29,56 +29,62 @@ public class APIKeyManager: ObservableObject {
     private let selectedProviderKey = "selectedProvider"
     private let selectedModelKey = "selectedModel"
     
-    @Published public var availableKeys: [ProviderAPIKey] = []
+    // Published property to trigger UI updates when keys change
+    @Published public var keysUpdated = 0
     
     public init() {
         // Create keychain with app-specific service identifier
         keychain = Keychain(service: "com.vts.apikeys")
             .accessibility(.whenUnlocked)
-        
-        loadAvailableKeys()
     }
     
     // MARK: - API Key Management
     
-    public func storeAPIKey(_ key: String, for provider: STTProviderType, label: String? = nil) throws {
-        let keyIdentifier = createKeyIdentifier(provider: provider, label: label)
-        
+    /// Store an API key for a provider (replaces any existing key for that provider)
+    public func storeAPIKey(_ key: String, for provider: STTProviderType) throws {
+        let keyIdentifier = provider.rawValue.lowercased()
         try keychain.set(key, key: keyIdentifier)
         
-        // Store metadata in UserDefaults
-        var existingKeys = getStoredKeyMetadata()
-        let newKey = ProviderAPIKey(
-            id: keyIdentifier,
-            provider: provider,
-            label: label ?? provider.defaultLabel,
-            createdAt: Date()
-        )
-        
-        // Remove any existing key with the same identifier
-        existingKeys.removeAll { $0.id == keyIdentifier }
-        existingKeys.append(newKey)
-        
-        saveKeyMetadata(existingKeys)
-        loadAvailableKeys()
+        // Update UI
+        DispatchQueue.main.async {
+            self.keysUpdated += 1
+        }
     }
     
-    public func getAPIKey(for provider: STTProviderType, label: String? = nil) throws -> String? {
-        let keyIdentifier = createKeyIdentifier(provider: provider, label: label)
+    /// Get the API key for a provider
+    public func getAPIKey(for provider: STTProviderType) throws -> String? {
+        let keyIdentifier = provider.rawValue.lowercased()
         return try keychain.get(keyIdentifier)
     }
     
-    public func deleteAPIKey(withId keyId: String) throws {
-        try keychain.remove(keyId)
+    /// Delete the API key for a provider
+    public func deleteAPIKey(for provider: STTProviderType) throws {
+        let keyIdentifier = provider.rawValue.lowercased()
+        try keychain.remove(keyIdentifier)
         
-        var existingKeys = getStoredKeyMetadata()
-        existingKeys.removeAll { $0.id == keyId }
-        saveKeyMetadata(existingKeys)
-        loadAvailableKeys()
+        // Update UI
+        DispatchQueue.main.async {
+            self.keysUpdated += 1
+        }
     }
     
+    /// Check if a provider has an API key configured
     public func hasAPIKey(for provider: STTProviderType) -> Bool {
-        return availableKeys.contains { $0.provider == provider }
+        do {
+            return try getAPIKey(for: provider) != nil
+        } catch {
+            return false
+        }
+    }
+    
+    /// Get the current API key for the selected provider
+    public func getCurrentAPIKey() throws -> String? {
+        return try getAPIKey(for: selectedProvider)
+    }
+    
+    /// Get all providers that have API keys configured
+    public var configuredProviders: [STTProviderType] {
+        return STTProviderType.allCases.filter { hasAPIKey(for: $0) }
     }
     
     // MARK: - Current Selection Management
@@ -104,66 +110,23 @@ public class APIKeyManager: ObservableObject {
             userDefaults.set(newValue, forKey: selectedModelKey)
         }
     }
-    
-    public func getCurrentAPIKey() throws -> String? {
-        // Try to get the first available key for the selected provider
-        let providerKeys = availableKeys.filter { $0.provider == selectedProvider }
-        
-        if let firstKey = providerKeys.first {
-            return try keychain.get(firstKey.id)
-        }
-        
-        return nil
-    }
-    
-    // MARK: - Private Helpers
-    
-    private func createKeyIdentifier(provider: STTProviderType, label: String?) -> String {
-        let labelPart = label ?? "default"
-        return "\(provider.rawValue).\(labelPart)".lowercased()
-    }
-    
-    private func loadAvailableKeys() {
-        DispatchQueue.main.async {
-            self.availableKeys = self.getStoredKeyMetadata().sorted { $0.createdAt < $1.createdAt }
-        }
-    }
-    
-    private func getStoredKeyMetadata() -> [ProviderAPIKey] {
-        guard let data = userDefaults.data(forKey: "apiKeyMetadata"),
-              let keys = try? JSONDecoder().decode([ProviderAPIKey].self, from: data) else {
-            return []
-        }
-        return keys
-    }
-    
-    private func saveKeyMetadata(_ keys: [ProviderAPIKey]) {
-        if let data = try? JSONEncoder().encode(keys) {
-            userDefaults.set(data, forKey: "apiKeyMetadata")
-        }
-    }
 }
 
 // MARK: - Supporting Types
 
-public struct ProviderAPIKey: Codable, Identifiable {
-    public let id: String
-    public let provider: STTProviderType
-    public let label: String
-    public let createdAt: Date
-    
-    public var displayName: String {
-        return "\(provider.rawValue) - \(label)"
-    }
-}
-
 extension STTProviderType {
-    var defaultLabel: String {
+    /// Display name for the provider
+    var displayName: String {
+        return rawValue
+    }
+    
+    /// Icon name for the provider
+    var iconName: String {
         switch self {
         case .openai:
-            return "OpenAI Key"
+            return "brain.head.profile"
         case .groq:
-            return "Groq Key"
+            return "bolt.fill"
         }
     }
 }
@@ -182,7 +145,6 @@ class AppState: ObservableObject {
     // Configuration state - now using APIKeyManager
     @Published var systemPrompt = ""
     @Published var isRecording = false
-    @Published var apiKeysUpdateTrigger = 0 // Triggers UI updates when API keys change
     
     // Computed properties that delegate to APIKeyManager with proper change notifications
     var selectedProvider: STTProviderType {
