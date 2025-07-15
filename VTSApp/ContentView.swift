@@ -84,24 +84,8 @@ struct ContentView: View {
                     Spacer()
                 }
                 
-                // Large Recording Button
-                Button(action: appState.toggleRecording) {
-                    HStack {
-                        Image(systemName: appState.isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                            .font(.title)
-                        Text(appState.isRecording ? "Stop Recording" : "Start Recording")
-                            .font(.headline)
-                    }
-                    .foregroundColor(appState.isRecording ? .red : .blue)
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(!appState.apiKeyManagerService.hasAPIKey(for: appState.selectedProvider))
-                .id(appState.apiKeyManagerService.keysUpdated) // Trigger UI update when keys change
-                
                 // Hotkey hint
-                Text("Global Hotkey: ⌘⇧;")
+                Text("Global Hotkey: \(appState.hotkeyManagerService.currentHotkeyString)")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

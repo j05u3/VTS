@@ -431,7 +431,7 @@ struct PreferencesView: View {
                                 Text("1.")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                Text("Press ⌘⇧; anywhere in macOS to start recording")
+                                Text("Press \(appState.hotkeyManagerService.currentHotkeyString) anywhere in macOS to start recording")
                             }
                             
                             HStack {
@@ -445,7 +445,7 @@ struct PreferencesView: View {
                                 Text("3.")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                Text("Press ⌘⇧; again to stop and insert text at cursor")
+                                Text("Press \(appState.hotkeyManagerService.currentHotkeyString) again to stop and insert text at cursor")
                             }
                         }
                         
@@ -480,11 +480,19 @@ struct PreferencesView: View {
                                 .frame(width: 140, alignment: .leading)
                             
                             KeyboardShortcuts.Recorder(for: .toggleRecording)
+                                .onAppear {
+                                    // Refresh hotkey string when view appears
+                                    appState.hotkeyManagerService.refreshHotkeyString()
+                                }
                             
                             Spacer()
                             
                             Button("Reset to Default") {
                                 KeyboardShortcuts.reset(.toggleRecording)
+                                // Refresh hotkey string after reset
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    appState.hotkeyManagerService.refreshHotkeyString()
+                                }
                             }
                             .buttonStyle(.bordered)
                             .controlSize(.small)
@@ -492,7 +500,7 @@ struct PreferencesView: View {
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text("• The hotkey works system-wide, even when VTS is not the active application")
-                            Text("• Default shortcut: ⌘⇧; (Command + Shift + Semicolon)")
+                            Text("• Current shortcut: \(appState.hotkeyManagerService.currentHotkeyString)")
                             Text("• Click in the recorder above to set a new shortcut")
                         }
                         .font(.caption)

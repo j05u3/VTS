@@ -3,10 +3,6 @@ import KeyboardShortcuts
 import KeychainAccess
 import Combine
 
-extension KeyboardShortcuts.Name {
-    static let toggleRecording = Self("toggleRecording", default: .init(.semicolon, modifiers: [.command, .shift]))
-}
-
 @main
 struct VTSApp: App {
     @StateObject private var appState = AppState()
@@ -138,6 +134,7 @@ class AppState: ObservableObject {
     private let transcriptionService = TranscriptionService()
     private let deviceManager = DeviceManager()
     private let apiKeyManager = APIKeyManager()
+    private let hotkeyManager = SimpleHotkeyManager.shared
     private var cancellables = Set<AnyCancellable>()
     
     private var settingsWindowController: SettingsWindowController?
@@ -189,6 +186,10 @@ class AppState: ObservableObject {
         return apiKeyManager
     }
     
+    var hotkeyManagerService: SimpleHotkeyManager {
+        return hotkeyManager
+    }
+    
     init() {
         loadSystemPrompt()
         setupTranscriptionService()
@@ -225,6 +226,12 @@ class AppState: ObservableObject {
                 self?.objectWillChange.send()
             }
             .store(in: &cancellables)
+        
+        hotkeyManager.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
     }
     
     private func initializeAfterLaunch() {
@@ -255,15 +262,13 @@ class AppState: ObservableObject {
     }
     
     private func setupGlobalHotkey() {
-        print("Registering global hotkey: Cmd+Shift+;")
-        
-        // Register the hotkey handler using KeyboardShortcuts directly
-        KeyboardShortcuts.onKeyDown(for: .toggleRecording) { [weak self] in
-            print("Global hotkey pressed!")
+        // Set up the hotkey handler
+        hotkeyManager.onToggleRecording = { [weak self] in
             self?.toggleRecording()
         }
         
-        print("Global hotkey registered successfully")
+        // Register the hotkey
+        hotkeyManager.registerHotkey()
     }
     
     private func setupTranscriptionService() {

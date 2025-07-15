@@ -1,6 +1,7 @@
 import Foundation
 import AppKit
 import SwiftUI
+import Combine
 
 @MainActor
 public class StatusBarController: ObservableObject {
@@ -13,6 +14,10 @@ public class StatusBarController: ObservableObject {
     public var onShowPreferences: (() -> Void)?
     public var onQuit: (() -> Void)?
     
+    // Reference to hotkey manager for dynamic tooltips
+    private let hotkeyManager = SimpleHotkeyManager.shared
+    private var cancellables = Set<AnyCancellable>()
+    
     public init() {
         // Don't setup status bar in init - will be called later when app is ready
     }
@@ -20,6 +25,16 @@ public class StatusBarController: ObservableObject {
     public func initialize() {
         setupStatusBar()
         setupPopover()
+        setupHotkeyObservation()
+    }
+    
+    private func setupHotkeyObservation() {
+        // Update status bar tooltips when hotkey changes
+        hotkeyManager.$currentHotkeyString
+            .sink { [weak self] _ in
+                self?.updateStatusBarIcon()
+            }
+            .store(in: &cancellables)
     }
     
     private func setupStatusBar() {
@@ -146,12 +161,14 @@ public class StatusBarController: ObservableObject {
     private func updateStatusBarIcon() {
         guard let button = statusBarItem?.button else { return }
         
+        let hotkey = hotkeyManager.currentHotkeyString
+        
         if isRecording {
             button.title = "🔴"
-            button.toolTip = "VTS is recording - Click to stop (⌘⇧;)"
+            button.toolTip = "VTS is recording - Click to stop (\(hotkey))"
         } else {
             button.title = "⚪️"
-            button.toolTip = "VTS is idle - Click to start recording (⌘⇧;)"
+            button.toolTip = "VTS is idle - Click to start recording (\(hotkey))"
         }
     }
     
