@@ -451,11 +451,23 @@ struct PreferencesView: View {
                                 .frame(width: 140, alignment: .leading)
                             
                             KeyboardShortcuts.Recorder(for: .toggleRecording)
+                            
+                            Spacer()
+                            
+                            Button("Reset to Default") {
+                                KeyboardShortcuts.reset(.toggleRecording)
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
                         }
                         
-                        Text("The hotkey works system-wide, even when VTS is not the active application.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("• The hotkey works system-wide, even when VTS is not the active application")
+                            Text("• Default shortcut: ⌘⇧; (Command + Shift + Semicolon)")
+                            Text("• Click in the recorder above to set a new shortcut")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                     }
                     .padding()
                 }
