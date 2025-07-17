@@ -78,13 +78,14 @@ public class StatusBarController: ObservableObject {
         
         // Recording toggle
         let recordingTitle: String
-        if isRecording {
-            recordingTitle = "Stop Recording"
-        } else if isProcessing {
-            recordingTitle = "Start Recording (Processing...)"
-        } else {
-            recordingTitle = "Start Recording"
-        }
+switch (isRecording, isProcessing) {
+case (true, _):
+    recordingTitle = "Stop Recording"
+case (false, true):
+    recordingTitle = "Start Recording (Processing...)"
+case (false, false):
+    recordingTitle = "Start Recording"
+}
         
         let recordingItem = NSMenuItem(
             title: recordingTitle,
