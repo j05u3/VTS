@@ -480,10 +480,6 @@ struct PreferencesView: View {
                                 .frame(width: 140, alignment: .leading)
                             
                             KeyboardShortcuts.Recorder(for: .toggleRecording)
-                                .onAppear {
-                                    // Refresh hotkey string when view appears
-                                    appState.hotkeyManagerService.refreshHotkeyString()
-                                }
                             
                             Spacer()
                             
@@ -516,10 +512,6 @@ struct PreferencesView: View {
                                 .frame(width: 140, alignment: .leading)
                             
                             KeyboardShortcuts.Recorder(for: .copyLastTranscription)
-                                .onAppear {
-                                    // Refresh hotkey string when view appears
-                                    appState.hotkeyManagerService.refreshHotkeyString()
-                                }
                             
                             Spacer()
                             

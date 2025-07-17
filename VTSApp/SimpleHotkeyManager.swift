@@ -19,18 +19,28 @@ public class SimpleHotkeyManager: ObservableObject {
     public var onToggleRecording: (() -> Void)?
     public var onCopyLastTranscription: (() -> Void)?
     private var cancellables = Set<AnyCancellable>()
+    private var hotkeyUpdateTimer: Timer?
     
     private init() {
         updateCurrentHotkeyString()
         updateCurrentCopyHotkeyString()
         
-        // Use event-driven approach instead of polling
-        KeyboardShortcuts.events
-            .sink { [weak self] _ in
+        // Since KeyboardShortcuts.events doesn't exist, we'll use a timer to periodically check for changes
+        // This is not ideal but necessary until the library provides event-driven updates
+        startHotkeyUpdateTimer()
+    }
+    
+    private func startHotkeyUpdateTimer() {
+        hotkeyUpdateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
                 self?.updateCurrentHotkeyString()
                 self?.updateCurrentCopyHotkeyString()
             }
-            .store(in: &cancellables)
+        }
+    }
+    
+    deinit {
+        hotkeyUpdateTimer?.invalidate()
     }
     
     /// Update the published currentHotkeyString with the current shortcut
@@ -247,7 +257,7 @@ public class SimpleHotkeyManager: ObservableObject {
             
         default:
             // For any other keys we haven't explicitly handled
-            return "?"
+            return "(unknown)"
         }
     }
     
