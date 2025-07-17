@@ -9,6 +9,7 @@ public class StatusBarController: ObservableObject {
     private var popover: NSPopover?
     
     @Published public var isRecording = false
+    @Published public var isProcessing = false
     
     public var onToggleRecording: (() -> Void)?
     public var onCopyLastTranscription: (() -> Void)?
@@ -98,8 +99,18 @@ public class StatusBarController: ObservableObject {
         let menu = NSMenu()
         
         // Recording toggle
+        let recordingTitle: String
+        switch (isRecording, isProcessing) {
+            case (true, _):
+                recordingTitle = "Stop Recording"
+            case (false, true):
+                recordingTitle = "Start Recording (Processing...)"
+            case (false, false):
+                recordingTitle = "Start Recording"
+        }
+        
         let recordingItem = NSMenuItem(
-            title: isRecording ? "Stop Recording" : "Start Recording",
+            title: recordingTitle,
             action: #selector(toggleRecording),
             keyEquivalent: ""
         )
@@ -193,14 +204,23 @@ public class StatusBarController: ObservableObject {
         updateStatusBarIcon()
     }
     
+    public func updateProcessingState(_ processing: Bool) {
+        isProcessing = processing
+        updateStatusBarIcon()
+    }
+    
     private func updateStatusBarIcon() {
         guard let button = statusBarItem?.button else { return }
         
         let hotkey = hotkeyManager.currentHotkeyString
         
+        // Priority: Recording > Processing > Idle
         if isRecording {
             button.title = "🔴"
             button.toolTip = "VTS is recording - Click to stop (\(hotkey))"
+        } else if isProcessing {
+            button.title = "🔵"
+            button.toolTip = "VTS is processing audio - Click to view (\(hotkey))"
         } else {
             button.title = "⚪️"
             button.toolTip = "VTS is idle - Click to start recording (\(hotkey))"

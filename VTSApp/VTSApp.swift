@@ -149,6 +149,7 @@ class AppState: ObservableObject {
         }
     }
     @Published var isRecording = false
+    @Published var isProcessing = false
     @Published var audioLevel: Float = 0.0
     
     // Computed properties that delegate to APIKeyManager with proper change notifications
@@ -232,6 +233,20 @@ class AppState: ObservableObject {
         captureEngine.$audioLevel
             .sink { [weak self] level in
                 self?.audioLevel = level
+            }
+            .store(in: &cancellables)
+        
+        // Sync processing state from transcription service to AppState
+        transcriptionService.$isTranscribing
+            .sink { [weak self] isTranscribing in
+                self?.isProcessing = isTranscribing
+            }
+            .store(in: &cancellables)
+        
+        // Observe AppState isProcessing changes to update status bar
+        $isProcessing
+            .sink { [weak self] isProcessing in
+                self?.statusBarController.updateProcessingState(isProcessing)
             }
             .store(in: &cancellables)
         

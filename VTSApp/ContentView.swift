@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
+    @State private var isAnimating = false
     
     var body: some View {
         VStack(spacing: 16) {
@@ -79,8 +80,27 @@ struct ContentView: View {
             VStack(spacing: 12) {
                 HStack {
                     Text("Status:")
-                    Text(appState.isRecording ? "🔴 Recording" : "⚪️ Idle")
-                        .foregroundColor(appState.isRecording ? .red : .secondary)
+                    
+                    // Show status based on priority: Recording > Processing > Idle
+                    if appState.isRecording {
+                        Text("🔴 Recording")
+                            .foregroundColor(.red)
+                    } else if appState.isProcessing {
+                        Text("🔵 Processing")
+                            .foregroundColor(.blue)
+                            .scaleEffect(isAnimating ? 1.1 : 1.0)
+                            .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isAnimating)
+                            .onAppear {
+                                isAnimating = true
+                            }
+                            .onDisappear {
+                                isAnimating = false
+                            }
+                    } else {
+                        Text("⚪️ Idle")
+                            .foregroundColor(.secondary)
+                    }
+                    
                     Spacer()
                 }
                 
