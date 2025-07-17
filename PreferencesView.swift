@@ -423,7 +423,7 @@ struct PreferencesView: View {
                 
                 GroupBox("How It Works") {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("VTS works like native macOS dictation:")
+                        Text("Voice Transcription works like native macOS dictation:")
                             .font(.headline)
                         
                         VStack(alignment: .leading, spacing: 8) {
@@ -449,7 +449,7 @@ struct PreferencesView: View {
                             }
                         }
                         
-                        Text("Accessibility permission allows VTS to type text directly into any app, just like built-in dictation.")
+                        Text("Accessibility permission allows Voice Transcription to insert text directly into any application, just like built-in dictation.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -492,7 +492,7 @@ struct PreferencesView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("• The hotkey works system-wide, even when VTS is not the active application")
+                            Text("• The shortcut works system-wide, even when Voice Transcription is not the active application")
                             Text("• Current shortcut: \(appState.hotkeyManagerService.currentHotkeyString)")
                             Text("• Click in the recorder above to set a new shortcut")
                         }
@@ -526,7 +526,7 @@ struct PreferencesView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("• Copies the last completed transcription to the clipboard")
                             Text("• Current shortcut: \(appState.hotkeyManagerService.currentCopyHotkeyString)")
-                            Text("• Works system-wide when VTS has completed at least one transcription")
+                            Text("• Works system-wide after completing at least one transcription")
                         }
                         .font(.caption)
                         .foregroundColor(.secondary)

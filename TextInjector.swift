@@ -100,55 +100,55 @@ public class TextInjector: ObservableObject {
             log("🧪 Test text will be injected automatically...")
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                self.injectText("Hello from VTS!")
+                self.injectText("Hello from Voice Transcription!")
             }
         } else {
-            log("🧪 TextInjector: Cannot test - no accessibility permission")
+            log("🧪 Cannot test - accessibility permission required")
         }
     }
     
     public func testCursorInjection() {
-        log("🧪 TextInjector: Starting Cursor-specific test injection...")
+        log("🧪 Starting code editor compatibility test...")
         checkPermissionStatus()
         
         if hasAccessibilityPermission {
-            log("🧪 TextInjector: Attempting Cursor test injection in 3 seconds...")
-            log("🧪 TextInjector: Please focus on Cursor chat input now!")
+            log("🧪 Code editor test will begin in 3 seconds...")
+            log("🧪 Please focus on a text field in your code editor!")
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 // Test with mixed case and international characters
-                self.injectText("Hello World! Testing VTS typing in Cursor. Mixed CaSe TeXt: 123 ABC def. Español: ñáéíóú")
+                self.injectText("Hello World! Testing Voice Transcription in code editor. Mixed CaSe TeXt: 123 ABC def. Español: ñáéíóú")
             }
         } else {
-            log("🧪 TextInjector: Cannot test - no accessibility permission")
+            log("🧪 Cannot test - accessibility permission required")
         }
     }
     
     public func testSpanishCharacters() {
-        log("🧪 TextInjector: Starting Spanish characters test injection...")
+        log("🧪 Starting international character test...")
         checkPermissionStatus()
         
         if hasAccessibilityPermission {
-            log("🧪 TextInjector: Attempting Spanish characters test in 3 seconds...")
-            log("🧪 TextInjector: Please focus on any text input now!")
+            log("🧪 International character test will begin in 3 seconds...")
+            log("🧪 Please focus on any text input field!")
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 let spanishText = "Hola, ¿cómo estás? Me gusta el español: ñáéíóúüÑÁÉÍÓÚÜ"
-                self.log("🧪 TextInjector: Testing Spanish text: '\(spanishText)'")
+                self.log("🧪 Testing international text: '\(spanishText)'")
                 self.injectText(spanishText)
             }
         } else {
-            log("🧪 TextInjector: Cannot test - no accessibility permission")
+            log("🧪 Cannot test - accessibility permission required")
         }
     }
     
     public func testMultilingualText() {
-        log("🧪 TextInjector: Starting multilingual test injection...")
+        log("🧪 Starting multilingual compatibility test...")
         checkPermissionStatus()
         
         if hasAccessibilityPermission {
-            log("🧪 TextInjector: Attempting multilingual test in 3 seconds...")
-            log("🧪 TextInjector: Please focus on any text input now!")
+            log("🧪 Multilingual test will begin in 3 seconds...")
+            log("🧪 Please focus on any text input field!")
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 let multilingualText = """
@@ -158,21 +158,21 @@ public class TextInjector: ObservableObject {
                 Deutsch: Hallo Welt! äöüß
                 Português: Olá Mundo! ãõáéíóúâêôç
                 """
-                self.log("🧪 TextInjector: Testing multilingual text")
+                self.log("🧪 Testing multilingual text support")
                 self.injectText(multilingualText)
             }
         } else {
-            log("🧪 TextInjector: Cannot test - no accessibility permission")
+            log("🧪 Cannot test - accessibility permission required")
         }
     }
     
     public func requestAccessibilityPermission() {
-        print("TextInjector: Requesting accessibility permission...")
+        print("Requesting accessibility permission for text insertion...")
         
         // Check current status
         updatePermissionStatus()
         if hasAccessibilityPermission {
-            print("TextInjector: Already have permission")
+            print("Accessibility permission already granted")
             return
         }
         
