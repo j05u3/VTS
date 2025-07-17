@@ -260,6 +260,10 @@ class AppState: ObservableObject {
             self?.toggleRecording()
         }
         
+        statusBarController.onCopyLastTranscription = { [weak self] in
+            self?.copyLastTranscription()
+        }
+        
         statusBarController.onShowPreferences = { [weak self] in
             self?.showPreferences()
         }
@@ -270,12 +274,16 @@ class AppState: ObservableObject {
     }
     
     private func setupGlobalHotkey() {
-        // Set up the hotkey handler
+        // Set up the hotkey handlers
         hotkeyManager.onToggleRecording = { [weak self] in
             self?.toggleRecording()
         }
         
-        // Register the hotkey
+        hotkeyManager.onCopyLastTranscription = { [weak self] in
+            self?.copyLastTranscription()
+        }
+        
+        // Register the hotkeys
         hotkeyManager.registerHotkey()
     }
     
@@ -368,6 +376,15 @@ class AppState: ObservableObject {
     
     func settingsWindowDidClose() {
         settingsWindowController = nil
+    }
+    
+    func copyLastTranscription() {
+        if transcriptionService.copyLastTranscriptionToClipboard() {
+            print("Last transcription copied to clipboard: '\(transcriptionService.lastTranscription)'")
+        } else {
+            print("No transcription available to copy")
+            showAlert("No Transcription", "There is no completed transcription to copy.")
+        }
     }
     
     private func showAlert(_ title: String, _ message: String) {

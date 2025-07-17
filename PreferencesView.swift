@@ -509,6 +509,45 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
+                GroupBox("Copy Last Transcription Hotkey") {
+                    VStack(alignment: .leading, spacing: 15) {
+                        Text("Configure the global keyboard shortcut to copy the last completed transcription.")
+                            .foregroundColor(.secondary)
+                        
+                        HStack {
+                            Text("Copy Last Transcription:")
+                                .frame(width: 140, alignment: .leading)
+                            
+                            KeyboardShortcuts.Recorder(for: .copyLastTranscription)
+                                .onAppear {
+                                    // Refresh hotkey string when view appears
+                                    appState.hotkeyManagerService.refreshHotkeyString()
+                                }
+                            
+                            Spacer()
+                            
+                            Button("Reset to Default") {
+                                KeyboardShortcuts.reset(.copyLastTranscription)
+                                // Refresh hotkey string after reset
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    appState.hotkeyManagerService.refreshHotkeyString()
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("• Copies the last completed transcription to the clipboard")
+                            Text("• Current shortcut: \(appState.hotkeyManagerService.currentCopyHotkeyString)")
+                            Text("• Works system-wide when VTS has completed at least one transcription")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    }
+                    .padding()
+                }
+                
                 Spacer()
             }
             .padding()

@@ -108,6 +108,12 @@ struct ContentView: View {
                 }
                 .buttonStyle(.bordered)
                 
+                Button("Copy Last (\(appState.hotkeyManagerService.currentCopyHotkeyString))") {
+                    appState.copyLastTranscription()
+                }
+                .buttonStyle(.bordered)
+                .disabled(appState.transcriptionServiceInstance.lastTranscription.isEmpty)
+                
                 Spacer()
                 
                 Button("Quit") {
