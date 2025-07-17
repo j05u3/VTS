@@ -541,13 +541,154 @@ struct PreferencesView: View {
                 Image(systemName: "keyboard")
                 Text("Hotkeys")
             }
+            
+            // Streaming Settings Tab
+            VStack(spacing: 20) {
+                Text("Streaming & Performance")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                
+                GroupBox("Transcription Mode") {
+                    VStack(alignment: .leading, spacing: 15) {
+                        HStack {
+                            Image(systemName: appState.streamingModeEnabled ? "bolt.fill" : "clock.fill")
+                                .foregroundColor(appState.streamingModeEnabled ? .blue : .orange)
+                                .font(.title2)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(appState.streamingModeEnabled ? "Streaming Mode (Recommended)" : "Batch Mode")
+                                    .font(.headline)
+                                Text(appState.streamingModeEnabled ? 
+                                     "Processes audio in real-time chunks for faster results and reduced timeouts" :
+                                     "Processes entire recording at once - may timeout on long recordings")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: $appState.streamingModeEnabled)
+                                .toggleStyle(.switch)
+                        }
+                        
+                        if appState.streamingModeEnabled {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("✓ Reduced timeout risk")
+                                    Spacer()
+                                }
+                                HStack {
+                                    Text("✓ Faster partial results")
+                                    Spacer()
+                                }
+                                HStack {
+                                    Text("✓ Better for long recordings")
+                                    Spacer()
+                                }
+                            }
+                            .font(.caption)
+                            .foregroundColor(.green)
+                            .padding(.top, 5)
+                        }
+                    }
+                    .padding()
+                }
+                
+                GroupBox("Partial Results") {
+                    VStack(alignment: .leading, spacing: 15) {
+                        HStack {
+                            Image(systemName: appState.partialResultsEnabled ? "text.bubble.fill" : "text.bubble")
+                                .foregroundColor(appState.partialResultsEnabled ? .green : .gray)
+                                .font(.title2)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Real-time Text Updates")
+                                    .font(.headline)
+                                Text(appState.partialResultsEnabled ? 
+                                     "See text appear as you speak (requires Streaming Mode)" :
+                                     "Wait for complete transcription")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: $appState.partialResultsEnabled)
+                                .toggleStyle(.switch)
+                                .disabled(!appState.streamingModeEnabled)
+                        }
+                        
+                        if !appState.streamingModeEnabled {
+                            Text("Enable Streaming Mode to use partial results")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                                .italic()
+                        }
+                    }
+                    .padding()
+                }
+                
+                GroupBox("Streaming Information") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("How Streaming Works:")
+                            .font(.headline)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("1.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("Audio is processed in smart chunks (1-10 seconds)")
+                            }
+                            
+                            HStack {
+                                Text("2.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("Voice activity detection prevents splitting words")
+                            }
+                            
+                            HStack {
+                                Text("3.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("Chunks are sent to API as you speak")
+                            }
+                            
+                            HStack {
+                                Text("4.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("Results are combined for final transcription")
+                            }
+                        }
+                        
+                        Divider()
+                        
+                        HStack {
+                            Image(systemName: "info.circle.fill")
+                                .foregroundColor(.blue)
+                            Text("Streaming reduces timeout errors especially for long recordings, making VTS more reliable.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding()
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .tabItem {
+                Image(systemName: "waveform.circle.fill")
+                Text("Streaming")
+            }
         }
         .frame(width: 600, height: 600)
         .sheet(isPresented: $showingTestInjectionView) {
             TextInjectionTestView(isPresented: $showingTestInjectionView)
                 .environmentObject(appState)
         }
-
     }
     
     private func saveAPIKey(for provider: STTProviderType) {
