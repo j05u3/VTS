@@ -85,7 +85,7 @@ struct ContentView: View {
                     if appState.isRecording {
                         Text("🔴 Recording")
                             .foregroundColor(.red)
-                    } else if appState.transcriptionServiceInstance.isTranscribing {
+                    } else if appState.isProcessing {
                         Text("🔵 Processing")
                             .foregroundColor(.blue)
                             .scaleEffect(isAnimating ? 1.1 : 1.0)
