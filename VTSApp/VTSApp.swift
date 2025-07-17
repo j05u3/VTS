@@ -235,6 +235,13 @@ class AppState: ObservableObject {
             }
             .store(in: &cancellables)
         
+        // Sync processing state from transcription service
+        transcriptionService.$isTranscribing
+            .sink { [weak self] isTranscribing in
+                self?.statusBarController.updateProcessingState(isTranscribing)
+            }
+            .store(in: &cancellables)
+        
         hotkeyManager.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()

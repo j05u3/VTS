@@ -79,8 +79,19 @@ struct ContentView: View {
             VStack(spacing: 12) {
                 HStack {
                     Text("Status:")
-                    Text(appState.isRecording ? "🔴 Recording" : "⚪️ Idle")
-                        .foregroundColor(appState.isRecording ? .red : .secondary)
+                    
+                    // Show status based on priority: Recording > Processing > Idle
+                    if appState.isRecording {
+                        Text("🔴 Recording")
+                            .foregroundColor(.red)
+                    } else if appState.transcriptionServiceInstance.isTranscribing {
+                        Text("🟡 Processing")
+                            .foregroundColor(.orange)
+                    } else {
+                        Text("⚪️ Idle")
+                            .foregroundColor(.secondary)
+                    }
+                    
                     Spacer()
                 }
                 
