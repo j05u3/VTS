@@ -12,12 +12,16 @@ public class StatusBarController: ObservableObject {
     @Published public var isProcessing = false
     
     public var onToggleRecording: (() -> Void)?
+    public var onCopyLastTranscription: (() -> Void)?
     public var onShowPreferences: (() -> Void)?
     public var onQuit: (() -> Void)?
     
     // Reference to hotkey manager for dynamic tooltips
     private let hotkeyManager = SimpleHotkeyManager.shared
     private var cancellables = Set<AnyCancellable>()
+    
+    // Reference to transcription service for context menu
+    private weak var transcriptionService: TranscriptionService?
     
     public init() {
         // Don't setup status bar in init - will be called later when app is ready
@@ -27,6 +31,24 @@ public class StatusBarController: ObservableObject {
         setupStatusBar()
         setupPopover()
         setupHotkeyObservation()
+    }
+    
+    public func setTranscriptionService(_ service: TranscriptionService) {
+        transcriptionService = service
+    }
+    
+    private func getTranscriptionPreview() -> String {
+        guard let transcriptionService = transcriptionService else { return "Last" }
+        
+        let lastTranscription = transcriptionService.lastTranscription
+        
+        if lastTranscription.isEmpty {
+            return "Last"
+        }
+        
+        // Take first 6 characters, but handle shorter strings gracefully
+        let preview = String(lastTranscription.prefix(6))
+        return preview.isEmpty ? "Last" : preview
     }
     
     private func setupHotkeyObservation() {
@@ -95,6 +117,15 @@ public class StatusBarController: ObservableObject {
         recordingItem.target = self
         menu.addItem(recordingItem)
         
+        // Copy last transcription
+        let copyItem = NSMenuItem(
+            title: "Copy \(getTranscriptionPreview()) (\(hotkeyManager.currentCopyHotkeyString))",
+            action: #selector(copyLastTranscription),
+            keyEquivalent: ""
+        )
+        copyItem.target = self
+        menu.addItem(copyItem)
+        
         menu.addItem(NSMenuItem.separator())
         
         // Preferences
@@ -144,6 +175,10 @@ public class StatusBarController: ObservableObject {
     
     @objc private func toggleRecording() {
         onToggleRecording?()
+    }
+    
+    @objc private func copyLastTranscription() {
+        onCopyLastTranscription?()
     }
     
     @objc private func showPreferences() {

@@ -128,6 +128,12 @@ struct ContentView: View {
                 }
                 .buttonStyle(.bordered)
                 
+                Button("Copy \(getTranscriptionPreview()) (\(appState.hotkeyManagerService.currentCopyHotkeyString == "None" ? "No hotkey set" : appState.hotkeyManagerService.currentCopyHotkeyString))") {
+                    appState.copyLastTranscription()
+                }
+                .buttonStyle(.bordered)
+                .disabled(appState.transcriptionServiceInstance.lastTranscription.isEmpty)
+                
                 Spacer()
                 
                 Button("Quit") {
@@ -138,6 +144,18 @@ struct ContentView: View {
         }
         .padding()
         .frame(width: 400)
+    }
+    
+    private func getTranscriptionPreview() -> String {
+        let lastTranscription = appState.transcriptionServiceInstance.lastTranscription
+
+        if lastTranscription.isEmpty {
+            return "Last"
+        }
+        
+        // Take first 6 characters and add ellipsis if truncated
+        let preview = String(lastTranscription.prefix(6))
+        return "\"\(lastTranscription.count > 6 ? preview + "…" : preview)\""
     }
 }
 

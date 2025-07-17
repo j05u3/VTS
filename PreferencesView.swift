@@ -480,19 +480,12 @@ struct PreferencesView: View {
                                 .frame(width: 140, alignment: .leading)
                             
                             KeyboardShortcuts.Recorder(for: .toggleRecording)
-                                .onAppear {
-                                    // Refresh hotkey string when view appears
-                                    appState.hotkeyManagerService.refreshHotkeyString()
-                                }
                             
                             Spacer()
                             
                             Button("Reset to Default") {
                                 KeyboardShortcuts.reset(.toggleRecording)
-                                // Refresh hotkey string after reset
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    appState.hotkeyManagerService.refreshHotkeyString()
-                                }
+                                // The hotkey string will update automatically via KeyboardShortcuts.events
                             }
                             .buttonStyle(.bordered)
                             .controlSize(.small)
@@ -502,6 +495,38 @@ struct PreferencesView: View {
                             Text("• The hotkey works system-wide, even when VTS is not the active application")
                             Text("• Current shortcut: \(appState.hotkeyManagerService.currentHotkeyString)")
                             Text("• Click in the recorder above to set a new shortcut")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    }
+                    .padding()
+                }
+                
+                GroupBox("Copy Last Transcription Hotkey") {
+                    VStack(alignment: .leading, spacing: 15) {
+                        Text("Configure the global keyboard shortcut to copy the last completed transcription.")
+                            .foregroundColor(.secondary)
+                        
+                        HStack {
+                            Text("Copy Last Transcription:")
+                                .frame(width: 140, alignment: .leading)
+                            
+                            KeyboardShortcuts.Recorder(for: .copyLastTranscription)
+                            
+                            Spacer()
+                            
+                            Button("Reset to Default") {
+                                KeyboardShortcuts.reset(.copyLastTranscription)
+                                // The hotkey string will update automatically via KeyboardShortcuts.events
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("• Copies the last completed transcription to the clipboard")
+                            Text("• Current shortcut: \(appState.hotkeyManagerService.currentCopyHotkeyString)")
+                            Text("• Works system-wide when VTS has completed at least one transcription")
                         }
                         .font(.caption)
                         .foregroundColor(.secondary)

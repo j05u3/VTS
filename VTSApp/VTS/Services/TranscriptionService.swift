@@ -1,9 +1,11 @@
 import Foundation
+import AppKit
 import Combine
 
 @MainActor
 public class TranscriptionService: ObservableObject {
     @Published public var currentText = ""
+    @Published public var lastTranscription = ""
     @Published public var isTranscribing = false
     @Published public var error: STTError?
     
@@ -69,6 +71,11 @@ public class TranscriptionService: ObservableObject {
                 // Update UI
                 currentText = finalText
                 
+                // Store as last transcription if we have content
+                if !finalText.isEmpty {
+                    lastTranscription = finalText
+                }
+                
                 // Inject the text if we have any
                 if !finalText.isEmpty {
                     print("🚀 TranscriptionService: Injecting final text...")
@@ -104,5 +111,16 @@ public class TranscriptionService: ObservableObject {
     private func handleError(_ error: STTError) {
         self.error = error
         isTranscribing = false
+    }
+    
+    public func copyLastTranscriptionToClipboard() -> Bool {
+        guard !lastTranscription.isEmpty else {
+            return false
+        }
+        
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(lastTranscription, forType: .string)
+        return true
     }
 }
