@@ -45,7 +45,7 @@ public class TextInjector: ObservableObject {
         hasAccessibilityPermission = AXIsProcessTrustedWithOptions(options)
         
         if hasAccessibilityPermission != wasGranted {
-            print("TextInjector: Permission status changed to: \(hasAccessibilityPermission)")
+            print("TextInjector: Accessibility permission status changed - now \(hasAccessibilityPermission ? "enabled" : "disabled")")
             // Ensure UI updates by explicitly sending change notification
             DispatchQueue.main.async {
                 self.objectWillChange.send()
@@ -54,7 +54,7 @@ public class TextInjector: ObservableObject {
     }
     
     public func refreshPermissionStatus() {
-        log("TextInjector: Manually refreshing permission status...")
+        log("TextInjector: Checking accessibility permission status...")
         updatePermissionStatus()
     }
     
@@ -64,7 +64,7 @@ public class TextInjector: ObservableObject {
     }
     
     public func checkPermissionStatus() {
-        log("🔍 TextInjector: Checking accessibility permission status...")
+        log("🔍 Checking accessibility permission for text injection...")
         
         // Safe permission check without prompting
         let options = [
@@ -73,18 +73,18 @@ public class TextInjector: ObservableObject {
         
         let hasPermission = AXIsProcessTrustedWithOptions(options)
         
-        log("📋 TextInjector: Current permission status: \(hasPermission ? "✅ GRANTED" : "❌ DENIED")")
+        log("📋 Accessibility permission status: \(hasPermission ? "✅ GRANTED - Text injection is enabled" : "❌ DENIED - Text injection is disabled")")
         
         if !hasPermission {
-            log("🚫 TextInjector: Accessibility permission is required for text injection")
-            log("📖 TextInjector: To grant permission:")
+            log("🚫 Accessibility permission is required for automatic text insertion")
+            log("📖 To enable text injection:")
             log("   1. Open System Settings")
             log("   2. Go to Privacy & Security")
             log("   3. Click on Accessibility")
-            log("   4. Find 'VTS' in the list and enable it")
-            log("   5. If VTS is not in the list, click the '+' button to add it")
+            log("   4. Find 'Voice Transcription' in the list and enable it")
+            log("   5. If not in the list, click the '+' button to add the app")
         } else {
-            log("🎉 TextInjector: Accessibility permission is properly configured!")
+            log("🎉 Text injection is ready to work! Transcribed text will be automatically inserted.")
         }
         
         // Update our internal state
@@ -92,12 +92,12 @@ public class TextInjector: ObservableObject {
     }
     
     public func testTextInjection() {
-        log("🧪 TextInjector: Starting test injection...")
+        log("🧪 Starting text injection test...")
         checkPermissionStatus()
         
         if hasAccessibilityPermission {
-            log("🧪 TextInjector: Attempting test injection in 3 seconds...")
-            log("🧪 TextInjector: Please focus on a text field now!")
+            log("🧪 Test will begin in 3 seconds - please focus on a text field now!")
+            log("🧪 Test text will be injected automatically...")
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 self.injectText("Hello from VTS!")

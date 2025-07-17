@@ -30,16 +30,16 @@ struct PreferencesView: View {
         TabView {
             // API Configuration Tab
             VStack(spacing: 20) {
-                Text("API Configuration")
+                Text("Speech Recognition Settings")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                GroupBox("Provider Settings") {
+                GroupBox("AI Provider Configuration") {
                     VStack(alignment: .leading, spacing: 15) {
                         // Provider Selection
                         HStack {
-                            Text("Provider:")
-                                .frame(width: 100, alignment: .leading)
+                            Text("AI Provider:")
+                                .frame(width: 120, alignment: .leading)
                             Picker("Provider", selection: Binding(
                                 get: { appState.selectedProvider },
                                 set: { appState.selectedProvider = $0 }
@@ -53,8 +53,8 @@ struct PreferencesView: View {
                         
                         // Model Selection
                         HStack {
-                            Text("Model:")
-                                .frame(width: 100, alignment: .leading)
+                            Text("AI Model:")
+                                .frame(width: 120, alignment: .leading)
                             Picker("Model", selection: Binding(
                                 get: { appState.selectedModel },
                                 set: { appState.selectedModel = $0 }
@@ -69,8 +69,8 @@ struct PreferencesView: View {
                         // System Prompt
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
-                                Text("System Prompt:")
-                                    .frame(width: 100, alignment: .leading)
+                                Text("Custom Instructions:")
+                                    .frame(width: 120, alignment: .leading)
                                 Spacer()
                                 Text("\(appState.systemPrompt.count) characters")
                                     .font(.caption)
@@ -100,7 +100,7 @@ struct PreferencesView: View {
                                 
                                 // Placeholder text when empty
                                 if appState.systemPrompt.isEmpty {
-                                    Text("Optional system prompt to improve transcription accuracy")
+                                    Text("Add custom instructions to improve transcription accuracy for specific domains, names, or technical terms")
                                         .font(.system(size: 13))
                                         .foregroundColor(.secondary)
                                         .padding(.horizontal, 12)
@@ -111,19 +111,19 @@ struct PreferencesView: View {
                         }
                         
                         // Help text
-                        Text("System prompts help improve accuracy for domain-specific language, names, or technical terms.")
+                        Text("Custom instructions help the AI understand your specific context, vocabulary, or domain expertise for better transcription accuracy.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                     .padding()
                 }
                 
-                GroupBox("API Keys") {
+                GroupBox("API Authentication") {
                     VStack(alignment: .leading, spacing: 15) {
-                        Text("Configure API Keys")
+                        Text("API Key Management")
                             .font(.headline)
                         
-                        Text("Enter your API keys for each provider. Keys are stored securely in your macOS keychain.")
+                        Text("Enter your API keys for speech recognition services. Keys are stored securely in your macOS keychain and never shared.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
@@ -154,7 +154,7 @@ struct PreferencesView: View {
                                 HStack {
                                     if editingAPIKeys[provider] != nil {
                                         // Editing mode
-                                        SecureField("Enter your \(provider.displayName) API key", text: Binding(
+                                        SecureField("Paste your \(provider.displayName) API key here", text: Binding(
                                             get: { editingAPIKeys[provider] ?? "" },
                                             set: { editingAPIKeys[provider] = $0 }
                                         ))
@@ -174,7 +174,7 @@ struct PreferencesView: View {
                                         // Display mode
                                         HStack {
                                             if apiKeyManager.hasAPIKey(for: provider) {
-                                                Text("••••••••••••••••")
+                                                Text("API key configured ••••••••••••••••")
                                                     .font(.system(.body, design: .monospaced))
                                                     .foregroundColor(.secondary)
                                             } else {
