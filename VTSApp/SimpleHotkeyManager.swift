@@ -5,7 +5,7 @@ import Combine
 
 extension KeyboardShortcuts.Name {
     static let toggleRecording = Self("toggleRecording", default: .init(.semicolon, modifiers: [.command, .shift]))
-    static let copyLastTranscription = Self("copyLastTranscription", default: .init(.c, modifiers: [.command, .shift, .option]))
+    static let copyLastTranscription = Self("copyLastTranscription", default: nil)
 }
 
 @MainActor
@@ -67,7 +67,7 @@ public class SimpleHotkeyManager: ObservableObject {
     
     /// Get the current hotkey as a display string (e.g., "⌘⇧;")
     private func getCurrentHotkeyDisplayString() -> String {
-        return getHotkeyDisplayString(for: .toggleRecording, fallback: "⌘⇧;")
+        return getHotkeyDisplayString(for: .toggleRecording, fallback: "None")
     }
     
     /// Get the current copy hotkey as a display string (e.g., "⌥⌘⇧C")

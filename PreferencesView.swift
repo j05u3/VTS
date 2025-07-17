@@ -485,7 +485,7 @@ struct PreferencesView: View {
                             
                             Button("Reset to Default") {
                                 KeyboardShortcuts.reset(.toggleRecording)
-                                // The hotkey string will update automatically via KeyboardShortcuts.events
+                                // The hotkey string will update automatically
                             }
                             .buttonStyle(.bordered)
                             .controlSize(.small)
@@ -517,7 +517,7 @@ struct PreferencesView: View {
                             
                             Button("Reset to Default") {
                                 KeyboardShortcuts.reset(.copyLastTranscription)
-                                // The hotkey string will update automatically via KeyboardShortcuts.events
+                                // The hotkey string will update automatically
                             }
                             .buttonStyle(.bordered)
                             .controlSize(.small)
