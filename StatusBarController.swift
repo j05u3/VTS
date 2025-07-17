@@ -19,6 +19,9 @@ public class StatusBarController: ObservableObject {
     private let hotkeyManager = SimpleHotkeyManager.shared
     private var cancellables = Set<AnyCancellable>()
     
+    // Reference to transcription service for context menu
+    private weak var transcriptionService: TranscriptionService?
+    
     public init() {
         // Don't setup status bar in init - will be called later when app is ready
     }
@@ -27,6 +30,24 @@ public class StatusBarController: ObservableObject {
         setupStatusBar()
         setupPopover()
         setupHotkeyObservation()
+    }
+    
+    public func setTranscriptionService(_ service: TranscriptionService) {
+        transcriptionService = service
+    }
+    
+    private func getTranscriptionPreview() -> String {
+        guard let transcriptionService = transcriptionService else { return "Last" }
+        
+        let lastTranscription = transcriptionService.lastTranscription
+        
+        if lastTranscription.isEmpty {
+            return "Last"
+        }
+        
+        // Take first 6 characters, but handle shorter strings gracefully
+        let preview = String(lastTranscription.prefix(6))
+        return preview.isEmpty ? "Last" : preview
     }
     
     private func setupHotkeyObservation() {
@@ -87,7 +108,7 @@ public class StatusBarController: ObservableObject {
         
         // Copy last transcription
         let copyItem = NSMenuItem(
-            title: "Copy Last Transcription (\(hotkeyManager.currentCopyHotkeyString))",
+            title: "Copy \(getTranscriptionPreview()) (\(hotkeyManager.currentCopyHotkeyString))",
             action: #selector(copyLastTranscription),
             keyEquivalent: ""
         )

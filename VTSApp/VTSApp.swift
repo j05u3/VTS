@@ -251,6 +251,9 @@ class AppState: ObservableObject {
         // Initialize the status bar controller first
         statusBarController.initialize()
         
+        // Pass the transcription service for context menu previews
+        statusBarController.setTranscriptionService(transcriptionService)
+        
         statusBarController.setPopoverContent {
             ContentView()
                 .environmentObject(self)

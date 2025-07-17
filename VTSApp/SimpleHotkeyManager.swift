@@ -72,7 +72,7 @@ public class SimpleHotkeyManager: ObservableObject {
     
     /// Get the current copy hotkey as a display string (e.g., "⌥⌘⇧C")
     private func getCurrentCopyHotkeyDisplayString() -> String {
-        return getHotkeyDisplayString(for: .copyLastTranscription, fallback: "⌥⌘⇧C")
+        return getHotkeyDisplayString(for: .copyLastTranscription, fallback: "None")
     }
     
     /// Generic function to get hotkey display string for any KeyboardShortcuts.Name
@@ -274,10 +274,12 @@ public class SimpleHotkeyManager: ObservableObject {
             self?.onToggleRecording?()
         }
         
-        // Register the copy last transcription hotkey handler
-        KeyboardShortcuts.onKeyDown(for: .copyLastTranscription) { [weak self] in
-            print("Global copy hotkey pressed!")
-            self?.onCopyLastTranscription?()
+        // Register the copy last transcription hotkey handler only if it's set
+        if currentCopyHotkeyString != "None" {
+            KeyboardShortcuts.onKeyDown(for: .copyLastTranscription) { [weak self] in
+                print("Global copy hotkey pressed!")
+                self?.onCopyLastTranscription?()
+            }
         }
         
         isEnabled = true
