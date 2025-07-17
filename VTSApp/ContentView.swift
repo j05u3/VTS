@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
+    @State private var isAnimating = false
     
     var body: some View {
         VStack(spacing: 16) {
@@ -85,8 +86,16 @@ struct ContentView: View {
                         Text("🔴 Recording")
                             .foregroundColor(.red)
                     } else if appState.transcriptionServiceInstance.isTranscribing {
-                        Text("🟡 Processing")
-                            .foregroundColor(.orange)
+                        Text("🔵 Processing")
+                            .foregroundColor(.blue)
+                            .scaleEffect(isAnimating ? 1.1 : 1.0)
+                            .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isAnimating)
+                            .onAppear {
+                                isAnimating = true
+                            }
+                            .onDisappear {
+                                isAnimating = false
+                            }
                     } else {
                         Text("⚪️ Idle")
                             .foregroundColor(.secondary)

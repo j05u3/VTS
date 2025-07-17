@@ -183,7 +183,7 @@ public class StatusBarController: ObservableObject {
             button.title = "🔴"
             button.toolTip = "VTS is recording - Click to stop (\(hotkey))"
         } else if isProcessing {
-            button.title = "🟡"
+            button.title = "🔵"
             button.toolTip = "VTS is processing audio - Click to view (\(hotkey))"
         } else {
             button.title = "⚪️"
