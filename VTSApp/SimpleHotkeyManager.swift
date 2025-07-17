@@ -24,9 +24,8 @@ public class SimpleHotkeyManager: ObservableObject {
         updateCurrentHotkeyString()
         updateCurrentCopyHotkeyString()
         
-        // Set up a timer to periodically check for hotkey changes
-        Timer.publish(every: 1.0, on: .main, in: .common)
-            .autoconnect()
+        // Use event-driven approach instead of polling
+        KeyboardShortcuts.events
             .sink { [weak self] _ in
                 self?.updateCurrentHotkeyString()
                 self?.updateCurrentCopyHotkeyString()

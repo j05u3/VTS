@@ -489,10 +489,7 @@ struct PreferencesView: View {
                             
                             Button("Reset to Default") {
                                 KeyboardShortcuts.reset(.toggleRecording)
-                                // Refresh hotkey string after reset
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    appState.hotkeyManagerService.refreshHotkeyString()
-                                }
+                                // The hotkey string will update automatically via KeyboardShortcuts.events
                             }
                             .buttonStyle(.bordered)
                             .controlSize(.small)
@@ -528,10 +525,7 @@ struct PreferencesView: View {
                             
                             Button("Reset to Default") {
                                 KeyboardShortcuts.reset(.copyLastTranscription)
-                                // Refresh hotkey string after reset
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    appState.hotkeyManagerService.refreshHotkeyString()
-                                }
+                                // The hotkey string will update automatically via KeyboardShortcuts.events
                             }
                             .buttonStyle(.bordered)
                             .controlSize(.small)
