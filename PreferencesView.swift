@@ -40,7 +40,7 @@ struct PreferencesView: View {
                         HStack {
                             Text("AI Provider:")
                                 .frame(width: 120, alignment: .leading)
-                            Picker("Provider", selection: Binding(
+                            Picker("", selection: Binding(
                                 get: { appState.selectedProvider },
                                 set: { appState.selectedProvider = $0 }
                             )) {
@@ -55,7 +55,7 @@ struct PreferencesView: View {
                         HStack {
                             Text("AI Model:")
                                 .frame(width: 120, alignment: .leading)
-                            Picker("Model", selection: Binding(
+                            Picker("", selection: Binding(
                                 get: { appState.selectedModel },
                                 set: { appState.selectedModel = $0 }
                             )) {
@@ -70,7 +70,7 @@ struct PreferencesView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Text("Custom Instructions:")
-                                    .frame(width: 120, alignment: .leading)
+                                    .frame(width: 240, alignment: .leading)
                                 Spacer()
                                 Text("\(appState.systemPrompt.count) characters")
                                     .font(.caption)
@@ -542,7 +542,7 @@ struct PreferencesView: View {
                 Text("Hotkeys")
             }
         }
-        .frame(width: 600, height: 600)
+        .frame(width: 600, height: 650)
         .sheet(isPresented: $showingTestInjectionView) {
             TextInjectionTestView(isPresented: $showingTestInjectionView)
                 .environmentObject(appState)
