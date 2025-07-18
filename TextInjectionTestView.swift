@@ -72,7 +72,7 @@ struct TextInjectionTestView: View {
                                 .font(.headline)
                             
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Voice Transcription uses multiple text insertion methods for maximum app compatibility:")
+                                Text("VTS uses multiple text insertion methods for maximum app compatibility:")
                                     .font(.body)
                                 
                                 VStack(alignment: .leading, spacing: 6) {
@@ -104,7 +104,7 @@ struct TextInjectionTestView: View {
                             Text("Application Compatibility")
                                 .font(.headline)
                             
-                            Text("Voice Transcription automatically detects applications and uses the best insertion method. Some specialized apps like code editors, terminals, and games may require specific handling.")
+                            Text("VTS automatically detects applications and uses the best insertion method. Some specialized apps like code editors, terminals, and games may require specific handling.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -287,8 +287,8 @@ struct TextInjectionTestView: View {
                                 )
                                 
                                 TroubleshootingItem(
-                                    issue: "Tests work but voice transcription doesn't insert text",
-                                    solution: "Check Console.app for Voice Transcription logs. Try testing with different applications to identify compatibility issues."
+                                    issue: "Tests work but VTS doesn't insert text",
+                                    solution: "Check Console.app for VTS logs. Try testing with different applications to identify compatibility issues."
                                 )
                             }
                         }

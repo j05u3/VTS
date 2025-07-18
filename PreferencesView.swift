@@ -216,8 +216,8 @@ struct PreferencesView: View {
             }
             .padding()
             .tabItem {
-                Image(systemName: "key.fill")
-                Text("API Keys")
+                Image(systemName: "waveform")
+                Text("Speech")
             }
             
             // Microphone Tab (unchanged)
@@ -423,7 +423,7 @@ struct PreferencesView: View {
                 
                 GroupBox("How It Works") {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Voice Transcription works like native macOS dictation:")
+                        Text("VTS works like native macOS dictation:")
                             .font(.headline)
                         
                         VStack(alignment: .leading, spacing: 8) {
@@ -449,7 +449,7 @@ struct PreferencesView: View {
                             }
                         }
                         
-                        Text("Accessibility permission allows Voice Transcription to insert text directly into any application, just like built-in dictation.")
+                        Text("Accessibility permission allows VTS to insert text directly into any application, just like built-in dictation.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -492,7 +492,7 @@ struct PreferencesView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("• The shortcut works system-wide, even when Voice Transcription is not the active application")
+                            Text("• The shortcut works system-wide, even when VTS is not the active application")
                             Text("• Current shortcut: \(appState.hotkeyManagerService.currentHotkeyString)")
                             Text("• Click in the recorder above to set a new shortcut")
                         }

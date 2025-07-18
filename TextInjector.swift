@@ -45,7 +45,7 @@ public class TextInjector: ObservableObject {
         hasAccessibilityPermission = AXIsProcessTrustedWithOptions(options)
         
         if hasAccessibilityPermission != wasGranted {
-            print("TextInjector: Accessibility permission status changed - now \(hasAccessibilityPermission ? "enabled" : "disabled")")
+            print("🧪 Accessibility permission status changed - now \(hasAccessibilityPermission ? "enabled" : "disabled")")
             // Ensure UI updates by explicitly sending change notification
             DispatchQueue.main.async {
                 self.objectWillChange.send()
@@ -54,7 +54,7 @@ public class TextInjector: ObservableObject {
     }
     
     public func refreshPermissionStatus() {
-        log("TextInjector: Checking accessibility permission status...")
+        log("🧪 Checking accessibility permission status...")
         updatePermissionStatus()
     }
     
@@ -81,7 +81,7 @@ public class TextInjector: ObservableObject {
             log("   1. Open System Settings")
             log("   2. Go to Privacy & Security")
             log("   3. Click on Accessibility")
-            log("   4. Find 'Voice Transcription' in the list and enable it")
+            log("   4. Find 'VTS' in the list and enable it")
             log("   5. If not in the list, click the '+' button to add the app")
         } else {
             log("🎉 Text injection is ready to work! Transcribed text will be automatically inserted.")
@@ -100,7 +100,7 @@ public class TextInjector: ObservableObject {
             log("🧪 Test text will be injected automatically...")
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                self.injectText("Hello from Voice Transcription!")
+                self.injectText("Hello from VTS!")
             }
         } else {
             log("🧪 Cannot test - accessibility permission required")
@@ -117,7 +117,7 @@ public class TextInjector: ObservableObject {
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 // Test with mixed case and international characters
-                self.injectText("Hello World! Testing Voice Transcription in code editor. Mixed CaSe TeXt: 123 ABC def. Español: ñáéíóú")
+                self.injectText("Hello World! Testing VTS in code editor. Mixed CaSe TeXt: 123 ABC def. Español: ñáéíóú")
             }
         } else {
             log("🧪 Cannot test - accessibility permission required")
@@ -196,11 +196,11 @@ public class TextInjector: ObservableObject {
         let oldSettingsURL = URL(string: "x-apple.systempreferences:com.apple.SystemProfiler.AboutProfiler")!
         
         if NSWorkspace.shared.open(newSettingsURL) {
-            print("TextInjector: Opened System Settings (new format)")
+            print("🧪 Opened System Settings (new format)")
         } else if NSWorkspace.shared.open(oldSettingsURL) {
-            print("TextInjector: Opened System Preferences (legacy format)")
+            print("🧪 Opened System Preferences (legacy format)")
         } else {
-            print("TextInjector: Failed to open System Settings")
+            print("🧪 Failed to open System Settings")
         }
     }
     
@@ -209,7 +209,7 @@ public class TextInjector: ObservableObject {
 
     
     private func startMonitoring() {
-        print("TextInjector: Starting permission monitoring...")
+        print("🧪 Starting permission monitoring...")
         
         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
             guard let self = self else {
@@ -221,7 +221,7 @@ public class TextInjector: ObservableObject {
                 self.updatePermissionStatus()
                 
                 if self.hasAccessibilityPermission {
-                    print("TextInjector: Permission granted!")
+                    print("🧪 Permission granted!")
                     timer.invalidate()
                 }
             }
@@ -230,8 +230,8 @@ public class TextInjector: ObservableObject {
     
     public func injectText(_ text: String, replaceLastText: String? = nil) {
         guard hasAccessibilityPermission else {
-            print("❌ TextInjector: No accessibility permission - cannot inject text")
-            print("📋 TextInjector: Please grant accessibility permission in System Settings > Privacy & Security > Accessibility")
+            print("❌ 🧪 TextInjector: No accessibility permission - cannot inject text")
+            print("📋 🧪 TextInjector: Please grant accessibility permission in System Settings > Privacy & Security > Accessibility")
             return
         }
         

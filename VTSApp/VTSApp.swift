@@ -336,7 +336,7 @@ class AppState: ObservableObject {
         
         guard captureEngine.permissionGranted else {
             print("Microphone permission not granted")
-            showAlert("Microphone Access Required", "Please grant microphone permission in System Preferences > Privacy & Security > Microphone to use voice transcription.")
+            showAlert("Microphone Access Required", "Please grant microphone permission in System Preferences > Privacy & Security > Microphone to use VTS.")
             return
         }
         

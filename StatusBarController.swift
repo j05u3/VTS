@@ -141,7 +141,7 @@ public class StatusBarController: ObservableObject {
         
         // About
         let aboutItem = NSMenuItem(
-            title: "ℹ️ About Voice Transcription",
+            title: "ℹ️ About VTS",
             action: #selector(showAbout),
             keyEquivalent: ""
         )
@@ -150,7 +150,7 @@ public class StatusBarController: ObservableObject {
         
         // Quit
         let quitItem = NSMenuItem(
-            title: "🚪 Quit Voice Transcription",
+            title: "🚪 Quit VTS",
             action: #selector(quit),
             keyEquivalent: "q"
         )
@@ -189,7 +189,7 @@ public class StatusBarController: ObservableObject {
     
     @objc private func showAbout() {
         let alert = NSAlert()
-        alert.messageText = "Voice Transcription Service"
+        alert.messageText = "VTS Service"
         alert.informativeText = "Version 0.2.0\n\nA modern macOS speech-to-text application that converts your voice to text using AI-powered transcription services from OpenAI and Groq.\n\nQuick Start:\n• Press ⌘⇧; to start/stop recording\n• Set up your API keys in Settings\n• Speak naturally and watch your words appear!"
         alert.alertStyle = .informational
         alert.runModal()
@@ -217,13 +217,13 @@ public class StatusBarController: ObservableObject {
         // Priority: Recording > Processing > Idle
         if isRecording {
             button.title = "🔴"
-            button.toolTip = "Voice Transcription is recording audio - Click to stop (\(hotkey))"
+            button.toolTip = "VTS is recording audio - Click to stop (\(hotkey))"
         } else if isProcessing {
             button.title = "🔵"
-            button.toolTip = "Voice Transcription is processing audio - Click to view progress (\(hotkey))"
+            button.toolTip = "VTS is processing audio - Click to view progress (\(hotkey))"
         } else {
             button.title = "⚪️"
-            button.toolTip = "Voice Transcription is ready - Click to start recording (\(hotkey))"
+            button.toolTip = "VTS is ready - Click to start recording (\(hotkey))"
         }
     }
     

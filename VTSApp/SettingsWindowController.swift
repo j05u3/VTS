@@ -28,7 +28,7 @@ class SettingsWindowController: NSWindowController {
             defer: false
         )
         
-        newWindow.title = "Voice Transcription Settings"
+        newWindow.title = "VTS Settings"
         newWindow.contentViewController = hostingController
         newWindow.delegate = self
         newWindow.isReleasedWhenClosed = false

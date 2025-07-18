@@ -8,7 +8,7 @@ struct ContentView: View {
         VStack(spacing: 16) {
             // Header
             HStack {
-                Text("Voice Transcription")
+                Text("VTS")
                     .font(.title2)
                     .fontWeight(.bold)
                 Spacer()
@@ -48,7 +48,7 @@ struct ContentView: View {
                 }
                 
                 HStack {
-                    Text("API Keys:")
+                    Text("API Key:")
                         .frame(width: 70, alignment: .leading)
                     
                     HStack(spacing: 8) {
