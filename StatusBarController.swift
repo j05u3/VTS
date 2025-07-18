@@ -102,11 +102,11 @@ public class StatusBarController: ObservableObject {
         let recordingTitle: String
         switch (isRecording, isProcessing) {
             case (true, _):
-                recordingTitle = "Stop Recording"
+                recordingTitle = "⏹ Stop Recording"
             case (false, true):
-                recordingTitle = "Start Recording (Processing...)"
+                recordingTitle = "🔴 Start Recording (Processing audio...)"
             case (false, false):
-                recordingTitle = "Start Recording"
+                recordingTitle = "🔴 Start Voice Recording"
         }
         
         let recordingItem = NSMenuItem(
@@ -119,7 +119,7 @@ public class StatusBarController: ObservableObject {
         
         // Copy last transcription
         let copyItem = NSMenuItem(
-            title: "Copy \(getTranscriptionPreview()) (\(hotkeyManager.currentCopyHotkeyString))",
+            title: "📋 Copy Last Text (\(hotkeyManager.currentCopyHotkeyString))",
             action: #selector(copyLastTranscription),
             keyEquivalent: ""
         )
@@ -130,7 +130,7 @@ public class StatusBarController: ObservableObject {
         
         // Preferences
         let preferencesItem = NSMenuItem(
-            title: "Preferences...",
+            title: "⚙️ Settings...",
             action: #selector(showPreferences),
             keyEquivalent: ","
         )
@@ -141,7 +141,7 @@ public class StatusBarController: ObservableObject {
         
         // About
         let aboutItem = NSMenuItem(
-            title: "About VTS",
+            title: "ℹ️ About VTS",
             action: #selector(showAbout),
             keyEquivalent: ""
         )
@@ -150,7 +150,7 @@ public class StatusBarController: ObservableObject {
         
         // Quit
         let quitItem = NSMenuItem(
-            title: "Quit VTS",
+            title: "🚪 Quit VTS",
             action: #selector(quit),
             keyEquivalent: "q"
         )
@@ -189,8 +189,8 @@ public class StatusBarController: ObservableObject {
     
     @objc private func showAbout() {
         let alert = NSAlert()
-        alert.messageText = "VTS - Voice to Text Service"
-        alert.informativeText = "v0.2.0\n\nA modern macOS speech-to-text application that provides real-time transcription using OpenAI and Groq APIs.\n\nGlobal Hotkey: ⌘⇧;"
+        alert.messageText = "VTS Service"
+        alert.informativeText = "Version 0.2.0\n\nA modern macOS speech-to-text application that converts your voice to text using AI-powered transcription services from OpenAI and Groq.\n\nQuick Start:\n• Press ⌘⇧; to start/stop recording\n• Set up your API keys in Settings\n• Speak naturally and watch your words appear!"
         alert.alertStyle = .informational
         alert.runModal()
     }
@@ -217,13 +217,13 @@ public class StatusBarController: ObservableObject {
         // Priority: Recording > Processing > Idle
         if isRecording {
             button.title = "🔴"
-            button.toolTip = "VTS is recording - Click to stop (\(hotkey))"
+            button.toolTip = "VTS is recording audio - Click to stop (\(hotkey))"
         } else if isProcessing {
             button.title = "🔵"
-            button.toolTip = "VTS is processing audio - Click to view (\(hotkey))"
+            button.toolTip = "VTS is processing audio - Click to view progress (\(hotkey))"
         } else {
             button.title = "⚪️"
-            button.toolTip = "VTS is idle - Click to start recording (\(hotkey))"
+            button.toolTip = "VTS is ready - Click to start recording (\(hotkey))"
         }
     }
     
