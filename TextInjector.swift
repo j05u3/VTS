@@ -1,6 +1,7 @@
 import Foundation
 import AppKit
 import CoreGraphics
+import CoreFoundation
 import Combine
 
 // MARK: - Logging Protocol
@@ -160,6 +161,30 @@ public class TextInjector: ObservableObject {
                 """
                 self.log("🧪 TextInjector: Testing multilingual text")
                 self.injectText(multilingualText)
+            }
+        } else {
+            log("🧪 TextInjector: Cannot test - no accessibility permission")
+        }
+    }
+    
+    public func testCursorPositionInsertion() {
+        log("🧪 TextInjector: Starting cursor position insertion test...")
+        checkPermissionStatus()
+        
+        if hasAccessibilityPermission {
+            log("🧪 TextInjector: This test will help verify cursor position insertion works correctly.")
+            log("🧪 TextInjector: Instructions:")
+            log("   1. Focus on a text field")
+            log("   2. Type some text: 'Hello World'")
+            log("   3. Position cursor between 'Hello' and 'World' (middle of the text)")
+            log("   4. Wait for injection in 5 seconds...")
+            log("🧪 TextInjector: Expected result: Text should be inserted AT the cursor, not at the end!")
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                let insertText = " INSERTED "
+                self.log("🧪 TextInjector: Inserting '\(insertText)' at cursor position...")
+                self.injectText(insertText)
+                self.log("🧪 TextInjector: If working correctly, text should become: 'Hello INSERTED World'")
             }
         } else {
             log("🧪 TextInjector: Cannot test - no accessibility permission")
@@ -544,17 +569,61 @@ public class TextInjector: ObservableObject {
                 print("❌ TextInjector: Selected text replacement failed (error: \(selectedResult.rawValue))")
             }
         } else {
-            // No selected text - append to existing content
-            print("🎯 TextInjector: No selected text found - appending to existing content...")
-            let combinedText = initialValue + " " + text
+            // No selected text - insert at cursor position
+            print("🎯 TextInjector: No selected text found - inserting at cursor position...")
+            
+            if rangeResult == .success, let range = selectedRange {
+                // We have cursor position information - insert at the cursor
+                if let cursorPosition = extractCursorPosition(from: range) {
+                    print("📍 TextInjector: Found cursor position: \(cursorPosition)")
+                    
+                    let insertionIndex = min(cursorPosition, initialValue.count)
+                    let beforeCursor = String(initialValue.prefix(insertionIndex))
+                    let afterCursor = String(initialValue.dropFirst(insertionIndex))
+                    let newText = beforeCursor + text + afterCursor
+                    
+                    print("📝 TextInjector: Inserting text at position \(insertionIndex)")
+                    print("📝 TextInjector: Before: '\(beforeCursor)' | Insert: '\(text)' | After: '\(afterCursor)'")
+                    
+                    let textValue = newText as CFString
+                    let directResult = AXUIElementSetAttributeValue(element as! AXUIElement, kAXValueAttribute as CFString, textValue)
+                    if directResult == .success {
+                        print("✅ TextInjector: Cursor position insertion reported success")
+                        
+                        // Set cursor after inserted text
+                        let newCursorPosition = insertionIndex + text.count
+                        if setCursorPosition(element: element as! AXUIElement, position: newCursorPosition) {
+                            print("✅ TextInjector: Cursor repositioned to \(newCursorPosition)")
+                        }
+                        
+                        // Verify the change actually took effect
+                        if verifyTextInsertion(element: element as! AXUIElement, expectedText: text, originalText: initialValue) {
+                            print("✅ TextInjector: Verification passed - text inserted at cursor position")
+                            return true
+                        } else {
+                            print("⚠️ TextInjector: Verification failed - accessibility API succeeded but text didn't change as expected")
+                        }
+                    } else {
+                        print("❌ TextInjector: Cursor position insertion failed (error: \(directResult.rawValue))")
+                    }
+                } else {
+                    print("⚠️ TextInjector: Could not extract cursor position from range, falling back to append")
+                }
+            } else {
+                print("⚠️ TextInjector: Could not get cursor position, falling back to append")
+            }
+            
+            // Fallback: append to existing content (preserving original behavior)
+            print("🔄 TextInjector: Falling back to append mode...")
+            let combinedText = initialValue + text
             let textValue = combinedText as CFString
             let directResult = AXUIElementSetAttributeValue(element as! AXUIElement, kAXValueAttribute as CFString, textValue)
             if directResult == .success {
-                print("✅ TextInjector: Accessibility API reported success")
+                print("✅ TextInjector: Accessibility API reported success (fallback mode)")
                 
                 // Verify the change actually took effect
                 if verifyTextInsertion(element: element as! AXUIElement, expectedText: text, originalText: initialValue) {
-                    print("✅ TextInjector: Verification passed - text actually inserted")
+                    print("✅ TextInjector: Verification passed - text appended successfully")
                     return true
                 } else {
                     print("⚠️ TextInjector: Verification failed - accessibility API succeeded but text didn't change")
@@ -992,6 +1061,53 @@ public class TextInjector: ObservableObject {
         
         default:
             return nil
+        }
+    }
+    
+    // MARK: - Cursor Position Helper Methods
+    
+    private func extractCursorPosition(from range: CFTypeRef) -> Int? {
+        // CFRange is a struct with location and length
+        // We need to convert CFTypeRef to CFRange-like structure
+        
+        // Try to extract as AXValue containing CFRange
+        guard CFGetTypeID(range) == AXValueGetTypeID() else {
+            print("❌ TextInjector: Range is not an AXValue")
+            return nil
+        }
+        
+        var cfRange = CFRange()
+        let success = AXValueGetValue(range as! AXValue, .cfRange, &cfRange)
+        
+        if success {
+            print("📍 TextInjector: Extracted cursor position: \(cfRange.location), length: \(cfRange.length)")
+            return cfRange.location
+        } else {
+            print("❌ TextInjector: Failed to extract CFRange from AXValue")
+            return nil
+        }
+    }
+    
+    private func setCursorPosition(element: AXUIElement, position: Int) -> Bool {
+        // Create a CFRange for the new cursor position (length 0 means just cursor, no selection)
+        var newRange = CFRange(location: position, length: 0)
+        
+        // Create AXValue from CFRange
+        let axValue = AXValueCreate(.cfRange, &newRange)
+        guard let axValue = axValue else {
+            print("❌ TextInjector: Failed to create AXValue for cursor position")
+            return false
+        }
+        
+        // Set the new cursor position
+        let result = AXUIElementSetAttributeValue(element, kAXSelectedTextRangeAttribute as CFString, axValue)
+        
+        if result == .success {
+            print("✅ TextInjector: Successfully set cursor position to \(position)")
+            return true
+        } else {
+            print("❌ TextInjector: Failed to set cursor position (error: \(result.rawValue))")
+            return false
         }
     }
 }
