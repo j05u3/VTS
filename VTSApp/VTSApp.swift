@@ -329,14 +329,14 @@ class AppState: ObservableObject {
     private func startRecording() {
         // Check if we have an API key for the selected provider
         guard apiKeyManager.hasAPIKey(for: selectedProvider) else {
-            print("No API key found for \(selectedProvider)")
-            showAlert("Error", "Please add an API key for \(selectedProvider.rawValue) in preferences")
+            print("No API key configured for \(selectedProvider)")
+            showAlert("API Key Required", "Please add an API key for \(selectedProvider.rawValue) in Settings to enable speech transcription.")
             return
         }
         
         guard captureEngine.permissionGranted else {
             print("Microphone permission not granted")
-            showAlert("Permission Required", "Please grant microphone permission in System Preferences")
+            showAlert("Microphone Access Required", "Please grant microphone permission in System Preferences > Privacy & Security > Microphone to use VTS.")
             return
         }
         
@@ -349,7 +349,7 @@ class AppState: ObservableObject {
             // Get the API key securely from keychain
             guard let apiKey = try apiKeyManager.getCurrentAPIKey() else {
                 print("Failed to retrieve API key from keychain")
-                showAlert("Error", "Failed to retrieve API key. Please check your keychain access.")
+                showAlert("API Key Error", "Unable to retrieve your API key. Please check your keychain access or re-enter your API key in Settings.")
                 return
             }
             
@@ -359,7 +359,7 @@ class AppState: ObservableObject {
                 systemPrompt: systemPrompt.isEmpty ? nil : systemPrompt
             )
             
-            print("Starting transcription service...")
+            print("Starting transcription with \(selectedProvider.rawValue) using model \(selectedModel)")
             transcriptionService.startTranscription(
                 audioStream: audioStream,
                 config: config,
@@ -368,10 +368,10 @@ class AppState: ObservableObject {
             
             isRecording = true
             statusBarController.updateRecordingState(true)
-            print("Recording started successfully")
+            print("Voice recording started successfully")
         } catch {
             print("Failed to start recording: \(error)")
-            showAlert("Recording Error", error.localizedDescription)
+            showAlert("Recording Failed", "Unable to start voice recording: \(error.localizedDescription)")
         }
     }
     
@@ -381,7 +381,7 @@ class AppState: ObservableObject {
         // transcriptionService.stopTranscription()  // Removed this line
         isRecording = false
         statusBarController.updateRecordingState(false)
-        print("Recording stopped - transcription will continue processing")
+        print("Voice recording stopped - processing audio for transcription")
     }
     
     func showPreferences() {
@@ -398,10 +398,10 @@ class AppState: ObservableObject {
     
     func copyLastTranscription() {
         if transcriptionService.copyLastTranscriptionToClipboard() {
-            print("Last transcription copied to clipboard: '\(transcriptionService.lastTranscription)'")
+            print("Transcribed text copied to clipboard: '\(transcriptionService.lastTranscription)'")
         } else {
             print("No transcription available to copy")
-            showAlert("No Transcription", "There is no completed transcription to copy.")
+            showAlert("No Text Available", "There is no completed transcription to copy. Please record some speech first.")
         }
     }
     

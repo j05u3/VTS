@@ -12,7 +12,7 @@ struct ContentView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                 Spacer()
-                Button("Preferences") {
+                Button("Settings") {
                     appState.showPreferences()
                 }
                 .buttonStyle(.bordered)
@@ -23,7 +23,7 @@ struct ContentView: View {
             // Quick Settings
             VStack(spacing: 12) {
                 HStack {
-                    Text("Provider:")
+                    Text("AI Provider:")
                         .frame(width: 70, alignment: .leading)
                     Picker("Provider", selection: $appState.selectedProvider) {
                         ForEach(STTProviderType.allCases, id: \.self) { provider in
@@ -37,7 +37,7 @@ struct ContentView: View {
                 }
                 
                 HStack {
-                    Text("Model:")
+                    Text("AI Model:")
                         .frame(width: 70, alignment: .leading)
                     Picker("Model", selection: $appState.selectedModel) {
                         ForEach(appState.selectedProvider.defaultModels, id: \.self) { model in
@@ -48,7 +48,7 @@ struct ContentView: View {
                 }
                 
                 HStack {
-                    Text("API Keys:")
+                    Text("API Key:")
                         .frame(width: 70, alignment: .leading)
                     
                     HStack(spacing: 8) {
@@ -83,10 +83,10 @@ struct ContentView: View {
                     
                     // Show status based on priority: Recording > Processing > Idle
                     if appState.isRecording {
-                        Text("🔴 Recording")
+                        Text("🔴 Recording Audio")
                             .foregroundColor(.red)
                     } else if appState.isProcessing {
-                        Text("🔵 Processing")
+                        Text("🔵 Processing Speech")
                             .foregroundColor(.blue)
                             .scaleEffect(isAnimating ? 1.1 : 1.0)
                             .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isAnimating)
@@ -97,7 +97,7 @@ struct ContentView: View {
                                 isAnimating = false
                             }
                     } else {
-                        Text("⚪️ Idle")
+                        Text("⚪️ Ready to Record")
                             .foregroundColor(.secondary)
                     }
                     
@@ -106,7 +106,7 @@ struct ContentView: View {
                 
                 // Audio level bar
                 HStack {
-                    Text("Level:")
+                    Text("Audio Level:")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     AudioLevelView(audioLevel: appState.audioLevel, isRecording: appState.isRecording)
@@ -114,7 +114,7 @@ struct ContentView: View {
                 }
                 
                 // Hotkey hint
-                Text("Global Hotkey: \(appState.hotkeyManagerService.currentHotkeyString)")
+                Text("Toggle Recording: \(appState.hotkeyManagerService.currentHotkeyString)")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -123,12 +123,12 @@ struct ContentView: View {
             
             // Quick Actions
             HStack {
-                Button("Preferences") {
+                Button("Settings") {
                     appState.showPreferences()
                 }
                 .buttonStyle(.bordered)
                 
-                Button("Copy \(getTranscriptionPreview()) (\(appState.hotkeyManagerService.currentCopyHotkeyString == "None" ? "No hotkey set" : appState.hotkeyManagerService.currentCopyHotkeyString))") {
+                Button("Copy Last Text (\(appState.hotkeyManagerService.currentCopyHotkeyString == "None" ? "No shortcut" : appState.hotkeyManagerService.currentCopyHotkeyString))") {
                     appState.copyLastTranscription()
                 }
                 .buttonStyle(.bordered)
@@ -136,7 +136,7 @@ struct ContentView: View {
                 
                 Spacer()
                 
-                Button("Quit") {
+                Button("Quit App") {
                     NSApplication.shared.terminate(nil)
                 }
                 .buttonStyle(.bordered)
