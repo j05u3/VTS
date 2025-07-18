@@ -195,6 +195,7 @@ struct TextInjectionTestView: View {
                                     .fontWeight(.semibold)
                                 
                                 LazyVGrid(columns: [
+                                    GridItem(.flexible()),
                                     GridItem(.flexible())
                                 ], spacing: 8) {
                                     TestButton(
@@ -203,6 +204,15 @@ struct TextInjectionTestView: View {
                                         action: {
                                             logMessages.add("🧪 Testing multilingual text support...")
                                             textInjector.testMultilingualText()
+                                        }
+                                    )
+                                    
+                                    TestButton(
+                                        title: "Test Cursor Position",
+                                        description: "Verify insertion at cursor position",
+                                        action: {
+                                            logMessages.add("🧪 Testing cursor position insertion...")
+                                            textInjector.testCursorPositionInsertion()
                                         }
                                     )
                                 }
