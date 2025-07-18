@@ -1,21 +1,28 @@
 import Foundation
 
-public class OpenAIProvider: STTProvider {
+public class OpenAIProvider: StreamingSTTProvider {
     public let providerType: STTProviderType = .openai
     
     private let baseURL = "https://api.openai.com/v1"
-    private let session = URLSession.shared
+    private let session: URLSession
     
-    public init() {}
+    public init() {
+        // Configure URLSession with appropriate timeouts for streaming
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30.0  // 30 seconds per request
+        config.timeoutIntervalForResource = 300.0 // 5 minutes total
+        self.session = URLSession(configuration: config)
+    }
     
+    // MARK: - Original batch interface (maintained for compatibility)
     public func transcribe(
         stream: AsyncThrowingStream<Data, Error>,
         config: ProviderConfig
     ) async throws -> String {
+        // For backward compatibility, collect all audio and send as batch
         var audioData = Data()
         print("OpenAI: Starting audio collection...")
         
-        // Collect audio data
         for try await chunk in stream {
             audioData.append(chunk)
             print("OpenAI: Received audio chunk of \(chunk.count) bytes, total: \(audioData.count)")
@@ -23,19 +30,119 @@ public class OpenAIProvider: STTProvider {
         
         print("OpenAI: Audio collection completed, total size: \(audioData.count) bytes")
         
-        // Only send if we have enough audio data (at least 1 second worth)
+        // Only send if we have enough audio data
         let minimumBytes = Int(16000 * 2) // 1 second of 16kHz 16-bit audio
         guard audioData.count >= minimumBytes else {
             print("OpenAI: Not enough audio data (\(audioData.count) bytes, minimum: \(minimumBytes))")
             throw STTError.audioProcessingError("Not enough audio data")
         }
         
-        // Send to OpenAI and return result directly
-        print("OpenAI: Sending transcription request...")
-        let result = try await sendTranscriptionRequest(audioData: audioData, config: config)
-        print("OpenAI: Received transcription result: \(result)")
+        return try await sendTranscriptionRequest(audioData: audioData, config: config)
+    }
+    
+    // MARK: - New streaming interface with chunked processing
+    public func transcribeStreaming(
+        stream: AsyncThrowingStream<Data, Error>,
+        config: ProviderConfig,
+        onPartialResult: @escaping (String) -> Void
+    ) async throws -> String {
+        print("OpenAI: Starting streaming transcription...")
         
-        return result
+        let vad = VoiceActivityDetector()
+        var currentChunk = Data()
+        var allTranscriptions: [String] = []
+        var chunkStartTime = Date()
+        var lastAudioLevel: Float = 0.0
+        
+        // Process audio stream in chunks
+        for try await audioData in stream {
+            currentChunk.append(audioData)
+            
+            // Calculate approximate audio level for VAD
+            lastAudioLevel = calculateAudioLevel(from: audioData)
+            let chunkDuration = Date().timeIntervalSince(chunkStartTime)
+            
+            // Check if we should send this chunk
+            let decision = vad.shouldSendChunk(audioLevel: lastAudioLevel, chunkDuration: chunkDuration)
+            
+            switch decision {
+            case .continueCollecting:
+                // Keep collecting audio
+                continue
+                
+            case .sendAndReset:
+                // Send current chunk if it has enough data
+                if currentChunk.count >= Int(16000 * 0.5 * 2) { // At least 0.5 seconds
+                    print("OpenAI: Sending chunk of \(currentChunk.count) bytes after \(chunkDuration) seconds")
+                    
+                    do {
+                        let chunkResult = try await sendTranscriptionRequest(
+                            audioData: currentChunk, 
+                            config: config
+                        )
+                        
+                        if !chunkResult.trimmingCharacters(in: .whitespaces).isEmpty {
+                            allTranscriptions.append(chunkResult)
+                            print("OpenAI: Partial result: \(chunkResult)")
+                            
+                            // Send partial result to callback
+                            onPartialResult(chunkResult)
+                        }
+                    } catch {
+                        print("OpenAI: Error processing chunk: \(error)")
+                        // Continue processing instead of failing completely
+                    }
+                }
+                
+                // Reset for next chunk
+                currentChunk = Data()
+                chunkStartTime = Date()
+                vad.reset()
+            }
+        }
+        
+        // Process any remaining audio data
+        if currentChunk.count >= Int(16000 * 0.5 * 2) {
+            print("OpenAI: Processing final chunk of \(currentChunk.count) bytes")
+            
+            do {
+                let finalResult = try await sendTranscriptionRequest(
+                    audioData: currentChunk, 
+                    config: config
+                )
+                
+                if !finalResult.trimmingCharacters(in: .whitespaces).isEmpty {
+                    allTranscriptions.append(finalResult)
+                    onPartialResult(finalResult)
+                }
+            } catch {
+                print("OpenAI: Error processing final chunk: \(error)")
+            }
+        }
+        
+        // Combine all transcription results
+        let finalTranscription = allTranscriptions.joined(separator: " ")
+        print("OpenAI: Final combined transcription: \(finalTranscription)")
+        
+        return finalTranscription.isEmpty ? "No speech detected" : finalTranscription
+    }
+    
+    // MARK: - Helper methods
+    private func calculateAudioLevel(from audioData: Data) -> Float {
+        // Simple audio level calculation
+        guard audioData.count >= 2 else { return 0.0 }
+        
+        let samples = audioData.withUnsafeBytes { bytes in
+            bytes.bindMemory(to: Int16.self)
+        }
+        
+        var sum: Float = 0.0
+        for sample in samples {
+            sum += abs(Float(sample))
+        }
+        
+        let average = sum / Float(samples.count)
+        return average / Float(Int16.max) // Normalize to 0-1
     }
     
     public func validateConfig(_ config: ProviderConfig) throws {
@@ -49,6 +156,41 @@ public class OpenAIProvider: STTProvider {
     }
     
     private func sendTranscriptionRequest(audioData: Data, config: ProviderConfig) async throws -> String {
+        // Add retry logic for better reliability
+        let maxRetries = 3
+        var lastError: Error?
+        
+        for attempt in 1...maxRetries {
+            do {
+                return try await performTranscriptionRequest(audioData: audioData, config: config)
+            } catch let error as STTError {
+                lastError = error
+                print("OpenAI: Attempt \(attempt)/\(maxRetries) failed: \(error)")
+                
+                // Don't retry on certain errors
+                switch error {
+                case .invalidAPIKey, .invalidModel:
+                    throw error
+                default:
+                    if attempt < maxRetries {
+                        // Exponential backoff
+                        try await Task.sleep(nanoseconds: UInt64(pow(2.0, Double(attempt)) * 1_000_000_000))
+                    }
+                }
+            } catch {
+                lastError = error
+                print("OpenAI: Attempt \(attempt)/\(maxRetries) failed: \(error)")
+                
+                if attempt < maxRetries {
+                    try await Task.sleep(nanoseconds: UInt64(pow(2.0, Double(attempt)) * 1_000_000_000))
+                }
+            }
+        }
+        
+        throw lastError ?? STTError.transcriptionError("All retry attempts failed")
+    }
+    
+    private func performTranscriptionRequest(audioData: Data, config: ProviderConfig) async throws -> String {
         var request = URLRequest(url: URL(string: "\(baseURL)/audio/transcriptions")!)
         request.httpMethod = "POST"
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
@@ -98,17 +240,25 @@ public class OpenAIProvider: STTProvider {
         
         let (data, response) = try await session.data(for: request)
         
-        guard let httpResponse = response as? HTTPURLResponse,
-              200...299 ~= httpResponse.statusCode else {
-            throw STTError.networkError("Bad server response")
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw STTError.networkError("Invalid response type")
+        }
+        
+        guard 200...299 ~= httpResponse.statusCode else {
+            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw STTError.networkError("HTTP \(httpResponse.statusCode): \(errorMessage)")
         }
         
         struct TranscriptionResponse: Codable {
             let text: String
         }
         
-        let transcriptionResponse = try JSONDecoder().decode(TranscriptionResponse.self, from: data)
-        return transcriptionResponse.text
+        do {
+            let transcriptionResponse = try JSONDecoder().decode(TranscriptionResponse.self, from: data)
+            return transcriptionResponse.text
+        } catch {
+            throw STTError.transcriptionError("Failed to decode response: \(error)")
+        }
     }
     
     private func createWAVData(from pcmData: Data) -> Data {

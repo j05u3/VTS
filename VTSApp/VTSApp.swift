@@ -141,6 +141,8 @@ class AppState: ObservableObject {
     
     // Keys for UserDefaults storage
     private let systemPromptKey = "systemPrompt"
+    private let streamingModeKey = "streamingMode"
+    private let partialResultsKey = "partialResults"
     
     // Configuration state - now using APIKeyManager
     @Published var systemPrompt = "" {
@@ -151,6 +153,21 @@ class AppState: ObservableObject {
     @Published var isRecording = false
     @Published var isProcessing = false
     @Published var audioLevel: Float = 0.0
+    
+    // New streaming configuration
+    @Published var streamingModeEnabled = true {
+        didSet {
+            saveStreamingMode()
+            updateTranscriptionServiceConfig()
+        }
+    }
+    
+    @Published var partialResultsEnabled = true {
+        didSet {
+            savePartialResults()
+            updateTranscriptionServiceConfig()
+        }
+    }
     
     // Computed properties that delegate to APIKeyManager with proper change notifications
     var selectedProvider: STTProviderType {
@@ -194,6 +211,7 @@ class AppState: ObservableObject {
     
     init() {
         loadSystemPrompt()
+        loadStreamingSettings()
         setupTranscriptionService()
         setupObservableObjectBindings()
         
@@ -258,28 +276,21 @@ class AppState: ObservableObject {
     }
     
     private func initializeAfterLaunch() {
-        setupStatusBar()
-        setupGlobalHotkey()
+        // Configure status bar with proper initialization order
+        setupStatusBarController()
+        setupGlobalHotkeyManager()
     }
     
-    private func setupStatusBar() {
-        // Initialize the status bar controller first
-        statusBarController.initialize()
+    private func setupStatusBarController() {
+        print("🚀 AppState: Setting up StatusBarController with modern architecture...")
         
-        // Pass the transcription service for context menu previews
-        statusBarController.setTranscriptionService(transcriptionService)
-        
-        statusBarController.setPopoverContent {
-            ContentView()
-                .environmentObject(self)
-        }
-        
+        // Set up callback handlers first
         statusBarController.onToggleRecording = { [weak self] in
             self?.toggleRecording()
         }
         
         statusBarController.onCopyLastTranscription = { [weak self] in
-            self?.copyLastTranscription()
+            _ = self?.transcriptionService.copyLastTranscriptionToClipboard()
         }
         
         statusBarController.onShowPreferences = { [weak self] in
@@ -289,16 +300,27 @@ class AppState: ObservableObject {
         statusBarController.onQuit = {
             NSApplication.shared.terminate(nil)
         }
+        
+        // Modern configuration - sets all dependencies in proper order
+        statusBarController.configure(transcriptionService: transcriptionService) {
+            ContentView()
+                .environmentObject(self)
+        }
+        
+        // Initialize last (this creates the popover and status bar item)
+        statusBarController.initialize()
+        
+        print("✅ AppState: StatusBarController setup completed")
     }
     
-    private func setupGlobalHotkey() {
+    private func setupGlobalHotkeyManager() {
         // Set up the hotkey handlers
         hotkeyManager.onToggleRecording = { [weak self] in
             self?.toggleRecording()
         }
         
         hotkeyManager.onCopyLastTranscription = { [weak self] in
-            self?.copyLastTranscription()
+            _ = self?.transcriptionService.copyLastTranscriptionToClipboard()
         }
         
         // Register the hotkeys
@@ -307,6 +329,36 @@ class AppState: ObservableObject {
     
     private func setupTranscriptionService() {
         updateProvider()
+        updateTranscriptionServiceConfig()
+    }
+    
+    private func loadSystemPrompt() {
+        systemPrompt = UserDefaults.standard.string(forKey: systemPromptKey) ?? ""
+    }
+    
+    private func saveSystemPrompt() {
+        UserDefaults.standard.set(systemPrompt, forKey: systemPromptKey)
+    }
+    
+    private func loadStreamingSettings() {
+        // Load with defaults if not set
+        if UserDefaults.standard.object(forKey: streamingModeKey) == nil {
+            streamingModeEnabled = true // Default to enabled
+        } else {
+            streamingModeEnabled = UserDefaults.standard.bool(forKey: streamingModeKey)
+        }
+        
+        if UserDefaults.standard.object(forKey: partialResultsKey) == nil {
+            partialResultsEnabled = true // Default to enabled
+        } else {
+            partialResultsEnabled = UserDefaults.standard.bool(forKey: partialResultsKey)
+        }
+    }
+    
+    private func updateTranscriptionServiceConfig() {
+        // Configure the transcription service with current settings
+        transcriptionService.enableStreamingMode(streamingModeEnabled)
+        transcriptionService.enablePartialResults(partialResultsEnabled)
     }
     
     private func updateProvider() {
@@ -413,13 +465,13 @@ class AppState: ObservableObject {
         alert.runModal()
     }
     
-    // MARK: - System Prompt Persistence
+    // MARK: - Streaming Settings Persistence
     
-    private func saveSystemPrompt() {
-        UserDefaults.standard.set(systemPrompt, forKey: systemPromptKey)
+    private func saveStreamingMode() {
+        UserDefaults.standard.set(streamingModeEnabled, forKey: streamingModeKey)
     }
     
-    private func loadSystemPrompt() {
-        systemPrompt = UserDefaults.standard.string(forKey: systemPromptKey) ?? ""
+    private func savePartialResults() {
+        UserDefaults.standard.set(partialResultsEnabled, forKey: partialResultsKey)
     }
 }
