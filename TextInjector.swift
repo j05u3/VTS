@@ -1081,7 +1081,14 @@ public class TextInjector: ObservableObject {
         
         if success {
             print("📍 TextInjector: Extracted cursor position: \(cfRange.location), length: \(cfRange.length)")
-            return cfRange.location
+            
+            // Validate the cursor position
+            if cfRange.location >= 0 {
+                return cfRange.location
+            } else {
+                print("❌ TextInjector: Invalid cursor position (negative): \(cfRange.location)")
+                return nil
+            }
         } else {
             print("❌ TextInjector: Failed to extract CFRange from AXValue")
             return nil
@@ -1089,6 +1096,12 @@ public class TextInjector: ObservableObject {
     }
     
     private func setCursorPosition(element: AXUIElement, position: Int) -> Bool {
+        // Validate position
+        guard position >= 0 else {
+            print("❌ TextInjector: Invalid cursor position (negative): \(position)")
+            return false
+        }
+        
         // Create a CFRange for the new cursor position (length 0 means just cursor, no selection)
         var newRange = CFRange(location: position, length: 0)
         
