@@ -18,6 +18,12 @@ public class CaptureEngine: ObservableObject {
     private let sampleRate: Double = 16000
     private let channelCount: UInt32 = 1
     
+    // Throttling variables for reducing log frequency
+    private var audioDataLogCounter = 0
+    private var audioLevelLogCounter = 0
+    private let audioDataLogInterval = 50  // Log every 50th audio data yield
+    private let audioLevelLogInterval = 50  // Log every 50th audio level update
+    
     public init() {
         checkMicrophonePermission()
     }
@@ -209,7 +215,11 @@ public class CaptureEngine: ObservableObject {
             }
         }
         
-        print("Yielding audio data: \(outputData.count) bytes")
+        // Throttle audio data logging to reduce console spam
+        audioDataLogCounter += 1
+        if audioDataLogCounter % audioDataLogInterval == 1 {
+            print("Yielding audio data: \(outputData.count) bytes (logged every \(audioDataLogInterval) yields)")
+        }
         continuation?.yield(outputData)
     }
     
@@ -237,8 +247,12 @@ public class CaptureEngine: ObservableObject {
         // Update audioLevel on main thread for UI
         Task { @MainActor in
             self.audioLevel = peak
+            // Throttle audio level logging to reduce console spam
             if peak > 0.01 {
-                print("Audio level: \(peak)")
+                self.audioLevelLogCounter += 1
+                if self.audioLevelLogCounter % self.audioLevelLogInterval == 1 {
+                    print("Audio level: \(peak) (logged every \(self.audioLevelLogInterval) updates)")
+                }
             }
         }
     }
