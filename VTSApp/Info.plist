@@ -24,6 +24,8 @@
     <string>VTS needs access to your microphone to record audio for speech-to-text transcription.</string>
     <key>NSAccessibilityUsageDescription</key>
     <string>VTS needs accessibility access to insert transcribed text directly into other applications, just like built-in macOS dictation.</string>
+    <key>NSUserNotificationsUsageDescription</key>
+    <string>VTS shows notifications to help you understand issues and retry if possible.</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>LSUIElement</key>

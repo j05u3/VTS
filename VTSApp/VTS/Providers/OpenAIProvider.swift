@@ -104,9 +104,52 @@ public class OpenAIProvider: BaseSTTProvider {
             providerName: "OpenAI"
         )
         
-        guard let httpResponse = response as? HTTPURLResponse,
-              200...299 ~= httpResponse.statusCode else {
-            throw STTError.networkError("Bad server response")
+        // Enhanced error handling based on HTTP status codes
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw STTError.networkError("Invalid response format")
+        }
+        
+        // Handle different status codes specifically
+        switch httpResponse.statusCode {
+        case 200...299:
+            // Success - continue processing
+            break
+            
+        case 401:
+            // Authentication failed - invalid API key
+            let errorDetails = parseErrorResponse(data)
+            throw STTError.invalidAPIKey
+            
+        case 402:
+            // Payment required - quota exceeded
+            let errorDetails = parseErrorResponse(data)
+            throw STTError.transcriptionError("Account quota exceeded. Please check your billing and usage limits.")
+            
+        case 429:
+            // Rate limit exceeded
+            let errorDetails = parseErrorResponse(data)
+            throw STTError.transcriptionError("Rate limit exceeded. Please wait before trying again.")
+            
+        case 400:
+            // Bad request - could be invalid model, malformed audio, etc.
+            let errorDetails = parseErrorResponse(data)
+            if errorDetails.contains("model") {
+                throw STTError.invalidModel
+            } else if errorDetails.contains("audio") {
+                throw STTError.audioProcessingError("Invalid audio format or corrupted audio data")
+            } else {
+                throw STTError.transcriptionError("Bad request: \(errorDetails)")
+            }
+            
+        case 500...599:
+            // Server errors - retryable
+            let errorDetails = parseErrorResponse(data)
+            throw STTError.networkError("Server error (\(httpResponse.statusCode)): \(errorDetails)")
+            
+        default:
+            // Other client errors
+            let errorDetails = parseErrorResponse(data)
+            throw STTError.networkError("Request failed (\(httpResponse.statusCode)): \(errorDetails)")
         }
         
         struct TranscriptionResponse: Codable {
@@ -115,5 +158,30 @@ public class OpenAIProvider: BaseSTTProvider {
         
         let transcriptionResponse = try JSONDecoder().decode(TranscriptionResponse.self, from: data)
         return transcriptionResponse.text
+    }
+    
+    // Helper method to parse error responses from OpenAI API
+    private func parseErrorResponse(_ data: Data) -> String {
+        // Try to parse OpenAI error response format
+        struct OpenAIErrorResponse: Codable {
+            let error: ErrorDetails
+            
+            struct ErrorDetails: Codable {
+                let message: String
+                let type: String?
+                let code: String?
+            }
+        }
+        
+        if let errorResponse = try? JSONDecoder().decode(OpenAIErrorResponse.self, from: data) {
+            return errorResponse.error.message
+        }
+        
+        // Fallback to raw response text
+        if let responseText = String(data: data, encoding: .utf8), !responseText.isEmpty {
+            return responseText
+        }
+        
+        return "Unknown error"
     }
 }

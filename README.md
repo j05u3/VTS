@@ -10,7 +10,6 @@ A modern macOS speech-to-text application that provides real-time transcription 
 - ✅ **Custom System Prompts**: Improve transcription accuracy with context
 - ✅ **Native macOS UI**: Modern SwiftUI interface optimized for macOS
 - ✅ **Comprehensive Device Support**: Real-time device detection and switching
-- ✅ **Resizable Interface**: Adaptive UI that grows with your workflow
 
 ## Requirements
 

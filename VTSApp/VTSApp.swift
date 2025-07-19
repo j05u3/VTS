@@ -135,6 +135,7 @@ class AppState: ObservableObject {
     private let deviceManager = DeviceManager()
     private let apiKeyManager = APIKeyManager()
     private let hotkeyManager = SimpleHotkeyManager.shared
+    private let notificationManager = NotificationManager.shared
     private var cancellables = Set<AnyCancellable>()
     
     private var settingsWindowController: SettingsWindowController?
@@ -260,6 +261,7 @@ class AppState: ObservableObject {
     private func initializeAfterLaunch() {
         setupStatusBar()
         setupGlobalHotkey()
+        setupNotifications()
     }
     
     private func setupStatusBar() {
@@ -303,6 +305,21 @@ class AppState: ObservableObject {
         
         // Register the hotkeys
         hotkeyManager.registerHotkey()
+    }
+    
+    private func setupNotifications() {
+        // Request notification permissions
+        Task {
+            await notificationManager.requestPermission()
+            print("🔔 Notification permissions requested")
+        }
+        
+        // Setup notification action handlers
+        notificationManager.onSettingsRequested = { [weak self] in
+            Task { @MainActor in
+                self?.showPreferences()
+            }
+        }
     }
     
     private func setupTranscriptionService() {
