@@ -37,7 +37,7 @@ public class APIKeyManager: ObservableObject {
     
     /// Store an API key for a provider (replaces any existing key for that provider)
     public func storeAPIKey(_ key: String, for provider: STTProviderType) {
-        let keyIdentifier = apiKeyPrefix + provider.rawValue.lowercased()
+        let keyIdentifier = apiKeyPrefix + provider.dbKey
         userDefaults.set(key, forKey: keyIdentifier)
         
         // Update UI
@@ -48,13 +48,13 @@ public class APIKeyManager: ObservableObject {
     
     /// Get the API key for a provider
     public func getAPIKey(for provider: STTProviderType) -> String? {
-        let keyIdentifier = apiKeyPrefix + provider.rawValue.lowercased()
+        let keyIdentifier = apiKeyPrefix + provider.dbKey
         return userDefaults.string(forKey: keyIdentifier)
     }
     
     /// Delete the API key for a provider
     public func deleteAPIKey(for provider: STTProviderType) {
-        let keyIdentifier = apiKeyPrefix + provider.rawValue.lowercased()
+        let keyIdentifier = apiKeyPrefix + provider.dbKey
         userDefaults.removeObject(forKey: keyIdentifier)
         
         // Update UI
