@@ -37,9 +37,6 @@ class SettingsWindowController: NSWindowController {
         // Set minimum size to prevent UI issues
         newWindow.minSize = NSSize(width: 500, height: 400)
         
-        // Make window appear in front of other windows
-        newWindow.level = .floating
-        
         // Set the window using the inherited property
         self.window = newWindow
     }
@@ -49,7 +46,18 @@ class SettingsWindowController: NSWindowController {
             setupWindow()
         }
         
+        // Ensure the window is visible and brought to front
         window?.makeKeyAndOrderFront(nil)
+        
+        // Make sure the window is not minimized
+        if window?.isMiniaturized == true {
+            window?.deminiaturize(nil)
+        }
+        
+        // Bring the window to the front of all windows
+        window?.orderFrontRegardless()
+        
+        // Activate the app and make it the frontmost application
         NSApp.activate(ignoringOtherApps: true)
     }
     
