@@ -123,7 +123,7 @@ struct ContentView: View {
             
             // Quick Actions
             HStack {                
-                Button("Copy Last Text (\(appState.hotkeyManagerService.currentCopyHotkeyString == SimpleHotkeyManager.NO_HOTKEY_SET ? "No shortcut" : appState.hotkeyManagerService.currentCopyHotkeyString))") {
+                Button("Copy \(getTranscriptionPreview()) (\(appState.hotkeyManagerService.currentCopyHotkeyString == SimpleHotkeyManager.NO_HOTKEY_SET ? "No shortcut" : appState.hotkeyManagerService.currentCopyHotkeyString))") {
                     appState.copyLastTranscription()
                 }
                 .buttonStyle(.bordered)
@@ -145,12 +145,13 @@ struct ContentView: View {
         let lastTranscription = appState.transcriptionServiceInstance.lastTranscription
 
         if lastTranscription.isEmpty {
-            return "Last"
+            return "Last Text"
         }
         
-        // Take first 6 characters and add ellipsis if truncated
-        let preview = String(lastTranscription.prefix(6))
-        return "\"\(lastTranscription.count > 6 ? preview + "…" : preview)\""
+        // Take first n characters and add ellipsis if truncated
+        let n = 11
+        let preview = String(lastTranscription.prefix(n))
+        return "\"\(lastTranscription.count > n ? preview + "…" : preview)\""
     }
 }
 

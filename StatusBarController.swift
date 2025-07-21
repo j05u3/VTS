@@ -38,17 +38,17 @@ public class StatusBarController: ObservableObject {
     }
     
     private func getTranscriptionPreview() -> String {
-        guard let transcriptionService = transcriptionService else { return "Last" }
+        guard let transcriptionService = transcriptionService else { return "Last Text" }
         
         let lastTranscription = transcriptionService.lastTranscription
         
         if lastTranscription.isEmpty {
-            return "Last"
+            return "Last Text"
         }
         
         // Take first 6 characters, but handle shorter strings gracefully
         let preview = String(lastTranscription.prefix(6))
-        return preview.isEmpty ? "Last" : preview
+        return preview.isEmpty ? "Last Text" : preview
     }
     
     private func setupHotkeyObservation() {
@@ -98,28 +98,9 @@ public class StatusBarController: ObservableObject {
     private func showContextMenu() {
         let menu = NSMenu()
         
-        // Recording toggle
-        let recordingTitle: String
-        switch (isRecording, isProcessing) {
-            case (true, _):
-                recordingTitle = "⏹ Stop Recording"
-            case (false, true):
-                recordingTitle = "🔴 Start Recording (Processing audio...)"
-            case (false, false):
-                recordingTitle = "🔴 Start Voice Recording"
-        }
-        
-        let recordingItem = NSMenuItem(
-            title: recordingTitle,
-            action: #selector(toggleRecording),
-            keyEquivalent: ""
-        )
-        recordingItem.target = self
-        menu.addItem(recordingItem)
-        
         // Copy last transcription
         let copyItem = NSMenuItem(
-            title: "📋 Copy Last Text (\(hotkeyManager.currentCopyHotkeyString))",
+            title: "📋 Copy \(getTranscriptionPreview()) (\(hotkeyManager.currentCopyHotkeyString))",
             action: #selector(copyLastTranscription),
             keyEquivalent: ""
         )
