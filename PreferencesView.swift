@@ -426,7 +426,7 @@ struct PreferencesView: View {
                         Text("VTS works like native macOS dictation:")
                             .font(.headline)
                         
-                        if appState.hotkeyManagerService.currentHotkeyString == "None" {
+                        if appState.hotkeyManagerService.currentHotkeyString == SimpleHotkeyManager.NO_HOTKEY_SET {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("No keyboard shortcut is currently set.")
                                     .foregroundColor(.secondary)

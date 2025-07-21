@@ -123,7 +123,7 @@ struct ContentView: View {
             
             // Quick Actions
             HStack {                
-                Button("Copy Last Text (\(appState.hotkeyManagerService.currentCopyHotkeyString == "None" ? "No shortcut" : appState.hotkeyManagerService.currentCopyHotkeyString))") {
+                Button("Copy Last Text (\(appState.hotkeyManagerService.currentCopyHotkeyString == SimpleHotkeyManager.NO_HOTKEY_SET ? "No shortcut" : appState.hotkeyManagerService.currentCopyHotkeyString))") {
                     appState.copyLastTranscription()
                 }
                 .buttonStyle(.bordered)
