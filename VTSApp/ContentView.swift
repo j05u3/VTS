@@ -25,7 +25,7 @@ struct ContentView: View {
                 HStack {
                     Text("AI Provider:")
                         .frame(width: 70, alignment: .leading)
-                    Picker("Provider", selection: $appState.selectedProvider) {
+                    Picker("", selection: $appState.selectedProvider) {
                         ForEach(STTProviderType.allCases, id: \.self) { provider in
                             Text(provider.rawValue).tag(provider)
                         }
@@ -39,7 +39,7 @@ struct ContentView: View {
                 HStack {
                     Text("AI Model:")
                         .frame(width: 70, alignment: .leading)
-                    Picker("Model", selection: $appState.selectedModel) {
+                    Picker("", selection: $appState.selectedModel) {
                         ForEach(appState.selectedProvider.defaultModels, id: \.self) { model in
                             Text(model).tag(model)
                         }
