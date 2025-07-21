@@ -36,19 +36,18 @@ public class StatusBarController: ObservableObject {
     public func setTranscriptionService(_ service: TranscriptionService) {
         transcriptionService = service
     }
-    
+
     private func getTranscriptionPreview() -> String {
-        guard let transcriptionService = transcriptionService else { return "Last Text" }
-        
-        let lastTranscription = transcriptionService.lastTranscription
-        
+        let lastTranscription = transcriptionService?.lastTranscription ?? ""
+
         if lastTranscription.isEmpty {
             return "Last Text"
         }
         
-        // Take first 6 characters, but handle shorter strings gracefully
-        let preview = String(lastTranscription.prefix(6))
-        return preview.isEmpty ? "Last Text" : preview
+        // Take first n characters and add ellipsis if truncated
+        let n = 11
+        let preview = String(lastTranscription.prefix(n))
+        return "\"\(lastTranscription.count > n ? preview + "…" : preview)\""
     }
     
     private func setupHotkeyObservation() {
