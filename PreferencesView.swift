@@ -426,26 +426,58 @@ struct PreferencesView: View {
                         Text("VTS works like native macOS dictation:")
                             .font(.headline)
                         
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("1.")
+                        if appState.hotkeyManagerService.currentHotkeyString == "None" {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("No keyboard shortcut is currently set.")
+                                    .foregroundColor(.secondary)
+                                
+                                Text("To get started:")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                Text("Press \(appState.hotkeyManagerService.currentHotkeyString) anywhere in macOS to start recording")
+                                
+                                HStack {
+                                    Text("1.")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("Go to the 'Hotkeys' tab")
+                                }
+                                
+                                HStack {
+                                    Text("2.")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("Click in the 'Toggle Recording' field and press your desired shortcut")
+                                }
+                                
+                                HStack {
+                                    Text("3.")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("The shortcut will work system-wide to start/stop recording")
+                                }
                             }
-                            
-                            HStack {
-                                Text("2.")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text("Speak your text while the status bar shows 🔴")
-                            }
-                            
-                            HStack {
-                                Text("3.")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text("Press \(appState.hotkeyManagerService.currentHotkeyString) again to stop and insert text at cursor")
+                        } else {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("1.")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("Press \(appState.hotkeyManagerService.currentHotkeyString) anywhere in macOS to start recording")
+                                }
+                                
+                                HStack {
+                                    Text("2.")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("Speak your text while the status bar shows 🔴")
+                                }
+                                
+                                HStack {
+                                    Text("3.")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("Press \(appState.hotkeyManagerService.currentHotkeyString) again to stop and insert text at cursor")
+                                }
                             }
                         }
                         
