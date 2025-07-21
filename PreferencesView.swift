@@ -4,6 +4,9 @@ import KeyboardShortcuts
 struct PreferencesView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var apiKeyManager: APIKeyManager
+
+    // Global Hotkeys Tab
+    let hotkeysTabTitle = "Hotkeys"
     
     // Access shared instances from AppState instead of creating new ones
     private var captureEngine: CaptureEngine {
@@ -439,7 +442,7 @@ struct PreferencesView: View {
                                     Text("1.")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
-                                    Text("Go to the 'Hotkeys' tab")
+                                    Text("Go to the '\(hotkeysTabTitle)' tab")
                                 }
                                 
                                 HStack {
@@ -496,7 +499,7 @@ struct PreferencesView: View {
                 Text("Permissions")
             }
             
-            // Global Hotkeys Tab
+            
             VStack(spacing: 20) {
                 Text("Global Hotkeys")
                     .font(.largeTitle)
@@ -571,7 +574,7 @@ struct PreferencesView: View {
             .padding()
             .tabItem {
                 Image(systemName: "keyboard")
-                Text("Hotkeys")
+                Text(hotkeysTabTitle)
             }
         }
         .frame(width: 600, height: 650)

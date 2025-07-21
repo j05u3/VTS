@@ -3,9 +3,6 @@ import AppKit
 import KeyboardShortcuts
 import Combine
 
-// Constants for hotkey display
-public let NO_HOTKEY_SET = "None"
-
 extension KeyboardShortcuts.Name {
     static let toggleRecording = Self("toggleRecording", default: .init(.semicolon, modifiers: [.command, .shift]))
     static let copyLastTranscription = Self("copyLastTranscription", default: nil)
@@ -13,6 +10,9 @@ extension KeyboardShortcuts.Name {
 
 @MainActor
 public class SimpleHotkeyManager: ObservableObject {
+    // Constants for hotkey display
+    public static let NO_HOTKEY_SET = "None"
+    
     public static let shared = SimpleHotkeyManager()
     
     @Published public var isEnabled = false
@@ -70,12 +70,12 @@ public class SimpleHotkeyManager: ObservableObject {
     
     /// Get the current hotkey as a display string (e.g., "⌘⇧;")
     private func getCurrentHotkeyDisplayString() -> String {
-        return getHotkeyDisplayString(for: .toggleRecording, fallback: NO_HOTKEY_SET)
+        return getHotkeyDisplayString(for: .toggleRecording, fallback: Self.NO_HOTKEY_SET)
     }
     
     /// Get the current copy hotkey as a display string (e.g., "⌥⌘⇧C")
     private func getCurrentCopyHotkeyDisplayString() -> String {
-        return getHotkeyDisplayString(for: .copyLastTranscription, fallback: NO_HOTKEY_SET)
+        return getHotkeyDisplayString(for: .copyLastTranscription, fallback: Self.NO_HOTKEY_SET)
     }
     
     /// Generic function to get hotkey display string for any KeyboardShortcuts.Name
@@ -278,7 +278,7 @@ public class SimpleHotkeyManager: ObservableObject {
         }
         
         // Register the copy last transcription hotkey handler only if it's set
-        if currentCopyHotkeyString != NO_HOTKEY_SET {
+        if currentCopyHotkeyString != Self.NO_HOTKEY_SET {
             KeyboardShortcuts.onKeyDown(for: .copyLastTranscription) { [weak self] in
                 print("Global copy hotkey pressed!")
                 self?.onCopyLastTranscription?()
