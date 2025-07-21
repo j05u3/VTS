@@ -1,6 +1,5 @@
 import SwiftUI
 import KeyboardShortcuts
-import KeychainAccess
 import Combine
 
 @main
@@ -18,28 +17,28 @@ struct VTSApp: App {
 
 @MainActor
 public class APIKeyManager: ObservableObject {
-    private let keychain: Keychain
     private let userDefaults = UserDefaults.standard
     
     // Keys for storing which provider/model is currently selected
     private let selectedProviderKey = "selectedProvider"
     private let selectedModelKey = "selectedModel"
     
+    // Key prefix for storing API keys
+    private let apiKeyPrefix = "apiKey_"
+    
     // Published property to trigger UI updates when keys change
     @Published public var keysUpdated = 0
     
     public init() {
-        // Create keychain with app-specific service identifier
-        keychain = Keychain(service: "com.vts.apikeys")
-            .accessibility(.whenUnlocked)
+        // No initialization needed for UserDefaults
     }
     
     // MARK: - API Key Management
     
     /// Store an API key for a provider (replaces any existing key for that provider)
-    public func storeAPIKey(_ key: String, for provider: STTProviderType) throws {
-        let keyIdentifier = provider.rawValue.lowercased()
-        try keychain.set(key, key: keyIdentifier)
+    public func storeAPIKey(_ key: String, for provider: STTProviderType) {
+        let keyIdentifier = apiKeyPrefix + provider.rawValue.lowercased()
+        userDefaults.set(key, forKey: keyIdentifier)
         
         // Update UI
         DispatchQueue.main.async {
@@ -48,15 +47,15 @@ public class APIKeyManager: ObservableObject {
     }
     
     /// Get the API key for a provider
-    public func getAPIKey(for provider: STTProviderType) throws -> String? {
-        let keyIdentifier = provider.rawValue.lowercased()
-        return try keychain.get(keyIdentifier)
+    public func getAPIKey(for provider: STTProviderType) -> String? {
+        let keyIdentifier = apiKeyPrefix + provider.rawValue.lowercased()
+        return userDefaults.string(forKey: keyIdentifier)
     }
     
     /// Delete the API key for a provider
-    public func deleteAPIKey(for provider: STTProviderType) throws {
-        let keyIdentifier = provider.rawValue.lowercased()
-        try keychain.remove(keyIdentifier)
+    public func deleteAPIKey(for provider: STTProviderType) {
+        let keyIdentifier = apiKeyPrefix + provider.rawValue.lowercased()
+        userDefaults.removeObject(forKey: keyIdentifier)
         
         // Update UI
         DispatchQueue.main.async {
@@ -66,16 +65,12 @@ public class APIKeyManager: ObservableObject {
     
     /// Check if a provider has an API key configured
     public func hasAPIKey(for provider: STTProviderType) -> Bool {
-        do {
-            return try getAPIKey(for: provider) != nil
-        } catch {
-            return false
-        }
+        return getAPIKey(for: provider) != nil && !getAPIKey(for: provider)!.isEmpty
     }
     
     /// Get the current API key for the selected provider
-    public func getCurrentAPIKey() throws -> String? {
-        return try getAPIKey(for: selectedProvider)
+    public func getCurrentAPIKey() -> String? {
+        return getAPIKey(for: selectedProvider)
     }
     
     /// Get all providers that have API keys configured
@@ -363,10 +358,10 @@ class AppState: ObservableObject {
             print("Starting audio capture...")
             let audioStream = try captureEngine.start(deviceID: deviceManager.preferredDeviceID)
             
-            // Get the API key securely from keychain
-            guard let apiKey = try apiKeyManager.getCurrentAPIKey() else {
-                print("Failed to retrieve API key from keychain")
-                showAlert("API Key Error", "Unable to retrieve your API key. Please check your keychain access or re-enter your API key in Settings.")
+            // Get the API key from local storage
+            guard let apiKey = apiKeyManager.getCurrentAPIKey() else {
+                print("Failed to retrieve API key from storage")
+                showAlert("API Key Error", "Unable to retrieve your API key. Please check your API key configuration in Settings.")
                 return
             }
             

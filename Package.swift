@@ -7,7 +7,6 @@ let package = Package(
         .macOS(.v14)
     ],
     dependencies: [
-        .package(url: "https://github.com/kishikawakatsumi/KeychainAccess", from: "4.2.2"),
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.0.0")
     ]
 )
