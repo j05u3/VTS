@@ -41,3 +41,18 @@ public enum STTProviderType: String, CaseIterable, Codable {
         }
     }
 }
+
+// MARK: - Database Key Extension
+
+extension STTProviderType {
+    /// Stable database key for UserDefaults storage
+    /// This allows for future renaming of the enum cases without breaking existing stored data
+    public var dbKey: String {
+        switch self {
+        case .openai:
+            return "openai"
+        case .groq:
+            return "groq"
+        }
+    }
+}

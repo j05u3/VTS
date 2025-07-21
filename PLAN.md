@@ -33,9 +33,9 @@
 |   Preferences UI    |     |   Provider:OpenAI    |
 | SwiftUI + Settings  |     |   Provider:Groq      |
 └─────────┬───────────┘     └───────────┬──────────┘
-          │ UserDefaults / Keychain      │
+          │ UserDefaults                 │
           ▼                              ▼
-   JSONConfigStore              HTTPS REST streaming
+   LocalConfigStore             HTTPS REST streaming
 ```
 
 ---
@@ -49,7 +49,7 @@
 | **Global hotkey**        | **Carbon RegisterEventHotKey** via [PTHotKey](https://github.com/kulpreetchilana/pthotkey)-style wrapper (or MASShortcut)                                   | Works outside sandbox; macOS-stable since 10.6.         |
 | **Provider abstraction** | Simple `protocol STTProvider { func start(bufferStream: AsyncThrowingStream<Data,Error>, config:ProviderConfig) async -> AsyncStream<TranscriptionChunk> }` | Allows adding local Whisper later without refactor.     |
 | **HTTP client**          | **URLSession WebSocket / streaming multipart**                                                                                                              | No 3rd-party dependency; Combine or async await.        |
-| **Config persistence**   | `AppStorage` + **KeychainAccess** (keys encrypted at rest)                                                                                                  | Lightweight, MIT-compatible library.                    |
+| **Config persistence**   | `UserDefaults` for local storage (simple and built-in)                                                                                                      | No dependencies, native macOS integration.              |
 | **Input insertion**      | **CGEventKeyboard** injection fallback to `NSPasteboard`+⌘V when needed                                                                                     | Matches Dictation behaviour even in secure text fields. |
 | **Testing**              | **XCTest** + mock provider returning canned JSON                                                                                                            | CI friendly.                                            |
 | **Distribution**         | Codesigned `.app` + Homebrew cask + MAS optional                                                                                                            | Clear upgrade path.                                     |
@@ -101,7 +101,7 @@
 
 * **No audio stored** unless history enabled; temp buffers kept in RAM.
 * **TLS 1.3** enforced for outgoing traffic.
-* **Keychain** item class `kSecClassGenericPassword`, access group limited to app.
+* **Local storage** via UserDefaults, sandboxed to app container.
 * Show *Privacy > Microphone* usage description; request on first record.
 
 ---
@@ -120,7 +120,7 @@
 ### 8. Project Setup & CI
 
 1. `swift package init --type=executable` → Xcode project.
-2. Dependencies via SPM: **KeychainAccess**, **KeyboardShortcuts**.
+2. Dependencies via SPM: **KeyboardShortcuts**.
 3. **GitHub Actions**:
 
    * Build & run tests on `macos-14` matrix (Release, Debug).

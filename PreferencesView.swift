@@ -126,7 +126,7 @@ struct PreferencesView: View {
                         Text("API Key Management")
                             .font(.headline)
                         
-                        Text("Enter your API keys for speech recognition services. Keys are stored securely in your macOS keychain and never shared.")
+                        Text("Enter your API keys for speech recognition services. Keys are stored locally in your app preferences and never shared.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
@@ -200,7 +200,7 @@ struct PreferencesView: View {
                                                 .buttonStyle(.bordered)
                                                 .foregroundColor(.red)
                                             } else {
-                                                Button("Add Key") {
+                                                Button("Add") {
                                                     editingAPIKeys[provider] = ""
                                                 }
                                                 .buttonStyle(.borderedProminent)
@@ -588,20 +588,12 @@ struct PreferencesView: View {
     private func saveAPIKey(for provider: STTProviderType) {
         guard let key = editingAPIKeys[provider], !key.isEmpty else { return }
         
-        do {
-            try apiKeyManager.storeAPIKey(key, for: provider)
-            editingAPIKeys[provider] = nil
-        } catch {
-            print("Failed to store API key: \(error)")
-        }
+        apiKeyManager.storeAPIKey(key, for: provider)
+        editingAPIKeys[provider] = nil
     }
     
     private func removeAPIKey(for provider: STTProviderType) {
-        do {
-            try apiKeyManager.deleteAPIKey(for: provider)
-        } catch {
-            print("Failed to delete API key: \(error)")
-        }
+        apiKeyManager.deleteAPIKey(for: provider)
     }
 }
 
