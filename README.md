@@ -2,6 +2,11 @@
 
 A modern macOS speech-to-text application that provides real-time transcription using OpenAI and Groq APIs.
 
+## Demo
+
+https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
+
+
 ## Features
 
 - ✅ **Multiple STT Providers**: OpenAI Whisper and Groq support
