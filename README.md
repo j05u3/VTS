@@ -1,19 +1,24 @@
-# VTS - Voice to Text Service
+# 🔵 VTS - Voice-Type Studio
 
-A modern macOS speech-to-text application that provides real-time transcription using OpenAI and Groq APIs.
+**The open-source macOS dictation replacement you've been waiting for!** 🚀
 
-## Demo
+Transform your voice into text instantly with the power of **OpenAI Whisper** and **Groq** APIs. Say goodbye to macOS dictation limitations and hello to lightning-fast, accurate transcription with your own custom hotkeys! ⚡️
+
+## 🎬 Demo
+
+> **🔊 Turn on your sound!** This demo includes audio to showcase the real-time transcription experience.
 
 https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
 
+## ✨ Why Choose VTS?
 
-## Features
-
-- ✅ **Multiple STT Providers**: OpenAI Whisper and Groq support
-- ✅ **Microphone Priority Management**: Full device priority lists with automatic fallback
-- ✅ **Custom System Prompts**: Improve transcription accuracy with context
-- ✅ **Global Hotkey Support**: toggle recording system-wide (default: ⌘⇧;)
-- ✅ **Just like macOS Dictation**: Press the hotkey, speak and see the text inserted into the application you're using
+- 🤖 **AI-Powered Accuracy**: Leverage OpenAI and Groq models for superior transcription
+- 🔑 **Your Keys, Your Control**: Bring your own API keys - no subscriptions, no limits
+- 🔄 **Drop-in Replacement**: Works exactly like macOS dictation, but better!
+- ⌨️ **Your Shortcut, Your Rules**: Fully customizable global hotkeys (default: ⌘⇧;)
+- 🎯 **Smart Device Management**: Intelligent microphone priority with seamless fallback
+- 💬 **Context-Aware**: Custom system prompt boosts accuracy for your specific needs  
+- 🔓 **100% Open Source**: Full transparency, community-driven, modify as you wish
 
 
 ## Requirements
