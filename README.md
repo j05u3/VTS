@@ -8,7 +8,8 @@ Transform your voice into text instantly with the power of **OpenAI** and **Groq
 
 > **🔊 Turn on your sound!** This demo includes audio to showcase the real-time transcription experience.
 
-https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
+https://github.com/user-attachments/assets/59563387-5d46-47eb-8f58-2607c4901135
+
 
 ## ✨ Why Choose VTS?
 
@@ -48,6 +49,8 @@ open VTSApp.xcodeproj
 1. In Xcode, select the **VTSApp** scheme
 2. Build and run with **⌘R**
 3. Grant microphone permission when prompted
+
+https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
 
 ## Usage
 
