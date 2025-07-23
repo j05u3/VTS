@@ -2,7 +2,7 @@
 
 **The open-source macOS dictation replacement you've been waiting for!** 🚀
 
-Transform your voice into text instantly with the power of **OpenAI Whisper** and **Groq** APIs. Say goodbye to macOS dictation limitations and hello to lightning-fast, accurate transcription with your own custom hotkeys! ⚡️
+Transform your voice into text instantly with the power of **OpenAI** and **Groq** APIs. Say goodbye to macOS dictation limitations and hello to lightning-fast, accurate transcription with your own custom hotkeys! ⚡️
 
 ## 🎬 Demo
 
