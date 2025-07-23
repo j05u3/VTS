@@ -33,6 +33,10 @@ public class APIKeyManager: ObservableObject {
     // Track keychain access states
     @Published public var hasCompletedFirstRun: Bool
     @Published public var keychainPermissionExplained: Bool
+    @Published public var hasShownPopover: Bool = false
+    
+    // UI-safe API key status (doesn't trigger keychain access)
+    @Published public var apiKeyStatusForUI: [STTProviderType: Bool] = [:]
     
     public init() {
         // Create keychain with app-specific service identifier
@@ -42,6 +46,19 @@ public class APIKeyManager: ObservableObject {
         // Initialize first run state
         hasCompletedFirstRun = userDefaults.bool(forKey: hasCompletedFirstRunKey)
         keychainPermissionExplained = userDefaults.bool(forKey: keychainPermissionExplainedKey)
+        
+        // Debug logging
+        let bundleId = Bundle.main.bundleIdentifier ?? "unknown"
+        print("🔑 APIKeyManager init: Bundle ID = \(bundleId)")
+        print("🔑 APIKeyManager init: UserDefaults suite = \(userDefaults.dictionaryRepresentation().keys.contains(hasCompletedFirstRunKey))")
+        print("🔑 APIKeyManager init: Raw hasCompletedFirstRun value = \(userDefaults.object(forKey: hasCompletedFirstRunKey) ?? "nil")")
+        print("🔑 APIKeyManager init: Raw keychainPermissionExplained value = \(userDefaults.object(forKey: keychainPermissionExplainedKey) ?? "nil")")
+        print("🔑 APIKeyManager init: hasCompletedFirstRun = \(hasCompletedFirstRun)")
+        print("🔑 APIKeyManager init: keychainPermissionExplained = \(keychainPermissionExplained)")
+        
+        // TEMPORARY: Force reset for debugging if needed
+        print("🔑 APIKeyManager init: FORCING RESET FOR TESTING")
+        resetFirstRunState() // TEMPORARILY ENABLED FOR TESTING
     }
     
     // MARK: - API Key Management
@@ -54,11 +71,17 @@ public class APIKeyManager: ObservableObject {
         // Update UI
         DispatchQueue.main.async {
             self.keysUpdated += 1
+            self.apiKeyStatusForUI[provider] = true
         }
     }
     
     /// Get the API key for a provider
     public func getAPIKey(for provider: STTProviderType) throws -> String? {
+        print("🚨 KEYCHAIN ACCESS: getAPIKey called for \(provider.rawValue)")
+        print("🚨 KEYCHAIN ACCESS: hasCompletedFirstRun = \(hasCompletedFirstRun)")
+        print("🚨 KEYCHAIN ACCESS: Call stack:")
+        Thread.callStackSymbols.prefix(10).forEach { print("🚨   \($0)") }
+        
         let keyIdentifier = provider.rawValue.lowercased()
         return try keychain.get(keyIdentifier)
     }
@@ -71,6 +94,7 @@ public class APIKeyManager: ObservableObject {
         // Update UI
         DispatchQueue.main.async {
             self.keysUpdated += 1
+            self.apiKeyStatusForUI[provider] = false
         }
     }
     
@@ -90,15 +114,17 @@ public class APIKeyManager: ObservableObject {
     
     /// Get all providers that have API keys configured
     public var configuredProviders: [STTProviderType] {
-        return STTProviderType.allCases.filter { hasAPIKey(for: $0) }
+        return STTProviderType.allCases.filter { hasAPIKeySafe(for: $0) }
     }
     
     // MARK: - First Run and Safe Keychain Access
     
     /// Mark that the first run has been completed
     public func markFirstRunCompleted() {
+        print("🔑 APIKeyManager: markFirstRunCompleted called")
         hasCompletedFirstRun = true
         userDefaults.set(true, forKey: hasCompletedFirstRunKey)
+        print("🔑 APIKeyManager: First run marked as completed, hasCompletedFirstRun = \(hasCompletedFirstRun)")
     }
     
     /// Mark that keychain permission has been explained to user
@@ -107,10 +133,47 @@ public class APIKeyManager: ObservableObject {
         userDefaults.set(true, forKey: keychainPermissionExplainedKey)
     }
     
+    /// Reset first run state for testing
+    public func resetFirstRunState() {
+        print("🔑 APIKeyManager: Resetting first run state")
+        print("🔑 APIKeyManager: Before reset - hasCompletedFirstRun = \(hasCompletedFirstRun)")
+        print("🔑 APIKeyManager: Before reset - keychainPermissionExplained = \(keychainPermissionExplained)")
+        print("🔑 APIKeyManager: Before reset - hasShownPopover = \(hasShownPopover)")
+        
+        hasCompletedFirstRun = false
+        keychainPermissionExplained = false
+        hasShownPopover = false
+        apiKeyStatusForUI = [:] // Reset UI status
+        userDefaults.removeObject(forKey: hasCompletedFirstRunKey)
+        userDefaults.removeObject(forKey: keychainPermissionExplainedKey)
+        userDefaults.synchronize() // Force write to disk
+        
+        print("🔑 APIKeyManager: After reset - hasCompletedFirstRun = \(hasCompletedFirstRun)")
+        print("🔑 APIKeyManager: After reset - keychainPermissionExplained = \(keychainPermissionExplained)")
+        print("🔑 APIKeyManager: After reset - hasShownPopover = \(hasShownPopover)")
+        print("🔑 APIKeyManager: Reset complete")
+    }
+    
+    /// Update UI status for a provider (safe method that doesn't trigger keychain access during first run)
+    public func updateUIStatus(for provider: STTProviderType) {
+        // Only check keychain if we've completed first run setup
+        guard hasCompletedFirstRun else {
+            apiKeyStatusForUI[provider] = false
+            return
+        }
+        
+        apiKeyStatusForUI[provider] = hasAPIKey(for: provider)
+    }
+    
+    /// Get UI-safe API key status (doesn't trigger keychain access)
+    public func hasAPIKeyForUI(for provider: STTProviderType) -> Bool {
+        return apiKeyStatusForUI[provider] ?? false
+    }
+    
     /// Check if provider has API key without triggering keychain dialog on first run
     public func hasAPIKeySafe(for provider: STTProviderType) -> Bool {
-        // On first run, assume no keys to avoid keychain dialog
-        guard hasCompletedFirstRun else {
+        // On first run before popover is shown, assume no keys to avoid keychain dialog
+        guard hasShownPopover else {
             return false
         }
         
@@ -379,6 +442,28 @@ class AppState: ObservableObject {
         
         statusBarController.onQuit = {
             NSApplication.shared.terminate(nil)
+        }
+        
+        statusBarController.onFirstPopoverShown = { [weak self] in
+            print("🔑 AppState: onFirstPopoverShown callback called")
+            // Mark popover as shown but delay first run completion
+            if let apiKeyManager = self?.apiKeyManager, !apiKeyManager.hasCompletedFirstRun {
+                print("🔑 AppState: First popover show detected")
+                apiKeyManager.hasShownPopover = true
+                print("🔑 AppState: Delaying first run completion to allow UI to render")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    print("🔑 AppState: Now marking first run as completed after delay")
+                    apiKeyManager.markFirstRunCompleted()
+                    
+                    // Update UI status for all providers now that first run is complete
+                    print("🔑 AppState: Updating UI status for all providers")
+                    for provider in STTProviderType.allCases {
+                        apiKeyManager.updateUIStatus(for: provider)
+                    }
+                }
+            } else {
+                print("🔑 AppState: Not first run or apiKeyManager is nil")
+            }
         }
     }
     

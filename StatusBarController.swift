@@ -15,6 +15,7 @@ public class StatusBarController: ObservableObject {
     public var onCopyLastTranscription: (() -> Void)?
     public var onShowPreferences: (() -> Void)?
     public var onQuit: (() -> Void)?
+    public var onFirstPopoverShown: (() -> Void)?
     
     // Reference to hotkey manager for dynamic tooltips
     private let hotkeyManager = SimpleHotkeyManager.shared
@@ -85,21 +86,28 @@ public class StatusBarController: ObservableObject {
     }
     
     @objc private func statusBarButtonClicked() {
+        print("🔑 StatusBarController: Status bar button clicked")
         guard let event = NSApp.currentEvent else { return }
         
         if event.type == .rightMouseUp {
+            print("🔑 StatusBarController: Right click - showing context menu")
             showContextMenu()
         } else {
+            print("🔑 StatusBarController: Left click - toggling popover")
             togglePopover()
         }
     }
     
     private func showContextMenu() {
+        print("🔑 StatusBarController: showContextMenu called")
         let menu = NSMenu()
         
         // Copy last transcription
+        print("🔑 StatusBarController: Getting transcription preview")
+        let preview = getTranscriptionPreview()
+        print("🔑 StatusBarController: Preview = \(preview)")
         let copyItem = NSMenuItem(
-            title: "📋 Copy \(getTranscriptionPreview()) (\(hotkeyManager.currentCopyHotkeyString))",
+            title: "📋 Copy \(preview) (\(hotkeyManager.currentCopyHotkeyString))",
             action: #selector(copyLastTranscription),
             keyEquivalent: ""
         )
@@ -143,13 +151,22 @@ public class StatusBarController: ObservableObject {
     }
     
     private func togglePopover() {
+        print("🔑 StatusBarController: togglePopover called")
         guard let popover = popover,
-              let button = statusBarItem?.button else { return }
+              let button = statusBarItem?.button else { 
+            print("🔑 StatusBarController: popover or button is nil")
+            return 
+        }
         
         if popover.isShown {
+            print("🔑 StatusBarController: Popover is shown, closing it")
             popover.performClose(nil)
         } else {
+            print("🔑 StatusBarController: Popover is not shown, showing it")
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            print("🔑 StatusBarController: Popover shown, calling onFirstPopoverShown")
+            // Mark first run as completed when user actually opens the popover
+            onFirstPopoverShown?()
         }
     }
     

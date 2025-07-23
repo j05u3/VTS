@@ -143,7 +143,7 @@ struct PreferencesView: View {
                                     Spacer()
                                     
                                     // Status indicator
-                                    if apiKeyManager.hasAPIKeySafe(for: provider) {
+                                    if apiKeyManager.hasAPIKeyForUI(for: provider) {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundColor(.green)
                                             .help("API key configured")
@@ -176,7 +176,7 @@ struct PreferencesView: View {
                                     } else {
                                         // Display mode
                                         HStack {
-                                            if apiKeyManager.hasAPIKeySafe(for: provider) {
+                                            if apiKeyManager.hasAPIKeyForUI(for: provider) {
                                                 Text("API key configured ••••••••••••••••")
                                                     .font(.system(.body, design: .monospaced))
                                                     .foregroundColor(.secondary)
@@ -188,7 +188,7 @@ struct PreferencesView: View {
                                             
                                             Spacer()
                                             
-                                            if apiKeyManager.hasAPIKeySafe(for: provider) {
+                                            if apiKeyManager.hasAPIKeyForUI(for: provider) {
                                                 Button("Edit") {
                                                     editingAPIKeys[provider] = ""
                                                 }
@@ -588,6 +588,20 @@ struct PreferencesView: View {
     private func saveAPIKey(for provider: STTProviderType) {
         guard let key = editingAPIKeys[provider], !key.isEmpty else { return }
         
+        // Show explanation dialog before keychain access if needed
+        if !apiKeyManager.keychainPermissionExplained {
+            showKeychainExplanationDialog { [self] userApproved in
+                guard userApproved else { return }
+                
+                apiKeyManager.markKeychainPermissionExplained()
+                performSaveAPIKey(key: key, for: provider)
+            }
+        } else {
+            performSaveAPIKey(key: key, for: provider)
+        }
+    }
+    
+    private func performSaveAPIKey(key: String, for provider: STTProviderType) {
         do {
             try apiKeyManager.storeAPIKey(key, for: provider)
             editingAPIKeys[provider] = nil
@@ -597,11 +611,45 @@ struct PreferencesView: View {
     }
     
     private func removeAPIKey(for provider: STTProviderType) {
+        // Show explanation dialog before keychain access if needed
+        if !apiKeyManager.keychainPermissionExplained {
+            showKeychainExplanationDialog { [self] userApproved in
+                guard userApproved else { return }
+                
+                apiKeyManager.markKeychainPermissionExplained()
+                performRemoveAPIKey(for: provider)
+            }
+        } else {
+            performRemoveAPIKey(for: provider)
+        }
+    }
+    
+    private func performRemoveAPIKey(for provider: STTProviderType) {
         do {
             try apiKeyManager.deleteAPIKey(for: provider)
         } catch {
             print("Failed to delete API key: \(error)")
         }
+    }
+    
+    private func showKeychainExplanationDialog(completion: @escaping (Bool) -> Void) {
+        let alert = NSAlert()
+        alert.messageText = "Keychain Access Required"
+        alert.informativeText = """
+        VTS needs to securely store your API keys in your macOS Keychain.
+        
+        This is the same secure storage used by Safari, Mail, and other macOS apps for sensitive information.
+        
+        When prompted, we recommend clicking "Always Allow" so you won't see this dialog every time you use the app.
+        
+        Your API keys will be encrypted and only accessible to VTS.
+        """
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Continue")
+        alert.addButton(withTitle: "Cancel")
+        
+        let response = alert.runModal()
+        completion(response == .alertFirstButtonReturn)
     }
 }
 
