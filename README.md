@@ -2,14 +2,14 @@
 
 A modern macOS speech-to-text application that provides real-time transcription using OpenAI and Groq APIs.
 
-## Features (v0.2)
+## Features
 
 - ✅ **Multiple STT Providers**: OpenAI Whisper and Groq support
-- ✅ **Real-time Transcription**: Streaming partial results with live updates
 - ✅ **Microphone Priority Management**: Full device priority lists with automatic fallback
 - ✅ **Custom System Prompts**: Improve transcription accuracy with context
-- ✅ **Native macOS UI**: Modern SwiftUI interface optimized for macOS
-- ✅ **Comprehensive Device Support**: Real-time device detection and switching
+- ✅ **Global Hotkey Support**: toggle recording system-wide (default: ⌘⇧;)
+- ✅ **Just like macOS Dictation**: Press the hotkey, speak and see the text inserted into the application you're using
+
 
 ## Requirements
 
@@ -45,9 +45,9 @@ open VTSApp.xcodeproj
 1. **Choose Provider**: Select OpenAI or Groq from the dropdown
 2. **Select Model**: Pick whisper-1, whisper-large-v3, or other available models
 3. **Enter API Key**: Paste your API key in the secure field
-4. **Start Recording**: Click the microphone button and speak
-5. **View Results**: See real-time transcription with streaming updates
-6. **Copy/Clear**: Use buttons to copy text or clear the transcript
+4. **Start Recording**: Press the global hotkey (default: ⌘⇧;) and speak
+5. **View Results**: See real-time transcription inserted into the application you're using
+6. **(Optional) Copy**: Use buttons to copy the transcript
 
 ### Advanced Features
 
@@ -62,44 +62,6 @@ open VTSApp.xcodeproj
 - Add context-specific prompts to improve transcription accuracy
 - Examples: "Medical terminology", "Technical jargon", "Names: John, Sarah, Mike"
 - Prompts help the AI better understand domain-specific language
-
-#### Responsive Interface
-- **Resizable Window**: Drag corners to adjust size for your workflow
-- **Adaptive Layout**: UI elements scale appropriately with window size
-- **Minimum Size**: Ensures all controls remain accessible
-
-## Project Structure
-
-```
-VTS/
-├── VTSApp.xcodeproj/          # Xcode project (main entry point)
-├── VTSApp/                    # SwiftUI application
-│   ├── VTSApp.swift          # App entry point (@main)
-│   ├── ContentView.swift     # Main UI with all features
-│   ├── Assets.xcassets       # App icons and resources
-│   ├── Info.plist           # App configuration & permissions
-│   ├── VTSApp.entitlements  # Microphone & network permissions
-│   └── VTS/                 # Embedded core library
-│       ├── Services/        # Core services
-│       │   ├── CaptureEngine.swift      # Audio capture & device management
-│       │   ├── DeviceManager.swift      # Microphone priority & enumeration
-│       │   └── TranscriptionService.swift # STT orchestration
-│       ├── Providers/       # STT provider implementations
-│       │   ├── OpenAIProvider.swift     # OpenAI Whisper integration
-│       │   └── GroqProvider.swift       # Groq integration
-│       ├── Protocols/       # Provider abstraction
-│       │   └── STTProvider.swift        # Common STT interface
-│       ├── Models/          # Data models
-│       │   └── TranscriptionModels.swift # Configuration & response models
-│       └── Extensions/      # Utility extensions
-│           └── AsyncExtensions.swift    # Async/await helpers
-├── Sources/VTS/              # Swift Package library (for SPM compatibility)
-├── Tests/                    # Comprehensive test suite
-├── Package.swift            # Swift Package Manager configuration
-├── OBJECTIVE.md             # Project goals and requirements
-├── PLAN.md                  # Detailed technical specification
-└── README.md               # This file
-```
 
 ## Architecture
 
@@ -136,13 +98,6 @@ swift test
 # - Integration flows and edge cases
 ```
 
-### Adding New STT Providers
-
-1. **Implement STTProvider protocol** in `Providers/`
-2. **Add to STTProviderType enum** in `TranscriptionModels.swift`
-3. **Update provider selection** in `ContentView.swift`
-4. **Add comprehensive tests** in `Tests/`
-
 ## Troubleshooting
 
 ### Microphone Issues
@@ -150,32 +105,18 @@ swift test
 - **No Devices Found**: Click "Refresh" in Microphone Priority section
 - **Wrong Device Active**: Set priority order or check device connections
 
-### API Issues
-- **Invalid Key**: Verify API key format and account status
-- **Rate Limits**: Check your account quotas and billing
-- **Network Errors**: Ensure stable internet connection
-
 ### Accessibility Permissions (Development)
 - **Permission Not Updating**: During development/testing, when the app changes (rebuild, code changes), macOS treats it as a "new" app
 - **Solution**: Remove the old app entry from System Settings > Privacy & Security > Accessibility, then re-grant permission
 - **Why This Happens**: Each build gets a different signature, so macOS sees it as a different application
 - **Quick Fix**: Check the app list in Accessibility settings and remove any old/duplicate VTS entries
 
-### Performance Tips
-- **Groq**: Faster streaming, good for real-time use
-- **OpenAI**: Higher quality, better for accuracy-critical applications
-- **Shorter Sessions**: Process faster and use less quota
-- **Good Internet**: Improves streaming performance significantly
-
 ## Roadmap
 
-### v0.3 (Next)
-- [ ] **Global Hotkey Support**: ⌘⇧; toggle recording system-wide
-- [ ] **Menu Bar Integration**: Lightweight menu bar interface
-- [ ] **Multiple API Key Management**: Store and switch between multiple keys
-- [ ] **Status Bar Indicators**: Visual recording state in menu bar
+- [ ] **Notarization and code signing**: Notarization and code signing are required to run the app on macOS.
 
-### v1.0 (Future)
+### In a future or maybe pro version
+- [ ] **LLM step**: Use LLM to process the transcription and improve accuracy, maybe targetted to the app you're using or context in general. (Be able to easily input emojis?)
 - [ ] **Dictation Replacement**: Full macOS dictation system integration
 - [ ] **Auto-update System**: Seamless updates via Sparkle framework
 - [ ] **Advanced Audio Processing**: Noise reduction and gain control
@@ -183,13 +124,7 @@ swift test
 
 ## Contributing
 
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Add tests** for new functionality
-4. **Ensure** all tests pass (`swift test`)
-5. **Commit** changes (`git commit -m 'Add amazing feature'`)
-6. **Push** to branch (`git push origin feature/amazing-feature`)
-7. **Open** a Pull Request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## License
 
@@ -198,7 +133,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## Privacy & Security
 
 - **No audio storage**: Audio is processed in real-time, never stored locally
-- **API keys in memory only**: Keys are not persisted between sessions (v0.2)
+- **API keys in memory only**: Keys are not persisted between sessions
 - **TLS encryption**: All API communication uses HTTPS
 - **Microphone permission**: Explicit user consent required for audio access
 
