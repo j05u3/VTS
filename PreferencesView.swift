@@ -143,7 +143,7 @@ struct PreferencesView: View {
                                     Spacer()
                                     
                                     // Status indicator
-                                    if apiKeyManager.hasAPIKey(for: provider) {
+                                    if apiKeyManager.hasAPIKeySafe(for: provider) {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundColor(.green)
                                             .help("API key configured")
@@ -176,7 +176,7 @@ struct PreferencesView: View {
                                     } else {
                                         // Display mode
                                         HStack {
-                                            if apiKeyManager.hasAPIKey(for: provider) {
+                                            if apiKeyManager.hasAPIKeySafe(for: provider) {
                                                 Text("API key configured ••••••••••••••••")
                                                     .font(.system(.body, design: .monospaced))
                                                     .foregroundColor(.secondary)
@@ -188,7 +188,7 @@ struct PreferencesView: View {
                                             
                                             Spacer()
                                             
-                                            if apiKeyManager.hasAPIKey(for: provider) {
+                                            if apiKeyManager.hasAPIKeySafe(for: provider) {
                                                 Button("Edit") {
                                                     editingAPIKeys[provider] = ""
                                                 }

@@ -55,7 +55,7 @@ struct ContentView: View {
                         Image(systemName: appState.selectedProvider.iconName)
                             .foregroundColor(appState.selectedProvider == .openai ? .green : .orange)
                         
-                        if appState.apiKeyManagerService.hasAPIKey(for: appState.selectedProvider) {
+                        if appState.apiKeyManagerService.hasAPIKeySafe(for: appState.selectedProvider) {
                             Text("✓ Configured")
                                 .foregroundColor(.green)
                         } else {
@@ -139,6 +139,12 @@ struct ContentView: View {
         }
         .padding()
         .frame(width: 400)
+        .onAppear {
+            // Mark first run as completed when popover opens
+            if !appState.apiKeyManagerService.hasCompletedFirstRun {
+                appState.apiKeyManagerService.markFirstRunCompleted()
+            }
+        }
     }
     
     private func getTranscriptionPreview() -> String {

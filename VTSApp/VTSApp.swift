@@ -24,14 +24,24 @@ public class APIKeyManager: ObservableObject {
     // Keys for storing which provider/model is currently selected
     private let selectedProviderKey = "selectedProvider"
     private let selectedModelKey = "selectedModel"
+    private let hasCompletedFirstRunKey = "hasCompletedFirstRun"
+    private let keychainPermissionExplainedKey = "keychainPermissionExplained"
     
     // Published property to trigger UI updates when keys change
     @Published public var keysUpdated = 0
+    
+    // Track keychain access states
+    @Published public var hasCompletedFirstRun: Bool
+    @Published public var keychainPermissionExplained: Bool
     
     public init() {
         // Create keychain with app-specific service identifier
         keychain = Keychain(service: "com.vts.apikeys")
             .accessibility(.whenUnlocked)
+        
+        // Initialize first run state
+        hasCompletedFirstRun = userDefaults.bool(forKey: hasCompletedFirstRunKey)
+        keychainPermissionExplained = userDefaults.bool(forKey: keychainPermissionExplainedKey)
     }
     
     // MARK: - API Key Management
@@ -81,6 +91,85 @@ public class APIKeyManager: ObservableObject {
     /// Get all providers that have API keys configured
     public var configuredProviders: [STTProviderType] {
         return STTProviderType.allCases.filter { hasAPIKey(for: $0) }
+    }
+    
+    // MARK: - First Run and Safe Keychain Access
+    
+    /// Mark that the first run has been completed
+    public func markFirstRunCompleted() {
+        hasCompletedFirstRun = true
+        userDefaults.set(true, forKey: hasCompletedFirstRunKey)
+    }
+    
+    /// Mark that keychain permission has been explained to user
+    public func markKeychainPermissionExplained() {
+        keychainPermissionExplained = true
+        userDefaults.set(true, forKey: keychainPermissionExplainedKey)
+    }
+    
+    /// Check if provider has API key without triggering keychain dialog on first run
+    public func hasAPIKeySafe(for provider: STTProviderType) -> Bool {
+        // On first run, assume no keys to avoid keychain dialog
+        guard hasCompletedFirstRun else {
+            return false
+        }
+        
+        return hasAPIKey(for: provider)
+    }
+    
+    /// Get API key with user explanation if needed
+    public func getAPIKeyWithExplanation(for provider: STTProviderType, completion: @escaping (String?) -> Void) {
+        // If we haven't explained keychain access yet, show explanation first
+        guard keychainPermissionExplained else {
+            showKeychainExplanationDialog { [weak self] userApproved in
+                guard userApproved else {
+                    completion(nil)
+                    return
+                }
+                
+                self?.markKeychainPermissionExplained()
+                
+                // Now actually get the API key
+                do {
+                    let key = try self?.getAPIKey(for: provider)
+                    completion(key)
+                } catch {
+                    print("Failed to get API key after explanation: \(error)")
+                    completion(nil)
+                }
+            }
+            return
+        }
+        
+        // If explanation already shown, directly access keychain
+        do {
+            let key = try getAPIKey(for: provider)
+            completion(key)
+        } catch {
+            print("Failed to get API key: \(error)")
+            completion(nil)
+        }
+    }
+    
+    /// Show explanation dialog before keychain access
+    private func showKeychainExplanationDialog(completion: @escaping (Bool) -> Void) {
+        let alert = NSAlert()
+        alert.messageText = "Keychain Access Required"
+        alert.informativeText = """
+        VTS needs to securely store your API keys in your macOS Keychain.
+        
+        This is the same secure storage used by Safari, Mail, and other macOS apps for sensitive information.
+        
+        When prompted, we recommend clicking "Always Allow" so you won't see this dialog every time you use the app.
+        
+        Your API keys will be encrypted and only accessible to VTS.
+        """
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Continue")
+        alert.addButton(withTitle: "Cancel")
+        
+        let response = alert.runModal()
+        completion(response == .alertFirstButtonReturn)
     }
     
     // MARK: - Current Selection Management
@@ -345,7 +434,7 @@ class AppState: ObservableObject {
     
     private func startRecording() {
         // Check if we have an API key for the selected provider
-        guard apiKeyManager.hasAPIKey(for: selectedProvider) else {
+        guard apiKeyManager.hasAPIKeySafe(for: selectedProvider) else {
             print("No API key configured for \(selectedProvider)")
             showAlert("API Key Required", "Please add an API key for \(selectedProvider.rawValue) in Settings to enable speech transcription.")
             return
@@ -359,36 +448,37 @@ class AppState: ObservableObject {
         
         updateProvider()
         
-        do {
-            print("Starting audio capture...")
-            let audioStream = try captureEngine.start(deviceID: deviceManager.preferredDeviceID)
-            
-            // Get the API key securely from keychain
-            guard let apiKey = try apiKeyManager.getCurrentAPIKey() else {
-                print("Failed to retrieve API key from keychain")
-                showAlert("API Key Error", "Unable to retrieve your API key. Please check your keychain access or re-enter your API key in Settings.")
+        // Get API key with explanation if needed
+        apiKeyManager.getAPIKeyWithExplanation(for: selectedProvider) { [weak self] apiKey in
+            guard let self = self, let apiKey = apiKey else {
+                print("Failed to retrieve API key from keychain or user cancelled")
                 return
             }
             
-            let config = ProviderConfig(
-                apiKey: apiKey,
-                model: selectedModel,
-                systemPrompt: systemPrompt.isEmpty ? nil : systemPrompt
-            )
-            
-            print("Starting transcription with \(selectedProvider.rawValue) using model \(selectedModel)")
-            transcriptionService.startTranscription(
-                audioStream: audioStream,
-                config: config,
-                streamPartials: true
-            )
-            
-            isRecording = true
-            statusBarController.updateRecordingState(true)
-            print("Voice recording started successfully")
-        } catch {
-            print("Failed to start recording: \(error)")
-            showAlert("Recording Failed", "Unable to start voice recording: \(error.localizedDescription)")
+            do {
+                print("Starting audio capture...")
+                let audioStream = try self.captureEngine.start(deviceID: self.deviceManager.preferredDeviceID)
+                
+                let config = ProviderConfig(
+                    apiKey: apiKey,
+                    model: self.selectedModel,
+                    systemPrompt: self.systemPrompt.isEmpty ? nil : self.systemPrompt
+                )
+                
+                print("Starting transcription with \(self.selectedProvider.rawValue) using model \(self.selectedModel)")
+                self.transcriptionService.startTranscription(
+                    audioStream: audioStream,
+                    config: config,
+                    streamPartials: true
+                )
+                
+                self.isRecording = true
+                self.statusBarController.updateRecordingState(true)
+                print("Voice recording started successfully")
+            } catch {
+                print("Failed to start recording: \(error)")
+                self.showAlert("Recording Failed", "Unable to start voice recording: \(error.localizedDescription)")
+            }
         }
     }
     
