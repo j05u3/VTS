@@ -113,12 +113,14 @@ swift test
 
 ## Roadmap
 
+- [ ] **Onboarding**: Onboarding flow to help users get started.
 - [ ] **Notarization and code signing**: Notarization and code signing are required to run the app on macOS.
+- [ ] **Auto-open at login**: Auto-open at login. (Maybe a checkbox in the preferences window?)
+- [ ] **Auto-update System**: Seamless updates via Sparkle framework
 
 ### In a future or maybe pro version
 - [ ] **LLM step**: Use LLM to process the transcription and improve accuracy, maybe targetted to the app you're using or context in general. (Be able to easily input emojis?)
 - [ ] **Dictation Replacement**: Full macOS dictation system integration
-- [ ] **Auto-update System**: Seamless updates via Sparkle framework
 - [ ] **Advanced Audio Processing**: Noise reduction and gain control
 - [ ] **Accessibility Features**: VoiceOver support and high contrast modes
 
