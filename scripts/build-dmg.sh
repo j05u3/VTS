@@ -133,6 +133,24 @@ build_app() {
     log_success "Application export completed"
 }
 
+# Generate DMG background
+generate_background() {
+    log_info "Generating DMG background..."
+    
+    # Check if Python and Pillow are available
+    if command -v python3 &> /dev/null; then
+        if python3 -c "import PIL" 2>/dev/null; then
+            python3 scripts/create-dmg-background.py
+            log_success "DMG background generated"
+        else
+            log_warning "Pillow not installed. Install with: pip install Pillow"
+            log_info "DMG will be created without custom background"
+        fi
+    else
+        log_warning "Python3 not found. DMG will be created without custom background"
+    fi
+}
+
 # Create DMG
 create_dmg() {
     log_info "Creating DMG..."
@@ -142,6 +160,9 @@ create_dmg() {
     
     # Remove old DMG if exists
     [ -f "$DMG_NAME" ] && rm "$DMG_NAME"
+    
+    # Generate background if possible
+    generate_background
     
     # Check if app icon exists for volume icon
     VOLUME_ICON=""

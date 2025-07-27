@@ -130,21 +130,43 @@ jobs:
         APP_PATH="build/export/${{ env.APP_NAME }}.app"
         DMG_NAME="${{ env.APP_NAME }}-${{ steps.get_version.outputs.version_number }}-Universal.dmg"
         
-        # Create DMG with custom layout
+        # Check if app icon exists for volume icon
+        VOLUME_ICON=""
+        if [ -f "VTSApp/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png" ]; then
+          VOLUME_ICON="--volicon VTSApp/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png"
+        fi
+        
+        # Create DMG with custom layout (same parameters as local script)
         create-dmg \
           --volname "${{ env.APP_NAME }} ${{ steps.get_version.outputs.version_number }}" \
-          --volicon "VTSApp/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png" \
+          $VOLUME_ICON \
           --window-pos 200 120 \
           --window-size 800 450 \
           --icon-size 128 \
           --icon "${{ env.APP_NAME }}.app" 200 190 \
           --hide-extension "${{ env.APP_NAME }}.app" \
           --app-drop-link 600 190 \
-          --add-file "README.md" "README.md" 200 350 \
+          --background scripts/dmg-background.png \
           --disk-image-size 200 \
           --format UDZO \
           "$DMG_NAME" \
-          "$APP_PATH"
+          "$APP_PATH" || {
+            # Fallback without background if it doesn't exist
+            echo "Creating DMG without custom background..."
+            create-dmg \
+              --volname "${{ env.APP_NAME }} ${{ steps.get_version.outputs.version_number }}" \
+              $VOLUME_ICON \
+              --window-pos 200 120 \
+              --window-size 800 450 \
+              --icon-size 128 \
+              --icon "${{ env.APP_NAME }}.app" 200 190 \
+              --hide-extension "${{ env.APP_NAME }}.app" \
+              --app-drop-link 600 190 \
+              --disk-image-size 200 \
+              --format UDZO \
+              "$DMG_NAME" \
+              "$APP_PATH"
+          }
         
         echo "DMG created: $DMG_NAME"
         ls -la "$DMG_NAME"
