@@ -137,8 +137,8 @@ tmp/
 temp/
 *.tmp
 
-# Generated Xcode project (since we use SPM)
-*.xcodeproj
+# Note: We now include the Xcode project as the primary build method
+# *.xcodeproj
 
 # Local configuration files
 local.json
