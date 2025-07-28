@@ -79,7 +79,8 @@ jobs:
           -configuration Release \
           -archivePath build/VTS.xcarchive \
           -arch arm64 -arch x86_64 \
-          DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
           archive
         
         echo "Archive created successfully"
@@ -92,7 +93,8 @@ jobs:
           -archivePath build/VTS.xcarchive \
           -exportOptionsPlist scripts/ExportOptions.plist \
           -exportPath build/export \
-          DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}"
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO
         
         echo "Export completed"
         ls -la build/export/
