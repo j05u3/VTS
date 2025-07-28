@@ -7,171 +7,171 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D001000000000000 /* VTSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D000000000000000 /* VTSApp.swift */; };
-		D002000000000000 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000001 /* ContentView.swift */; };
-		D003000000000000 /* AudioLevelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000002 /* AudioLevelView.swift */; };
-		D004000000000000 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000003 /* SettingsWindowController.swift */; };
-		D005000000000000 /* SimpleHotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000004 /* SimpleHotkeyManager.swift */; };
-		D006000000000000 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D002000000000000 /* Assets.xcassets */; };
-		D007000000000000 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D003000000000000 /* Preview Assets.xcassets */; };
-		D010000000000000 /* AsyncExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000010 /* AsyncExtensions.swift */; };
-		D011000000000000 /* ErrorTranslator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000011 /* ErrorTranslator.swift */; };
-		D012000000000000 /* TranscriptionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000012 /* TranscriptionModels.swift */; };
-		D013000000000000 /* RetryContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000013 /* RetryContext.swift */; };
-		D014000000000000 /* OpenAIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000014 /* OpenAIProvider.swift */; };
-		D015000000000000 /* BaseSTTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000015 /* BaseSTTProvider.swift */; };
-		D016000000000000 /* GroqProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000016 /* GroqProvider.swift */; };
-		D017000000000000 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000017 /* NotificationManager.swift */; };
-		D018000000000000 /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000018 /* CaptureEngine.swift */; };
-		D019000000000000 /* DeviceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000019 /* DeviceManager.swift */; };
-		D020000000000000 /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000020 /* TranscriptionService.swift */; };
-		D021000000000000 /* STTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D001000000000021 /* STTProvider.swift */; };
-		D030000000000000 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = D002000000000001 /* KeychainAccess */; };
-		D031000000000000 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = D002000000000002 /* KeyboardShortcuts */; };
+		A001000000000001 /* VTSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000001 /* VTSApp.swift */; };
+		A001000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000002 /* ContentView.swift */; };
+		A001000000000003 /* AudioLevelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000003 /* AudioLevelView.swift */; };
+		A001000000000004 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000004 /* SettingsWindowController.swift */; };
+		A001000000000005 /* SimpleHotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000005 /* SimpleHotkeyManager.swift */; };
+		A001000000000006 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A000000000000006 /* Assets.xcassets */; };
+		A001000000000007 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A000000000000007 /* Preview Assets.xcassets */; };
+		A001000000000010 /* AsyncExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000010 /* AsyncExtensions.swift */; };
+		A001000000000011 /* ErrorTranslator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000011 /* ErrorTranslator.swift */; };
+		A001000000000012 /* TranscriptionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000012 /* TranscriptionModels.swift */; };
+		A001000000000013 /* RetryContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000013 /* RetryContext.swift */; };
+		A001000000000014 /* OpenAIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000014 /* OpenAIProvider.swift */; };
+		A001000000000015 /* BaseSTTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000015 /* BaseSTTProvider.swift */; };
+		A001000000000016 /* GroqProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000016 /* GroqProvider.swift */; };
+		A001000000000017 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000017 /* NotificationManager.swift */; };
+		A001000000000018 /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000018 /* CaptureEngine.swift */; };
+		A001000000000019 /* DeviceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000019 /* DeviceManager.swift */; };
+		A001000000000020 /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000020 /* TranscriptionService.swift */; };
+		A001000000000021 /* STTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000000000000021 /* STTProvider.swift */; };
+		A001000000000030 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = A003000000000001 /* KeychainAccess */; };
+		A001000000000031 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = A003000000000002 /* KeyboardShortcuts */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		D000000000000001 /* VTSApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VTSApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		D000000000000000 /* VTSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VTSApp.swift; sourceTree = "<group>"; };
-		D001000000000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		D001000000000002 /* AudioLevelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioLevelView.swift; sourceTree = "<group>"; };
-		D001000000000003 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
-		D001000000000004 /* SimpleHotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleHotkeyManager.swift; sourceTree = "<group>"; };
-		D002000000000000 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		D003000000000000 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		D004000000000000 /* VTSApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VTSApp.entitlements; sourceTree = "<group>"; };
-		D005000000000000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D001000000000010 /* AsyncExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncExtensions.swift; sourceTree = "<group>"; };
-		D001000000000011 /* ErrorTranslator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorTranslator.swift; sourceTree = "<group>"; };
-		D001000000000012 /* TranscriptionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionModels.swift; sourceTree = "<group>"; };
-		D001000000000013 /* RetryContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetryContext.swift; sourceTree = "<group>"; };
-		D001000000000014 /* OpenAIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIProvider.swift; sourceTree = "<group>"; };
-		D001000000000015 /* BaseSTTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseSTTProvider.swift; sourceTree = "<group>"; };
-		D001000000000016 /* GroqProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroqProvider.swift; sourceTree = "<group>"; };
-		D001000000000017 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
-		D001000000000018 /* CaptureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEngine.swift; sourceTree = "<group>"; };
-		D001000000000019 /* DeviceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceManager.swift; sourceTree = "<group>"; };
-		D001000000000020 /* TranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
-		D001000000000021 /* STTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STTProvider.swift; sourceTree = "<group>"; };
+		A000000000000000 /* VTSApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VTSApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A000000000000001 /* VTSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VTSApp.swift; sourceTree = "<group>"; };
+		A000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A000000000000003 /* AudioLevelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioLevelView.swift; sourceTree = "<group>"; };
+		A000000000000004 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
+		A000000000000005 /* SimpleHotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleHotkeyManager.swift; sourceTree = "<group>"; };
+		A000000000000006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A000000000000007 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		A000000000000008 /* VTSApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VTSApp.entitlements; sourceTree = "<group>"; };
+		A000000000000009 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A000000000000010 /* AsyncExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncExtensions.swift; sourceTree = "<group>"; };
+		A000000000000011 /* ErrorTranslator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorTranslator.swift; sourceTree = "<group>"; };
+		A000000000000012 /* TranscriptionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionModels.swift; sourceTree = "<group>"; };
+		A000000000000013 /* RetryContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetryContext.swift; sourceTree = "<group>"; };
+		A000000000000014 /* OpenAIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIProvider.swift; sourceTree = "<group>"; };
+		A000000000000015 /* BaseSTTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseSTTProvider.swift; sourceTree = "<group>"; };
+		A000000000000016 /* GroqProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroqProvider.swift; sourceTree = "<group>"; };
+		A000000000000017 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		A000000000000018 /* CaptureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEngine.swift; sourceTree = "<group>"; };
+		A000000000000019 /* DeviceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceManager.swift; sourceTree = "<group>"; };
+		A000000000000020 /* TranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
+		A000000000000021 /* STTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STTProvider.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		D000000000000002 /* Frameworks */ = {
+		A002000000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D030000000000000 /* KeychainAccess in Frameworks */,
-				D031000000000000 /* KeyboardShortcuts in Frameworks */,
+				A001000000000030 /* KeychainAccess in Frameworks */,
+				A001000000000031 /* KeyboardShortcuts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D000000000000003 = {
+		A004000000000001 = {
 			isa = PBXGroup;
 			children = (
-				D000000000000004 /* VTSApp */,
-				D000000000000005 /* Products */,
+				A004000000000002 /* VTSApp */,
+				A004000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		D000000000000004 /* VTSApp */ = {
+		A004000000000002 /* VTSApp */ = {
 			isa = PBXGroup;
 			children = (
-				D000000000000000 /* VTSApp.swift */,
-				D001000000000001 /* ContentView.swift */,
-				D001000000000002 /* AudioLevelView.swift */,
-				D001000000000003 /* SettingsWindowController.swift */,
-				D001000000000004 /* SimpleHotkeyManager.swift */,
-				D000000000000006 /* VTS */,
-				D002000000000000 /* Assets.xcassets */,
-				D004000000000000 /* VTSApp.entitlements */,
-				D005000000000000 /* Info.plist */,
-				D000000000000007 /* Preview Content */,
+				A000000000000001 /* VTSApp.swift */,
+				A000000000000002 /* ContentView.swift */,
+				A000000000000003 /* AudioLevelView.swift */,
+				A000000000000004 /* SettingsWindowController.swift */,
+				A000000000000005 /* SimpleHotkeyManager.swift */,
+				A004000000000004 /* VTS */,
+				A000000000000006 /* Assets.xcassets */,
+				A000000000000008 /* VTSApp.entitlements */,
+				A000000000000009 /* Info.plist */,
+				A004000000000005 /* Preview Content */,
 			);
 			path = VTSApp;
 			sourceTree = "<group>";
 		};
-		D000000000000005 /* Products */ = {
+		A004000000000003 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D000000000000001 /* VTSApp.app */,
+				A000000000000000 /* VTSApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		D000000000000006 /* VTS */ = {
+		A004000000000004 /* VTS */ = {
 			isa = PBXGroup;
 			children = (
-				D000000000000008 /* Extensions */,
-				D000000000000009 /* Utils */,
-				D000000000000010 /* Models */,
-				D000000000000011 /* Providers */,
-				D000000000000012 /* Services */,
-				D000000000000013 /* Protocols */,
+				A004000000000006 /* Extensions */,
+				A004000000000007 /* Utils */,
+				A004000000000008 /* Models */,
+				A004000000000009 /* Providers */,
+				A004000000000010 /* Services */,
+				A004000000000011 /* Protocols */,
 			);
 			path = VTS;	
 			sourceTree = "<group>";
 		};
-		D000000000000007 /* Preview Content */ = {
+		A004000000000005 /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
-				D003000000000000 /* Preview Assets.xcassets */,
+				A000000000000007 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
-		D000000000000008 /* Extensions */ = {
+		A004000000000006 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				D001000000000010 /* AsyncExtensions.swift */,
+				A000000000000010 /* AsyncExtensions.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
 		};
-		D000000000000009 /* Utils */ = {
+		A004000000000007 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				D001000000000011 /* ErrorTranslator.swift */,
+				A000000000000011 /* ErrorTranslator.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
 		};
-		D000000000000010 /* Models */ = {
+		A004000000000008 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				D001000000000012 /* TranscriptionModels.swift */,
-				D001000000000013 /* RetryContext.swift */,
+				A000000000000012 /* TranscriptionModels.swift */,
+				A000000000000013 /* RetryContext.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
 		};
-		D000000000000011 /* Providers */ = {
+		A004000000000009 /* Providers */ = {
 			isa = PBXGroup;
 			children = (
-				D001000000000014 /* OpenAIProvider.swift */,
-				D001000000000015 /* BaseSTTProvider.swift */,
-				D001000000000016 /* GroqProvider.swift */,
+				A000000000000014 /* OpenAIProvider.swift */,
+				A000000000000015 /* BaseSTTProvider.swift */,
+				A000000000000016 /* GroqProvider.swift */,
 			);
 			path = Providers;
 			sourceTree = "<group>";
 		};
-		D000000000000012 /* Services */ = {
+		A004000000000010 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				D001000000000017 /* NotificationManager.swift */,
-				D001000000000018 /* CaptureEngine.swift */,
-				D001000000000019 /* DeviceManager.swift */,
-				D001000000000020 /* TranscriptionService.swift */,
+				A000000000000017 /* NotificationManager.swift */,
+				A000000000000018 /* CaptureEngine.swift */,
+				A000000000000019 /* DeviceManager.swift */,
+				A000000000000020 /* TranscriptionService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
 		};
-		D000000000000013 /* Protocols */ = {
+		A004000000000011 /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
-				D001000000000021 /* STTProvider.swift */,
+				A000000000000021 /* STTProvider.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -179,13 +179,13 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D000000000000000 /* VTSApp */ = {
+		A005000000000001 /* VTSApp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D000000000000008 /* Build configuration list for PBXNativeTarget "VTSApp" */;
+			buildConfigurationList = A006000000000001 /* Build configuration list for PBXNativeTarget "VTSApp" */;
 			buildPhases = (
-				D100000000000001 /* Sources */,
-				D000000000000002 /* Frameworks */,
-				D100000000000003 /* Resources */,
+				A002000000000002 /* Sources */,
+				A002000000000001 /* Frameworks */,
+				A002000000000003 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -193,29 +193,29 @@
 			);
 			name = VTSApp;
 			packageProducts = (
-				D002000000000001 /* KeychainAccess */,
-				D002000000000002 /* KeyboardShortcuts */,
+				A003000000000001 /* KeychainAccess */,
+				A003000000000002 /* KeyboardShortcuts */,
 			);
 			productName = VTSApp;
-			productReference = D000000000000001 /* VTSApp.app */;
+			productReference = A000000000000000 /* VTSApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		D000000000000011 /* Project object */ = {
+		A007000000000001 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
 				LastUpgradeCheck = 1540;
 				TargetAttributes = {
-					D000000000000000 = {
+					A005000000000001 = {
 						CreatedOnToolsVersion = 15.4;
 					};
 				};
 			};
-			buildConfigurationList = D000000000000012 /* Build configuration list for PBXProject "VTSApp" */;
+			buildConfigurationList = A006000000000002 /* Build configuration list for PBXProject "VTSApp" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -223,61 +223,61 @@
 				en,
 				Base,
 			);
-			mainGroup = D000000000000003;
+			mainGroup = A004000000000001;
 			packageReferences = (
-				D002000000000003 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
-				D002000000000004 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+				A003000000000003 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				A003000000000004 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 			);
-			productRefGroup = D000000000000005 /* Products */;
+			productRefGroup = A004000000000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D000000000000000 /* VTSApp */,
+				A005000000000001 /* VTSApp */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		D100000000000003 /* Resources */ = {
+		A002000000000003 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D007000000000000 /* Preview Assets.xcassets in Resources */,
-				D006000000000000 /* Assets.xcassets in Resources */,
+				A001000000000007 /* Preview Assets.xcassets in Resources */,
+				A001000000000006 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		D100000000000001 /* Sources */ = {
+		A002000000000002 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D002000000000000 /* ContentView.swift in Sources */,
-				D001000000000000 /* VTSApp.swift in Sources */,
-				D003000000000000 /* AudioLevelView.swift in Sources */,
-				D004000000000000 /* SettingsWindowController.swift in Sources */,
-				D005000000000000 /* SimpleHotkeyManager.swift in Sources */,
-				D010000000000000 /* AsyncExtensions.swift in Sources */,
-				D011000000000000 /* ErrorTranslator.swift in Sources */,
-				D012000000000000 /* TranscriptionModels.swift in Sources */,
-				D013000000000000 /* RetryContext.swift in Sources */,
-				D014000000000000 /* OpenAIProvider.swift in Sources */,
-				D015000000000000 /* BaseSTTProvider.swift in Sources */,
-				D016000000000000 /* GroqProvider.swift in Sources */,
-				D017000000000000 /* NotificationManager.swift in Sources */,
-				D018000000000000 /* CaptureEngine.swift in Sources */,
-				D019000000000000 /* DeviceManager.swift in Sources */,
-				D020000000000000 /* TranscriptionService.swift in Sources */,
-				D021000000000000 /* STTProvider.swift in Sources */,
+				A001000000000002 /* ContentView.swift in Sources */,
+				A001000000000001 /* VTSApp.swift in Sources */,
+				A001000000000003 /* AudioLevelView.swift in Sources */,
+				A001000000000004 /* SettingsWindowController.swift in Sources */,
+				A001000000000005 /* SimpleHotkeyManager.swift in Sources */,
+				A001000000000010 /* AsyncExtensions.swift in Sources */,
+				A001000000000011 /* ErrorTranslator.swift in Sources */,
+				A001000000000012 /* TranscriptionModels.swift in Sources */,
+				A001000000000013 /* RetryContext.swift in Sources */,
+				A001000000000014 /* OpenAIProvider.swift in Sources */,
+				A001000000000015 /* BaseSTTProvider.swift in Sources */,
+				A001000000000016 /* GroqProvider.swift in Sources */,
+				A001000000000017 /* NotificationManager.swift in Sources */,
+				A001000000000018 /* CaptureEngine.swift in Sources */,
+				A001000000000019 /* DeviceManager.swift in Sources */,
+				A001000000000020 /* TranscriptionService.swift in Sources */,
+				A001000000000021 /* STTProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		D000000000000013 /* Debug */ = {
+		A008000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -340,7 +340,7 @@
 			};
 			name = Debug;
 		};
-		D000000000000014 /* Release */ = {
+		A008000000000002 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -395,7 +395,7 @@
 			};
 			name = Release;
 		};
-		D000000000000015 /* Debug */ = {
+		A008000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -423,7 +423,7 @@
 			};
 			name = Debug;
 		};
-		D000000000000016 /* Release */ = {
+		A008000000000004 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -454,20 +454,20 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D000000000000008 /* Build configuration list for PBXNativeTarget "VTSApp" */ = {
+		A006000000000001 /* Build configuration list for PBXNativeTarget "VTSApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D000000000000015 /* Debug */,
-				D000000000000016 /* Release */,
+				A008000000000003 /* Debug */,
+				A008000000000004 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D000000000000012 /* Build configuration list for PBXProject "VTSApp" */ = {
+		A006000000000002 /* Build configuration list for PBXProject "VTSApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D000000000000013 /* Debug */,
-				D000000000000014 /* Release */,
+				A008000000000001 /* Debug */,
+				A008000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -475,7 +475,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		D002000000000003 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+		A003000000000003 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
 			requirement = {
@@ -483,7 +483,7 @@
 				minimumVersion = 4.2.2;
 			};
 		};
-		D002000000000004 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+		A003000000000004 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
@@ -494,17 +494,17 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProduct section */
-		D002000000000001 /* KeychainAccess */ = {
+		A003000000000001 /* KeychainAccess */ = {
 			isa = XCSwiftPackageProduct;
-			package = D002000000000003 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			package = A003000000000003 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
 			productName = KeychainAccess;
 		};
-		D002000000000002 /* KeyboardShortcuts */ = {
+		A003000000000002 /* KeyboardShortcuts */ = {
 			isa = XCSwiftPackageProduct;
-			package = D002000000000004 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			package = A003000000000004 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
 		};
 /* End XCSwiftPackageProduct section */
 	};
-	rootObject = D000000000000011 /* Project object */;
+	rootObject = A007000000000001 /* Project object */;
 }
