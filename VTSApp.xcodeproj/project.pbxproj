@@ -183,9 +183,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D000000000000008 /* Build configuration list for PBXNativeTarget "VTSApp" */;
 			buildPhases = (
-				D000000000000009 /* Sources */,
+				D100000000000001 /* Sources */,
 				D000000000000002 /* Frameworks */,
-				D000000000000010 /* Resources */,
+				D100000000000003 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -238,7 +238,7 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		D000000000000010 /* Resources */ = {
+		D100000000000003 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -250,7 +250,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		D000000000000009 /* Sources */ = {
+		D100000000000001 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
