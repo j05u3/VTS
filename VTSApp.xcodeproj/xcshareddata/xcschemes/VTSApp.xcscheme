@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "A005000000000001"
+               BlueprintIdentifier = "BA0005000001"
                BuildableName = "VTSApp.app"
                BlueprintName = "VTSApp"
                ReferencedContainer = "container:VTSApp.xcodeproj">
@@ -43,7 +43,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "A005000000000001"
+            BlueprintIdentifier = "BA0005000001"
             BuildableName = "VTSApp.app"
             BlueprintName = "VTSApp"
             ReferencedContainer = "container:VTSApp.xcodeproj">
@@ -60,7 +60,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "A005000000000001"
+            BlueprintIdentifier = "BA0005000001"
             BuildableName = "VTSApp.app"
             BlueprintName = "VTSApp"
             ReferencedContainer = "container:VTSApp.xcodeproj">
