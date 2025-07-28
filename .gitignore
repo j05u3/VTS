@@ -138,7 +138,7 @@ temp/
 *.tmp
 
 # Generated Xcode project (since we use SPM)
-*.xcodeproj
+# *.xcodeproj - Removed to allow CI to work with the project file
 
 # Local configuration files
 local.json

@@ -1,0 +1,539 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A00001 /* VTSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001 /* VTSApp.swift */; };
+		A00002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002 /* ContentView.swift */; };
+		A00003 /* AudioLevelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10003 /* AudioLevelView.swift */; };
+		A00004 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10004 /* SettingsWindowController.swift */; };
+		A00005 /* SimpleHotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10005 /* SimpleHotkeyManager.swift */; };
+		A00006 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10006 /* Assets.xcassets */; };
+		A00007 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10007 /* Preview Assets.xcassets */; };
+		A00008 /* AsyncExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10008 /* AsyncExtensions.swift */; };
+		A00009 /* ErrorTranslator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10009 /* ErrorTranslator.swift */; };
+		A00010 /* TranscriptionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10010 /* TranscriptionModels.swift */; };
+		A00011 /* RetryContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10011 /* RetryContext.swift */; };
+		A00012 /* STTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10012 /* STTProvider.swift */; };
+		A00013 /* BaseSTTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10013 /* BaseSTTProvider.swift */; };
+		A00014 /* OpenAIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10014 /* OpenAIProvider.swift */; };
+		A00015 /* GroqProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10015 /* GroqProvider.swift */; };
+		A00016 /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10016 /* CaptureEngine.swift */; };
+		A00017 /* DeviceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10017 /* DeviceManager.swift */; };
+		A00018 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10018 /* NotificationManager.swift */; };
+		A00019 /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10019 /* TranscriptionService.swift */; };
+		A00020 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10020 /* PreferencesView.swift */; };
+		A00021 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10021 /* StatusBarController.swift */; };
+		A00022 /* TextInjectionTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10022 /* TextInjectionTestView.swift */; };
+		A00023 /* TextInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10023 /* TextInjector.swift */; };
+		A00024 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = A20001; };
+		A00025 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = A20002; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A10001 /* VTSApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VTSApp.swift; sourceTree = "<group>"; };
+		A10002 /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A10003 /* AudioLevelView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioLevelView.swift; sourceTree = "<group>"; };
+		A10004 /* SettingsWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
+		A10005 /* SimpleHotkeyManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleHotkeyManager.swift; sourceTree = "<group>"; };
+		A10006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A10007 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		A10008 /* AsyncExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AsyncExtensions.swift; sourceTree = "<group>"; };
+		A10009 /* ErrorTranslator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorTranslator.swift; sourceTree = "<group>"; };
+		A10010 /* TranscriptionModels.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TranscriptionModels.swift; sourceTree = "<group>"; };
+		A10011 /* RetryContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RetryContext.swift; sourceTree = "<group>"; };
+		A10012 /* STTProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = STTProvider.swift; sourceTree = "<group>"; };
+		A10013 /* BaseSTTProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseSTTProvider.swift; sourceTree = "<group>"; };
+		A10014 /* OpenAIProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OpenAIProvider.swift; sourceTree = "<group>"; };
+		A10015 /* GroqProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroqProvider.swift; sourceTree = "<group>"; };
+		A10016 /* CaptureEngine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CaptureEngine.swift; sourceTree = "<group>"; };
+		A10017 /* DeviceManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeviceManager.swift; sourceTree = "<group>"; };
+		A10018 /* NotificationManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		A10019 /* TranscriptionService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
+		A10020 /* PreferencesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
+		A10021 /* StatusBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		A10022 /* TextInjectionTestView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextInjectionTestView.swift; sourceTree = "<group>"; };
+		A10023 /* TextInjector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextInjector.swift; sourceTree = "<group>"; };
+		A30001 /* VTSApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VTSApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A30002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A30003 /* VTSApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VTSApp.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A40001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00024 /* KeychainAccess in Frameworks */,
+				A00025 /* KeyboardShortcuts in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A50001 = {
+			isa = PBXGroup;
+			children = (
+				A50002 /* VTSApp */,
+				A50030 /* Root Files */,
+				A50020 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A50002 /* VTSApp */ = {
+			isa = PBXGroup;
+			children = (
+				A10001 /* VTSApp.swift */,
+				A10002 /* ContentView.swift */,
+				A10003 /* AudioLevelView.swift */,
+				A10004 /* SettingsWindowController.swift */,
+				A10005 /* SimpleHotkeyManager.swift */,
+				A50003 /* VTS */,
+				A10006 /* Assets.xcassets */,
+				A30002 /* Info.plist */,
+				A30003 /* VTSApp.entitlements */,
+				A50007 /* Preview Content */,
+			);
+			path = VTSApp;
+			sourceTree = "<group>";
+		};
+		A50003 /* VTS */ = {
+			isa = PBXGroup;
+			children = (
+				A50004 /* Extensions */,
+				A50005 /* Utils */,
+				A50006 /* Models */,
+				A50008 /* Protocols */,
+				A50009 /* Providers */,
+				A50010 /* Services */,
+			);
+			path = VTS;
+			sourceTree = "<group>";
+		};
+		A50004 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				A10008 /* AsyncExtensions.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		A50005 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				A10009 /* ErrorTranslator.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		A50006 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A10010 /* TranscriptionModels.swift */,
+				A10011 /* RetryContext.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A50007 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				A10007 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		A50008 /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				A10012 /* STTProvider.swift */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
+		A50009 /* Providers */ = {
+			isa = PBXGroup;
+			children = (
+				A10013 /* BaseSTTProvider.swift */,
+				A10014 /* OpenAIProvider.swift */,
+				A10015 /* GroqProvider.swift */,
+			);
+			path = Providers;
+			sourceTree = "<group>";
+		};
+		A50010 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A10016 /* CaptureEngine.swift */,
+				A10017 /* DeviceManager.swift */,
+				A10018 /* NotificationManager.swift */,
+				A10019 /* TranscriptionService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A50020 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A30001 /* VTSApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A50030 /* Root Files */ = {
+			isa = PBXGroup;
+			children = (
+				A10020 /* PreferencesView.swift */,
+				A10021 /* StatusBarController.swift */,
+				A10022 /* TextInjectionTestView.swift */,
+				A10023 /* TextInjector.swift */,
+			);
+			name = "Root Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A60001 /* VTSApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A70001 /* Build configuration list for PBXNativeTarget "VTSApp" */;
+			buildPhases = (
+				A80001 /* Sources */,
+				A40001 /* Frameworks */,
+				A90001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VTSApp;  
+			packageProductDependencies = (
+				A20001 /* KeychainAccess */,
+				A20002 /* KeyboardShortcuts */,
+			);
+			productName = VTSApp;
+			productReference = A30001 /* VTSApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A100001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					A60001 = {
+						CreatedOnToolsVersion = 15.4;
+						DevelopmentTeam = 887583966J;
+					};
+				};
+			};
+			buildConfigurationList = A70002 /* Build configuration list for PBXProject "VTSApp" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A50001;
+			packageReferences = (
+				A200001 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				A200002 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+			);
+			productRefGroup = A50020 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A60001 /* VTSApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A90001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00007 /* Preview Assets.xcassets in Resources */,
+				A00006 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A80001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00001 /* VTSApp.swift in Sources */,
+				A00002 /* ContentView.swift in Sources */,
+				A00003 /* AudioLevelView.swift in Sources */,
+				A00004 /* SettingsWindowController.swift in Sources */,
+				A00005 /* SimpleHotkeyManager.swift in Sources */,
+				A00008 /* AsyncExtensions.swift in Sources */,
+				A00009 /* ErrorTranslator.swift in Sources */,
+				A00010 /* TranscriptionModels.swift in Sources */,
+				A00011 /* RetryContext.swift in Sources */,
+				A00012 /* STTProvider.swift in Sources */,
+				A00013 /* BaseSTTProvider.swift in Sources */,
+				A00014 /* OpenAIProvider.swift in Sources */,
+				A00015 /* GroqProvider.swift in Sources */,
+				A00016 /* CaptureEngine.swift in Sources */,
+				A00017 /* DeviceManager.swift in Sources */,
+				A00018 /* NotificationManager.swift in Sources */,
+				A00019 /* TranscriptionService.swift in Sources */,
+				A00020 /* PreferencesView.swift in Sources */,
+				A00021 /* StatusBarController.swift in Sources */,
+				A00022 /* TextInjectionTestView.swift in Sources */,
+				A00023 /* TextInjector.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A110001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A110002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		A110003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = VTSApp/VTSApp.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"VTSApp/Preview Content\"";
+				DEVELOPMENT_TEAM = 887583966J;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = VTSApp/Info.plist;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VTS needs access to your microphone to capture and transcribe audio.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voicetypestudio.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A110004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = VTSApp/VTSApp.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"VTSApp/Preview Content\"";
+				DEVELOPMENT_TEAM = 887583966J;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = VTSApp/Info.plist;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "VTS needs access to your microphone to capture and transcribe audio.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voicetypestudio.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A70001 /* Build configuration list for PBXNativeTarget "VTSApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A110003 /* Debug */,
+				A110004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A70002 /* Build configuration list for PBXProject "VTSApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A110001 /* Debug */,
+				A110002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A200001 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.2.2;
+			};
+		};
+		A200002 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A20001 /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A200001 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
+		};
+		A20002 /* KeyboardShortcuts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A200002 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			productName = KeyboardShortcuts;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = A100001 /* Project object */;
+}
