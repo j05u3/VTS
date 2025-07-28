@@ -137,9 +137,6 @@ tmp/
 temp/
 *.tmp
 
-# Generated Xcode project (since we use SPM)
-*.xcodeproj
-
 # Local configuration files
 local.json
 local.plist
