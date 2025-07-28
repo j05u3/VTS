@@ -1,0 +1,271 @@
+name: Build and Release macOS App
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+env:
+  APP_NAME: "VTSApp"
+  BUNDLE_ID: "com.voicetypestudio.app"
+  
+jobs:
+  build:
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.4'
+    
+    - name: Extract version from tag
+      id: get_version
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION=${GITHUB_REF#refs/tags/}
+        fi
+        VERSION_NUMBER=${VERSION#v}  # Remove 'v' prefix
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION_NUMBER"
+    
+    - name: Update version in Info.plist
+      run: |
+        /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${{ steps.get_version.outputs.version_number }}" VTSApp/Info.plist
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${{ github.run_number }}" VTSApp/Info.plist
+        echo "Updated Info.plist version to ${{ steps.get_version.outputs.version_number }} (build ${{ github.run_number }})"
+    
+    - name: Resolve Swift Package dependencies
+      run: |
+        xcodebuild -resolvePackageDependencies -scheme VTSApp -project VTSApp.xcodeproj
+    
+    - name: Build Universal Binary Archive
+      run: |
+        xcodebuild \
+          -project VTSApp.xcodeproj \
+          -scheme VTSApp \
+          -configuration Release \
+          -archivePath build/VTS.xcarchive \
+          -arch arm64 -arch x86_64 \
+          DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
+          archive
+        
+        echo "Archive created successfully"
+        ls -la build/VTS.xcarchive
+    
+    - name: Export Application
+      run: |
+        xcodebuild \
+          -exportArchive \
+          -archivePath build/VTS.xcarchive \
+          -exportOptionsPlist scripts/ExportOptions.plist \
+          -exportPath build/export \
+          DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}"
+        
+        echo "Export completed"
+        ls -la build/export/
+        
+        # Verify universal binary
+        lipo -info build/export/*.app/Contents/MacOS/* || echo "Binary info not available"
+    
+    - name: Import Code Signing Certificate
+      env:
+        BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+        P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      run: |
+        # Create temporary keychain
+        KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+        
+        security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        
+        # Import certificate
+        echo $BUILD_CERTIFICATE_BASE64 | base64 --decode > certificate.p12
+        security import certificate.p12 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+        security list-keychain -d user -s $KEYCHAIN_PATH
+        
+        # Verify certificate
+        security find-identity -v -p codesigning $KEYCHAIN_PATH
+    
+    - name: Code Sign Application
+      env:
+        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      run: |
+        KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        
+        APP_PATH="build/export/${{ env.APP_NAME }}.app"
+        
+        # Sign with hardened runtime for notarization
+        codesign \
+          --deep \
+          --force \
+          --options runtime \
+          --timestamp \
+          --sign "Developer ID Application" \
+          "$APP_PATH"
+        
+        # Verify signature
+        codesign --verify --verbose "$APP_PATH"
+        echo "Code signing completed successfully"
+    
+    - name: Create DMG
+      run: |
+        # Install create-dmg
+        brew install create-dmg
+        
+        APP_PATH="build/export/${{ env.APP_NAME }}.app"
+        DMG_NAME="${{ env.APP_NAME }}-${{ steps.get_version.outputs.version_number }}-Universal.dmg"
+        
+        # Check if app icon exists for volume icon
+        VOLUME_ICON=""
+        if [ -f "VTSApp/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png" ]; then
+          VOLUME_ICON="--volicon VTSApp/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png"
+        fi
+        
+        # Create DMG with custom layout (same parameters as local script)
+        create-dmg \
+          --volname "${{ env.APP_NAME }} ${{ steps.get_version.outputs.version_number }}" \
+          $VOLUME_ICON \
+          --window-pos 200 120 \
+          --window-size 800 450 \
+          --icon-size 128 \
+          --icon "${{ env.APP_NAME }}.app" 200 190 \
+          --hide-extension "${{ env.APP_NAME }}.app" \
+          --app-drop-link 600 190 \
+          --background scripts/dmg-background.png \
+          --disk-image-size 200 \
+          --format UDZO \
+          "$DMG_NAME" \
+          "$APP_PATH" || {
+            # Fallback without background if it doesn't exist
+            echo "Creating DMG without custom background..."
+            create-dmg \
+              --volname "${{ env.APP_NAME }} ${{ steps.get_version.outputs.version_number }}" \
+              $VOLUME_ICON \
+              --window-pos 200 120 \
+              --window-size 800 450 \
+              --icon-size 128 \
+              --icon "${{ env.APP_NAME }}.app" 200 190 \
+              --hide-extension "${{ env.APP_NAME }}.app" \
+              --app-drop-link 600 190 \
+              --disk-image-size 200 \
+              --format UDZO \
+              "$DMG_NAME" \
+              "$APP_PATH"
+          }
+        
+        echo "DMG created: $DMG_NAME"
+        ls -la "$DMG_NAME"
+    
+    - name: Sign DMG
+      env:
+        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      run: |
+        KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        
+        DMG_NAME="${{ env.APP_NAME }}-${{ steps.get_version.outputs.version_number }}-Universal.dmg"
+        
+        # Sign the DMG
+        codesign \
+          --sign "Developer ID Application" \
+          --timestamp \
+          "$DMG_NAME"
+        
+        # Verify DMG signature
+        codesign --verify --verbose "$DMG_NAME"
+        echo "DMG signing completed"
+    
+    - name: Notarize DMG
+      env:
+        APPLE_ID: ${{ secrets.APPLE_ID }}
+        APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      run: |
+        DMG_NAME="${{ env.APP_NAME }}-${{ steps.get_version.outputs.version_number }}-Universal.dmg"
+        
+        # Submit for notarization
+        echo "Submitting DMG for notarization..."
+        xcrun notarytool submit "$DMG_NAME" \
+          --apple-id "$APPLE_ID" \
+          --password "$APPLE_ID_PASSWORD" \
+          --team-id "$APPLE_TEAM_ID" \
+          --wait
+        
+        # Staple the notarization ticket
+        echo "Stapling notarization ticket..."
+        xcrun stapler staple "$DMG_NAME"
+        
+        # Verify notarization
+        echo "Verifying notarization..."
+        xcrun stapler validate "$DMG_NAME"
+        
+        echo "Notarization completed successfully"
+    
+    - name: Generate checksums
+      run: |
+        DMG_NAME="${{ env.APP_NAME }}-${{ steps.get_version.outputs.version_number }}-Universal.dmg"
+        
+        # Generate checksums
+        shasum -a 256 "$DMG_NAME" > checksums.txt
+        shasum -a 512 "$DMG_NAME" >> checksums.txt
+        
+        echo "Checksums generated:"
+        cat checksums.txt
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.get_version.outputs.version }}
+        name: ${{ env.APP_NAME }} ${{ steps.get_version.outputs.version_number }}
+        draft: false
+        prerelease: false
+        body: |
+          ## ${{ env.APP_NAME }} ${{ steps.get_version.outputs.version_number }}
+          
+          ### Download
+          - **Universal Binary (Intel + Apple Silicon)**: Download the DMG below
+          - **Minimum macOS Version**: 14.0 (Sonoma)
+          
+          ### Installation
+          1. Download the DMG file
+          2. Open the DMG
+          3. Drag ${{ env.APP_NAME }} to Applications folder
+          4. Launch from Applications
+          
+          ### Verification
+          This release is code-signed and notarized by Apple for security.
+          
+          **SHA-256 Checksum:**
+          ```
+          $(head -n1 checksums.txt)
+          ```
+          
+          ### Changes
+          See the [commit history](https://github.com/j05u3/VTS/compare/v0.1.0...${{ steps.get_version.outputs.version }}) for detailed changes.
+        files: |
+          ${{ env.APP_NAME }}-${{ steps.get_version.outputs.version_number }}-Universal.dmg
+          checksums.txt
+    
+    - name: Clean up keychain
+      if: always()
+      run: |
+        KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+        if [ -f "$KEYCHAIN_PATH" ]; then
+          security delete-keychain $KEYCHAIN_PATH
+        fi
+        rm -f certificate.p12 
