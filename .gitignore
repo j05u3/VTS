@@ -29,6 +29,8 @@ DerivedData/
 *.ipa
 *.dSYM.zip
 *.dSYM
+*.dmg
+*.dmg.sha256
 
 ## Playgrounds
 timeline.xctimeline
