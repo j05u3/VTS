@@ -46,6 +46,27 @@ jobs:
         /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${{ github.run_number }}" VTSApp/Info.plist
         echo "Updated Info.plist version to ${{ steps.get_version.outputs.version_number }} (build ${{ github.run_number }})"
     
+    - name: Import Code Signing Certificate
+      env:
+        BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+        P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      run: |
+        # Create temporary keychain
+        KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+        
+        security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        
+        # Import certificate
+        echo $BUILD_CERTIFICATE_BASE64 | base64 --decode > certificate.p12
+        security import certificate.p12 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+        security list-keychain -d user -s $KEYCHAIN_PATH
+        
+        # Verify certificate
+        security find-identity -v -p codesigning $KEYCHAIN_PATH
+
     - name: Resolve Swift Package dependencies
       run: |
         xcodebuild -resolvePackageDependencies -scheme VTSApp -project VTSApp.xcodeproj
@@ -78,27 +99,6 @@ jobs:
         
         # Verify universal binary
         lipo -info build/export/*.app/Contents/MacOS/* || echo "Binary info not available"
-    
-    - name: Import Code Signing Certificate
-      env:
-        BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-        P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-      run: |
-        # Create temporary keychain
-        KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-        
-        security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-        security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-        security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-        
-        # Import certificate
-        echo $BUILD_CERTIFICATE_BASE64 | base64 --decode > certificate.p12
-        security import certificate.p12 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-        security list-keychain -d user -s $KEYCHAIN_PATH
-        
-        # Verify certificate
-        security find-identity -v -p codesigning $KEYCHAIN_PATH
     
     - name: Code Sign Application
       env:
