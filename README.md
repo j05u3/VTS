@@ -21,6 +21,9 @@ https://github.com/user-attachments/assets/59563387-5d46-47eb-8f58-2607c4901135
 - 💬 **Context-Aware**: Custom system prompt boosts accuracy for your specific needs  
 - 🔓 **100% Open Source**: Full transparency, community-driven, modify as you wish
 
+## 🎬 Longer Demo
+
+https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
 
 ## Requirements
 
@@ -49,8 +52,6 @@ open VTSApp.xcodeproj
 1. In Xcode, select the **VTSApp** scheme
 2. Build and run with **⌘R**
 3. Grant microphone permission when prompted
-
-https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
 
 ## Usage
 
