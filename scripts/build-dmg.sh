@@ -402,6 +402,7 @@ sign_app_bundle() {
             --force \
             --options runtime \
             --timestamp \
+            --entitlements "VTSApp/VTSApp.entitlements" \
             --sign "$signing_identity" \
             "$APP_PATH"
         
