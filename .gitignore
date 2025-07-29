@@ -31,6 +31,7 @@ DerivedData/
 *.dSYM
 *.dmg
 *.dmg.sha256
+checksums.txt
 
 ## Playgrounds
 timeline.xctimeline
