@@ -13,6 +13,9 @@ on:
 env:
   APP_NAME: "VTSApp"
   BUNDLE_ID: "com.voicetypestudio.app"
+
+permissions:
+  contents: write
   
 jobs:
   build:
@@ -94,4 +97,5 @@ jobs:
           See the [commit history](https://github.com/j05u3/VTS/compare/v0.1.0...${{ steps.get_version.outputs.version }}) for detailed changes.
         files: |
           ${{ env.APP_NAME }}-${{ steps.get_version.outputs.version_number }}-Universal.dmg
-          checksums.txt 
+          checksums.txt
+        token: ${{ secrets.GITHUB_TOKEN }}
