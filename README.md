@@ -35,7 +35,8 @@ https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
 
 ### 1. Get API Keys
 
-Sign up and get your API key:
+Sign up and get your API key: (only one of them is required, you choose)
+
 - **OpenAI**: https://platform.openai.com/api-keys
 - **Groq**: https://console.groq.com/keys
 
