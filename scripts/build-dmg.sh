@@ -246,15 +246,15 @@ create_dmg() {
     # Options for create-dmg:
     # --overwrite: Replace existing DMG
     # --dmg-title: Custom title (will use app name by default)
-    CREATE_DMG_ARGS="--overwrite"
+    CREATE_DMG_ARGS=("--overwrite")
     
     # Set custom title if needed
     if [ ${#APP_NAME} -le 27 ]; then
-        CREATE_DMG_ARGS="$CREATE_DMG_ARGS --dmg-title=\"$APP_NAME $VERSION\""
+        CREATE_DMG_ARGS+=("--dmg-title" "$APP_NAME $VERSION")
     fi
     
     # Create the DMG
-    if eval create-dmg $CREATE_DMG_ARGS "\"$APP_PATH\"" 2>/dev/null; then
+    if create-dmg "${CREATE_DMG_ARGS[@]}" "$APP_PATH" 2>/dev/null; then
         # Find the created DMG (create-dmg creates it with app name and version)
         CREATED_DMG=$(find . -name "*$APP_NAME*.dmg" -type f -newer "$APP_PATH" | head -n1)
         
