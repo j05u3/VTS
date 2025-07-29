@@ -459,7 +459,7 @@ validate_build() {
     log_info "Performing final build validation..."
     
     local dmg_name
-    dmg_name=$(cat dmg_name.txt 2>/dev/null || echo "$APP_NAME-$VERSION-Universal.dmg")
+    dmg_name=$(cat dmg_name.txt 2>/dev/null)
     
     # Check if DMG exists
     if [ ! -f "$dmg_name" ]; then
@@ -655,7 +655,7 @@ main() {
         echo "For distribution setup, see DISTRIBUTION_SETUP.md"
     else
         log_success "CI build completed successfully!"
-        DMG_NAME=$(cat dmg_name.txt 2>/dev/null || echo "$APP_NAME-$VERSION-Universal.dmg")
+        DMG_NAME=$(cat dmg_name.txt 2>/dev/null)
         echo "DMG_NAME=$DMG_NAME" >> "$GITHUB_ENV"
     fi
     
