@@ -315,14 +315,6 @@ code_sign() {
         
         log_success "Application signed"
         
-        # Sign the DMG
-        codesign \
-            --sign "Developer ID Application" \
-            --timestamp \
-            "$DMG_NAME"
-        
-        log_success "DMG signed"
-        
         # Verify signatures
         codesign --verify --verbose "$APP_PATH"
         codesign --verify --verbose "$DMG_NAME"
