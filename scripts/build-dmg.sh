@@ -216,7 +216,8 @@ build_app() {
         -scheme "$SCHEME" \
         -configuration Release \
         -archivePath "build/$APP_NAME.xcarchive" \
-        -arch arm64 -arch x86_64 \
+        ARCHS="arm64 x86_64" \
+        ONLY_ACTIVE_ARCH=NO \
         $team_args \
         archive; then
         log_error "Failed to create archive"
@@ -261,7 +262,7 @@ build_app() {
     log_success "Application export completed"
 }
 
-# Get code signing identity if available
+# Get code signing identity for our specific team
 get_signing_identity() {
     if [ "$SKIP_SIGNING" = "true" ]; then
         return 1
@@ -272,17 +273,27 @@ get_signing_identity() {
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" 2>/dev/null || true
     fi
     
-    # Try to find Developer ID Application certificate
+    # Find Developer ID Application certificate for our specific team only
+    if [ -z "$APPLE_TEAM_ID" ]; then
+        log_error "APPLE_TEAM_ID is required for code signing"
+        return 1
+    fi
+    
     local identity
     identity=$(security find-identity -v -p codesigning 2>/dev/null | \
                grep "Developer ID Application" | \
+               grep "($APPLE_TEAM_ID)" | \
                head -n1 | \
                sed 's/.*"\(.*\)".*/\1/')
     
     if [ -n "$identity" ]; then
+        log_info "Found certificate for team $APPLE_TEAM_ID: $identity"
         echo "$identity"
         return 0
     else
+        log_error "No Developer ID Application certificate found for team: $APPLE_TEAM_ID"
+        log_error "Available certificates:"
+        security find-identity -v -p codesigning 2>/dev/null | grep "Developer ID Application" || log_error "  No Developer ID Application certificates found"
         return 1
     fi
 }
@@ -383,7 +394,7 @@ sign_app_bundle() {
     # Get signing identity
     local signing_identity
     if signing_identity=$(get_signing_identity); then
-        log_info "Code signing certificate found: $signing_identity"
+        log_info "Using code signing certificate: $signing_identity"
         
         # Sign the app bundle with hardened runtime
         log_info "Signing application with hardened runtime..."
