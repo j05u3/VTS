@@ -1,7 +1,16 @@
 #!/bin/bash
 
 # VTS DMG Build Script
-# Creates a polished DMG with the same configuration as CI/CD
+# ====================
+# Creates a properly signed and notarized DMG for macOS distribution
+# 
+# Build Process:
+# 1. Build universal app bundle (Intel + Apple Silicon)
+# 2. Sign app bundle with Developer ID (before packaging)
+# 3. Create and sign DMG container
+# 4. Notarize DMG with Apple (CI only)
+# 5. Generate checksums for distribution
+#
 # Supports both local development and CI/CD environments
 
 set -e
@@ -12,6 +21,9 @@ BUNDLE_ID="com.voicetypestudio.app"
 SCHEME="VTSApp"
 PROJECT="VTSApp.xcodeproj"
 APPLE_TEAM_ID="887583966J"
+
+# Global variables
+KEYCHAIN_PATH=""
 
 # CI/CD Detection
 CI_MODE=${CI:-false}
@@ -62,6 +74,7 @@ set_github_output() {
 check_dependencies() {
     log_info "Checking dependencies..."
     
+    # Check for Xcode
     if ! command -v xcodebuild &> /dev/null; then
         log_error "xcodebuild not found. Please install Xcode."
         exit 1
@@ -76,23 +89,33 @@ check_dependencies() {
             log_warning "Node.js not found. Please install Node.js to use modern create-dmg."
             if command -v brew &> /dev/null; then
                 log_info "Installing Node.js via Homebrew..."
-                brew install node
+                if ! brew install node; then
+                    log_error "Failed to install Node.js via Homebrew"
+                    exit 1
+                fi
             else
                 log_error "Homebrew not found. Please install Node.js manually."
+                log_error "Visit: https://nodejs.org/en/download/"
                 exit 1
             fi
         fi
     fi
     
     # Install or update sindresorhus/create-dmg
-    if ! command -v create-dmg &> /dev/null || ! create-dmg --version &> /dev/null; then
+    if ! command -v create-dmg &> /dev/null; then
         log_info "Installing modern create-dmg (sindresorhus/create-dmg)..."
-        npm install --global create-dmg
+        if ! npm install --global create-dmg; then
+            log_error "Failed to install create-dmg"
+            exit 1
+        fi
     else
-        # Check if it's the right create-dmg (Node.js version has --version flag)
+        # Check if it's the modern create-dmg (Node.js version has --version flag)
         if ! create-dmg --version &> /dev/null; then
             log_info "Found old create-dmg, installing modern version..."
-            npm install --global create-dmg
+            if ! npm install --global create-dmg; then
+                log_error "Failed to install modern create-dmg"
+                exit 1
+            fi
         fi
     fi
     
@@ -174,50 +197,59 @@ build_app() {
     
     # Resolve dependencies first
     log_info "Resolving Swift Package dependencies..."
-    xcodebuild -resolvePackageDependencies -scheme "$SCHEME" -project "$PROJECT"
+    if ! xcodebuild -resolvePackageDependencies -scheme "$SCHEME" -project "$PROJECT"; then
+        log_error "Failed to resolve Swift Package dependencies"
+        exit 1
+    fi
     
     # Create archive
     log_info "Creating archive..."
     
     # Set development team
-    TEAM_ARG=""
+    local team_args=""
     if [ -n "$APPLE_TEAM_ID" ]; then
-        TEAM_ARG="DEVELOPMENT_TEAM=$APPLE_TEAM_ID"
+        team_args="DEVELOPMENT_TEAM=$APPLE_TEAM_ID"
     fi
     
-    xcodebuild \
+    if ! xcodebuild \
         -project "$PROJECT" \
         -scheme "$SCHEME" \
         -configuration Release \
         -archivePath "build/$APP_NAME.xcarchive" \
         -arch arm64 -arch x86_64 \
-        $TEAM_ARG \
-        archive
+        $team_args \
+        archive; then
+        log_error "Failed to create archive"
+        exit 1
+    fi
     
     log_success "Archive created successfully"
     
     # Export app
     log_info "Exporting application..."
-    xcodebuild \
+    if ! xcodebuild \
         -exportArchive \
         -archivePath "build/$APP_NAME.xcarchive" \
         -exportOptionsPlist scripts/ExportOptions.plist \
         -exportPath build/export \
-        $TEAM_ARG
+        $team_args; then
+        log_error "Failed to export application"
+        exit 1
+    fi
     
     # Verify the build
-    APP_PATH="build/export/$APP_NAME.app"
-    if [ ! -d "$APP_PATH" ]; then
-        log_error "Application not found at $APP_PATH"
+    local app_path="build/export/$APP_NAME.app"
+    if [ ! -d "$app_path" ]; then
+        log_error "Application not found at $app_path"
         exit 1
     fi
     
     # Verify universal binary
     log_info "Verifying universal binary..."
-    BINARY_PATH="$APP_PATH/Contents/MacOS/$APP_NAME"
-    if [ -f "$BINARY_PATH" ]; then
-        lipo -info "$BINARY_PATH"
-        if lipo -info "$BINARY_PATH" | grep -q "arm64.*x86_64\|x86_64.*arm64"; then
+    local binary_path="$app_path/Contents/MacOS/$APP_NAME"
+    if [ -f "$binary_path" ]; then
+        lipo -info "$binary_path"
+        if lipo -info "$binary_path" | grep -q "arm64.*x86_64\|x86_64.*arm64"; then
             log_success "Universal binary verified (Intel + Apple Silicon)"
         else
             log_warning "Binary architecture verification unclear"
@@ -236,14 +268,16 @@ get_signing_identity() {
     fi
     
     # Unlock keychain if in CI mode
-    if [ "$CI_MODE" = "true" ]; then
-        KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+    if [ "$CI_MODE" = "true" ] && [ -n "${KEYCHAIN_PATH:-}" ]; then
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" 2>/dev/null || true
     fi
     
     # Try to find Developer ID Application certificate
     local identity
-    identity=$(security find-identity -v -p codesigning 2>/dev/null | grep "Developer ID Application" | head -n1 | sed 's/.*"\(.*\)".*/\1/')
+    identity=$(security find-identity -v -p codesigning 2>/dev/null | \
+               grep "Developer ID Application" | \
+               head -n1 | \
+               sed 's/.*"\(.*\)".*/\1/')
     
     if [ -n "$identity" ]; then
         echo "$identity"
@@ -263,14 +297,24 @@ create_dmg() {
     # Remove old DMG if exists
     [ -f "$DMG_NAME" ] && rm "$DMG_NAME"
     
-    # The modern create-dmg is much simpler and more opinionated
-    # It automatically creates a beautiful DMG with proper layout
+    # Verify the app bundle exists and is signed (if signing is enabled)
+    if [ ! -d "$APP_PATH" ]; then
+        log_error "Application bundle not found at $APP_PATH"
+        exit 1
+    fi
+    
+    if [ "$SKIP_SIGNING" != "true" ]; then
+        log_info "Verifying app bundle signature before packaging..."
+        if ! codesign --verify --verbose "$APP_PATH" 2>/dev/null; then
+            log_error "App bundle is not properly signed. Cannot create DMG."
+            exit 1
+        fi
+        log_info "App bundle signature verified"
+    fi
+    
     log_info "Using sindresorhus/create-dmg for professional DMG creation..."
     
-    # Options for create-dmg:
-    # --overwrite: Replace existing DMG
-    # --dmg-title: Custom title (will use app name by default)
-    # --identity: Code signing identity (automatic by default)
+    # Options for create-dmg
     CREATE_DMG_ARGS=("--overwrite")
     
     # Set custom title if needed
@@ -278,24 +322,16 @@ create_dmg() {
         CREATE_DMG_ARGS+=("--dmg-title" "$APP_NAME $VERSION")
     fi
     
-    # Add code signing identity if available
+    # Add DMG signing identity if available (this signs the DMG container, not the app)
     local signing_identity
-    if signing_identity=$(get_signing_identity); then
-        log_info "Code signing identity found: $signing_identity"
+    if [ "$SKIP_SIGNING" != "true" ] && signing_identity=$(get_signing_identity); then
+        log_info "Will sign DMG container with: $signing_identity"
         CREATE_DMG_ARGS+=("--identity" "$signing_identity")
-    else
-        if [ "$SKIP_SIGNING" != "true" ]; then
-            log_error "No Developer ID Application certificate found, but signing is required"
-            log_error "Either provide a valid certificate or use --skip-signing / SKIP_SIGNING=true"
-            exit 1
-        else
-            log_info "No code signing identity found, DMG will be unsigned (SKIP_SIGNING=true)"
-        fi
     fi
     
     # Create the DMG
-    if create-dmg "${CREATE_DMG_ARGS[@]}" "$APP_PATH" 2>/dev/null; then
-        # Find the created DMG (create-dmg creates it with app name and version)
+    if create-dmg "${CREATE_DMG_ARGS[@]}" "$APP_PATH"; then
+        # Find the created DMG
         CREATED_DMG=$(find . -name "*$APP_NAME*.dmg" -type f -newer "$APP_PATH" | head -n1)
         
         if [ -n "$CREATED_DMG" ] && [ -f "$CREATED_DMG" ]; then
@@ -312,6 +348,17 @@ create_dmg() {
             
             # Store DMG name for later steps
             echo "$DMG_NAME" > dmg_name.txt
+            
+            # Verify DMG signature if signing was enabled
+            if [ "$SKIP_SIGNING" != "true" ]; then
+                log_info "Verifying DMG signature..."
+                if codesign --verify --verbose "$DMG_NAME" 2>/dev/null; then
+                    log_success "DMG signature verified"
+                else
+                    log_error "DMG signature verification failed"
+                    exit 1
+                fi
+            fi
         else
             log_error "Could not find created DMG file"
             exit 1
@@ -322,25 +369,24 @@ create_dmg() {
     fi
 }
 
-# Code signing function (for app verification and DMG verification)
-code_sign() {
+# Sign the application bundle
+sign_app_bundle() {
     if [ "$SKIP_SIGNING" = "true" ]; then
-        log_info "Skipping code signing verification (SKIP_SIGNING=true)"
+        log_info "Skipping app bundle signing (SKIP_SIGNING=true)"
         return
     fi
     
-    log_info "Verifying code signatures..."
+    log_info "Signing application bundle..."
     
     APP_PATH="build/export/$APP_NAME.app"
-    DMG_NAME=$(cat dmg_name.txt)
     
     # Get signing identity
     local signing_identity
     if signing_identity=$(get_signing_identity); then
         log_info "Code signing certificate found: $signing_identity"
         
-        # Sign the app (create-dmg doesn't sign the app, only the DMG)
-        log_info "Signing application..."
+        # Sign the app bundle with hardened runtime
+        log_info "Signing application with hardened runtime..."
         codesign \
             --deep \
             --force \
@@ -349,14 +395,11 @@ code_sign() {
             --sign "$signing_identity" \
             "$APP_PATH"
         
-        log_success "Application signed"
-        
-        # Verify signatures
-        log_info "Verifying signatures..."
+        # Verify the signature
+        log_info "Verifying app signature..."
         codesign --verify --verbose "$APP_PATH"
-        codesign --verify --verbose "$DMG_NAME"
         
-        log_success "Code signing completed and verified"
+        log_success "Application bundle signed and verified"
     else
         log_error "No Developer ID Application certificate found, but signing is required"
         log_error "Either provide a valid certificate or use --skip-signing / SKIP_SIGNING=true"
@@ -401,6 +444,51 @@ notarize_dmg() {
     log_success "Notarization completed successfully"
 }
 
+# Validate the final build
+validate_build() {
+    log_info "Performing final build validation..."
+    
+    local dmg_name
+    dmg_name=$(cat dmg_name.txt 2>/dev/null || echo "$APP_NAME-$VERSION-Universal.dmg")
+    
+    # Check if DMG exists
+    if [ ! -f "$dmg_name" ]; then
+        log_error "DMG file not found: $dmg_name"
+        return 1
+    fi
+    
+    # Check DMG size (should be reasonable)
+    local size_bytes
+    size_bytes=$(stat -f%z "$dmg_name" 2>/dev/null || echo "0")
+    if [ "$size_bytes" -lt 1000000 ]; then  # Less than 1MB is suspicious
+        log_warning "DMG file seems unusually small: $(du -h "$dmg_name" | cut -f1)"
+    fi
+    
+    # Validate signatures if not skipping
+    if [ "$SKIP_SIGNING" != "true" ]; then
+        # Check app bundle signature
+        local app_path="build/export/$APP_NAME.app"
+        if [ -d "$app_path" ]; then
+            if codesign --verify --deep --strict "$app_path" 2>/dev/null; then
+                log_success "App bundle signature is valid"
+            else
+                log_error "App bundle signature validation failed"
+                return 1
+            fi
+        fi
+        
+        # Check DMG signature
+        if codesign --verify --verbose "$dmg_name" 2>/dev/null; then
+            log_success "DMG signature is valid"
+        else
+            log_warning "DMG signature validation failed"
+        fi
+    fi
+    
+    log_success "Build validation completed"
+    return 0
+}
+
 # Generate checksums
 generate_checksums() {
     log_info "Generating checksums..."
@@ -430,11 +518,14 @@ cleanup_keychain() {
     fi
     
     log_info "Cleaning up temporary keychain..."
-    KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-    if [ -f "$KEYCHAIN_PATH" ]; then
+    
+    if [ -n "${KEYCHAIN_PATH:-}" ] && [ -f "$KEYCHAIN_PATH" ]; then
         security delete-keychain "$KEYCHAIN_PATH"
     fi
-    rm -f certificate.p12
+    
+    # Clean up certificate file
+    [ -f certificate.p12 ] && rm -f certificate.p12
+    
     log_success "Keychain cleanup completed"
 }
 
@@ -458,21 +549,32 @@ main() {
                     shift
                     ;;
                 --help|-h)
+                    echo "Creates a signed, notarized DMG for distribution."
+                    echo ""
                     echo "Usage: $0 [OPTIONS]"
                     echo ""
                     echo "Options:"
-                    echo "  --skip-signing    Skip code signing step"
-                    echo "  --clean          Only clean build directory"
-                    echo "  --help, -h       Show this help message"
+                    echo "  --skip-signing       Skip code signing (for development only)"
+                    echo "  --clean             Clean build directory and exit"
+                    echo "  --help, -h          Show this help message"
                     echo ""
                     echo "Environment variables:"
-                    echo "  SKIP_SIGNING=true  Skip code signing"
-                    echo "  CI=true           Run in CI mode"
+                    echo "  SKIP_SIGNING=true   Skip code signing"
+                    echo "  CI=true            Run in CI mode (automatic)"
                     echo ""
                     echo "Dependencies:"
                     echo "  - Xcode (required)"
-                    echo "  - Node.js (required for modern create-dmg)"
-                    echo "  - Homebrew (recommended for dependency installation)"
+                    echo "  - Node.js (required for sindresorhus/create-dmg)"
+                    echo "  - Developer ID certificate (for signing)"
+                    echo ""
+                    echo "Build process:"
+                    echo "  1. Build universal app bundle"
+                    echo "  2. Sign app bundle (if certificates available)"
+                    echo "  3. Create and sign DMG"
+                    echo "  4. Notarize DMG (CI only)"
+                    echo "  5. Generate checksums"
+                    echo ""
+                    echo "For setup instructions, see DISTRIBUTION_SETUP.md"
                     exit 0
                     ;;
                 *)
@@ -496,9 +598,10 @@ main() {
     setup_keychain  # CI only
     clean_build
     build_app
+    sign_app_bundle  # Sign app BEFORE creating DMG
     create_dmg
-    code_sign
     notarize_dmg    # CI only
+    validate_build
     generate_checksums
     
     # Cleanup
@@ -510,13 +613,36 @@ main() {
         echo ""
         echo "📦 Your DMG is ready: $APP_NAME-$VERSION-Universal.dmg"
         echo ""
-        echo "To test the DMG:"
-        echo "1. Double-click to mount it"
-        echo "2. Try dragging the app to Applications"
+        
+        # Show what was accomplished
+        if [ "$SKIP_SIGNING" = "true" ]; then
+            echo "⚠️  Note: App bundle and DMG are UNSIGNED (development build)"
+            echo "   This build is suitable for testing only."
+        else
+            echo "✅ App bundle is signed and ready for distribution"
+            echo "✅ DMG is signed and ready for distribution"
+        fi
+        
+        echo ""
+        echo "Testing instructions:"
+        echo "1. Double-click to mount the DMG"
+        echo "2. Drag the app to Applications folder"
         echo "3. Launch the app from Applications"
         echo ""
-        echo "For distribution, consider code signing and notarization."
-        echo "See DISTRIBUTION_SETUP.md for details on configuring certificates."
+        
+        if [ "$SKIP_SIGNING" != "true" ]; then
+            echo "Distribution checklist:"
+            echo "✅ App bundle signed with Developer ID"
+            echo "✅ DMG signed with Developer ID"
+            if [ "$CI_MODE" = "true" ]; then
+                echo "✅ DMG notarized by Apple"
+            else
+                echo "⚠️  DMG not notarized (use CI/CD for notarization)"
+            fi
+            echo ""
+        fi
+        
+        echo "For distribution setup, see DISTRIBUTION_SETUP.md"
     else
         log_success "CI build completed successfully!"
         DMG_NAME=$(cat dmg_name.txt 2>/dev/null || echo "$APP_NAME-$VERSION-Universal.dmg")
