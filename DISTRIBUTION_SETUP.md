@@ -11,8 +11,9 @@ This guide walks you through setting up automated builds, code signing, and dist
 
 ### Development Environment
 - **macOS** (for local development and testing)
-- **Xcode 15.4+** 
-- **Homebrew** (for installing build tools)
+- **Xcode 16.2+** 
+- **Node.js 18+** (for modern DMG creation)
+- **Homebrew** (recommended for installing dependencies)
 
 ## 🔐 Apple Developer Setup
 
@@ -116,12 +117,21 @@ First, test building locally:
 # Make the script executable
 chmod +x scripts/build-dmg.sh
 
+# Install dependencies (if not already installed)
+# Node.js (for modern DMG creation)
+brew install node
+
 # Build without signing (for testing)
 SKIP_SIGNING=true ./scripts/build-dmg.sh
 
 # Or build with signing (if certificates are set up)
 ./scripts/build-dmg.sh
 ```
+
+The script will automatically:
+- Install the modern `create-dmg` tool (sindresorhus/create-dmg)
+- Create a professional-looking DMG with automatic layout
+- Generate a custom DMG icon based on your app icon
 
 ### 2. CI/CD Test
 
@@ -160,6 +170,29 @@ error: Invalid credentials. Username or password is incorrect.
 - Ensure app-specific password is used (not regular password)
 - Check `APPLE_TEAM_ID` is correct
 
+#### Node.js Issues
+```
+error: Node.js not found
+```
+**Solution**: Install Node.js:
+```bash
+# On macOS with Homebrew
+brew install node
+
+# Verify installation
+node --version
+npm --version
+```
+
+#### DMG Creation Issues
+```
+create-dmg: command not found
+```
+**Solution**: The script will automatically install modern create-dmg, but you can manually install:
+```bash
+npm install --global create-dmg
+```
+
 #### Build Architecture Issues
 ```
 error: Building for "arm64" but attempting to link with file built for "x86_64"
@@ -169,15 +202,6 @@ error: Building for "arm64" but attempting to link with file built for "x86_64"
 # Clean everything
 rm -rf build/ .build/
 # In Xcode: Product → Clean Build Folder
-```
-
-#### DMG Creation Issues
-```
-create-dmg: command not found
-```
-**Solution**: Install create-dmg:
-```bash
-brew install create-dmg
 ```
 
 ### Debug Commands
@@ -198,6 +222,13 @@ spctl --assess --verbose YourApp.app
 xcrun stapler validate YourApp.dmg
 ```
 
+**Check Node.js and create-dmg**:
+```bash
+node --version
+npm list -g create-dmg
+create-dmg --version
+```
+
 ## 📁 Project Structure
 
 Your repository should have these files for CI/CD:
@@ -206,15 +237,14 @@ Your repository should have these files for CI/CD:
 VTS/
 ├── .github/
 │   └── workflows/
-│       └── release.yml          # GitHub Actions workflow
+│       └── release.yml              # GitHub Actions workflow
 ├── scripts/
-│   ├── ExportOptions.plist      # Xcode export settings
-│   ├── build-dmg.sh            # Local build script
-│   └── dmg-background.png       # Optional DMG background
+│   ├── ExportOptions.plist          # Xcode export settings
+│   └── build-dmg.sh                # Unified build script
 ├── VTSApp/
-│   ├── Info.plist              # App configuration
-│   └── VTSApp.entitlements     # App permissions
-└── SETUP.md                    # This guide
+│   ├── Info.plist                  # App configuration
+│   └── VTSApp.entitlements         # App permissions
+└── DISTRIBUTION_SETUP.md                        # This guide
 ```
 
 ## 🔄 Version Management
@@ -245,7 +275,8 @@ If you encounter issues:
 1. **Check GitHub Actions logs** for detailed error messages
 2. **Verify all secrets** are properly set
 3. **Test locally first** with the build script
-4. **Consult Apple Developer documentation** for certificate issues
+4. **Ensure Node.js is installed** (version 18 or later)
+5. **Consult Apple Developer documentation** for certificate issues
 
 ---
 
@@ -254,9 +285,9 @@ If you encounter issues:
 Once everything is set up:
 
 1. **Push a tag** → Automatic build starts
-2. **DMG is created** with universal binary (Intel + Apple Silicon)
+2. **DMG is created** with modern tooling and beautiful design
 3. **Code signed and notarized** by Apple
 4. **Released to GitHub** with checksums
-5. **Users can download** and install without warnings
+5. **Users get a professional installation experience** 🚀
 
-Your users will get a professional, secure installation experience! 🚀
+Your users will get a sleek, modern DMG with automatic layout and custom icons!
