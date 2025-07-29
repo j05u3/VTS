@@ -81,10 +81,6 @@
 		1A8E3D1D2C8F4E1B00123456 = {
 			isa = PBXGroup;
 			children = (
-				CA98AADA2E262796004C23D7 /* TextInjectionTestView.swift */,
-				CA98AAD12E24E862004C23D7 /* PreferencesView.swift */,
-				CA98AAD22E24E862004C23D7 /* StatusBarController.swift */,
-				CA98AAD32E24E862004C23D7 /* TextInjector.swift */,
 				1A8E3D282C8F4E1B00123456 /* VTSApp */,
 				1A8E3D272C8F4E1B00123456 /* Products */,
 			);
@@ -127,6 +123,8 @@
 			isa = PBXGroup;
 			children = (
 				CA4830A82E2B85870085EEF7 /* Utils */,
+				1A8E3D551C8F4E1C00123472 /* Views */,
+				1A8E3D561C8F4E1C00123473 /* Controllers */,
 				1A8E3D501C8F4E1C00123467 /* Services */,
 				1A8E3D511C8F4E1C00123468 /* Providers */,
 				1A8E3D521C8F4E1C00123469 /* Protocols */,
@@ -143,6 +141,7 @@
 				1A8E3D3F1C8F4E1C00123457 /* CaptureEngine.swift */,
 				1A8E3D401C8F4E1C00123458 /* DeviceManager.swift */,
 				1A8E3D411C8F4E1C00123459 /* TranscriptionService.swift */,
+				CA98AAD32E24E862004C23D7 /* TextInjector.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -180,6 +179,23 @@
 				1A8E3D461C8F4E1C00123464 /* AsyncExtensions.swift */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		1A8E3D551C8F4E1C00123472 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				CA98AAD12E24E862004C23D7 /* PreferencesView.swift */,
+				CA98AADA2E262796004C23D7 /* TextInjectionTestView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		1A8E3D561C8F4E1C00123473 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				CA98AAD22E24E862004C23D7 /* StatusBarController.swift */,
+			);
+			path = Controllers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -412,9 +428,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = VTSApp/VTSApp.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 887583966J;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGNING_REQUIRED = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"VTSApp/Preview Content\"";
