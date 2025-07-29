@@ -354,7 +354,9 @@ notarize_dmg() {
         --apple-id "$APPLE_ID" \
         --password "$APPLE_ID_PASSWORD" \
         --team-id "$APPLE_TEAM_ID" \
-        --wait
+        --wait \
+        --timeout 30m \
+        --verbose
     
     # Staple the notarization ticket
     log_info "Stapling notarization ticket..."
