@@ -100,16 +100,9 @@ xcodebuild -project VTSApp.xcodeproj -scheme VTSApp build
 
 ### Testing
 
-```bash
-# Run comprehensive test suite
-swift test
+Currently, VTS includes manual testing capabilities through the built-in Text Injection Test Suite accessible from the app's interface. This allows you to test text insertion functionality across different applications.
 
-# Tests cover:
-# - Core transcription functionality
-# - Provider validation and error handling
-# - Device management and priority logic
-# - Integration flows and edge cases
-```
+Automated unit tests are planned for future releases.
 
 ## Troubleshooting
 
@@ -131,10 +124,14 @@ swift test
 - [ ] **Auto-open at login**: Auto-open at login. (Maybe a checkbox in the preferences window?)
 - [ ] **Auto-update System**: Seamless updates via Sparkle framework
 
-### In a future or maybe pro version
+### In a future or maybe pro version, to be decided
+- [ ] **Comprehensive Test Suite**: Automated unit tests covering:
+  - Core transcription functionality
+  - Provider validation and error handling  
+  - Device management and priority logic
+  - Integration flows and edge cases
 - [ ] **LLM step**: Use LLM to process the transcription and improve accuracy, maybe targetted to the app you're using or context in general. (Be able to easily input emojis?)
-- [ ] **Dictation Replacement**: Full macOS dictation system integration
-- [ ] **Advanced Audio Processing**: Noise reduction and gain control
+- [ ] **Advanced Audio Processing**: Noise reduction and gain control, but also some STT providers can do this so maybe not needed?.
 - [ ] **Accessibility Features**: VoiceOver support and high contrast modes
 
 ## Contributing
