@@ -67,18 +67,32 @@ check_dependencies() {
         exit 1
     fi
     
-    if ! command -v create-dmg &> /dev/null; then
+    # Check for Node.js and install create-dmg
+    if ! command -v node &> /dev/null; then
         if [ "$CI_MODE" = "true" ]; then
-            log_info "Installing create-dmg via Homebrew..."
-            brew install create-dmg
+            log_error "Node.js not found in CI. This should be installed by the workflow."
+            exit 1
         else
-            log_warning "create-dmg not found. Installing via Homebrew..."
+            log_warning "Node.js not found. Please install Node.js to use modern create-dmg."
             if command -v brew &> /dev/null; then
-                brew install create-dmg
+                log_info "Installing Node.js via Homebrew..."
+                brew install node
             else
-                log_error "Homebrew not found. Please install create-dmg manually."
+                log_error "Homebrew not found. Please install Node.js manually."
                 exit 1
             fi
+        fi
+    fi
+    
+    # Install or update sindresorhus/create-dmg
+    if ! command -v create-dmg &> /dev/null || ! create-dmg --version &> /dev/null; then
+        log_info "Installing modern create-dmg (sindresorhus/create-dmg)..."
+        npm install --global create-dmg
+    else
+        # Check if it's the right create-dmg (Node.js version has --version flag)
+        if ! create-dmg --version &> /dev/null; then
+            log_info "Found old create-dmg, installing modern version..."
+            npm install --global create-dmg
         fi
     fi
     
@@ -215,27 +229,9 @@ build_app() {
     log_success "Application export completed"
 }
 
-# Generate DMG background
-generate_background() {
-    log_info "Generating DMG background..."
-    
-    # Check if Python and Pillow are available
-    if command -v python3 &> /dev/null; then
-        if python3 -c "import PIL" 2>/dev/null; then
-            python3 scripts/create-dmg-background.py
-            log_success "DMG background generated"
-        else
-            log_warning "Pillow not installed. Install with: pip install Pillow"
-            log_info "DMG will be created without custom background"
-        fi
-    else
-        log_warning "Python3 not found. DMG will be created without custom background"
-    fi
-}
-
-# Create DMG
+# Create DMG using modern sindresorhus/create-dmg
 create_dmg() {
-    log_info "Creating DMG..."
+    log_info "Creating DMG with modern create-dmg..."
     
     APP_PATH="build/export/$APP_NAME.app"
     DMG_NAME="$APP_NAME-$VERSION-Universal.dmg"
@@ -243,56 +239,43 @@ create_dmg() {
     # Remove old DMG if exists
     [ -f "$DMG_NAME" ] && rm "$DMG_NAME"
     
-    # Generate background if possible
-    generate_background
+    # The modern create-dmg is much simpler and more opinionated
+    # It automatically creates a beautiful DMG with proper layout
+    log_info "Using sindresorhus/create-dmg for professional DMG creation..."
     
-    # Check if app icon exists for volume icon
-    VOLUME_ICON=""
-    if [ -f "VTSApp/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png" ]; then
-        VOLUME_ICON="--volicon VTSApp/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png"
+    # Options for create-dmg:
+    # --overwrite: Replace existing DMG
+    # --dmg-title: Custom title (will use app name by default)
+    CREATE_DMG_ARGS="--overwrite"
+    
+    # Set custom title if needed
+    if [ ${#APP_NAME} -le 27 ]; then
+        CREATE_DMG_ARGS="$CREATE_DMG_ARGS --dmg-title=\"$APP_NAME $VERSION\""
     fi
     
-    # Create DMG with proper layout
-    create-dmg \
-        --volname "$APP_NAME $VERSION" \
-        $VOLUME_ICON \
-        --window-pos 200 120 \
-        --window-size 800 450 \
-        --icon-size 128 \
-        --icon "$APP_NAME.app" 200 190 \
-        --hide-extension "$APP_NAME.app" \
-        --app-drop-link 600 190 \
-        --background scripts/dmg-background.png \
-        --disk-image-size 200 \
-        --format UDZO \
-        "$DMG_NAME" \
-        "$APP_PATH" || {
-            # Fallback without background if it doesn't exist
-            log_warning "Creating DMG without custom background..."
-            create-dmg \
-                --volname "$APP_NAME $VERSION" \
-                $VOLUME_ICON \
-                --window-pos 200 120 \
-                --window-size 800 450 \
-                --icon-size 128 \
-                --icon "$APP_NAME.app" 200 190 \
-                --hide-extension "$APP_NAME.app" \
-                --app-drop-link 600 190 \
-                --disk-image-size 200 \
-                --format UDZO \
-                "$DMG_NAME" \
-                "$APP_PATH"
-        }
-    
-    if [ -f "$DMG_NAME" ]; then
-        log_success "DMG created: $DMG_NAME"
+    # Create the DMG
+    if eval create-dmg $CREATE_DMG_ARGS "\"$APP_PATH\"" 2>/dev/null; then
+        # Find the created DMG (create-dmg creates it with app name and version)
+        CREATED_DMG=$(find . -name "*$APP_NAME*.dmg" -type f -newer "$APP_PATH" | head -n1)
         
-        # Show file size
-        SIZE=$(du -h "$DMG_NAME" | cut -f1)
-        log_info "DMG size: $SIZE"
-        
-        # Store DMG name for later steps
-        echo "$DMG_NAME" > dmg_name.txt
+        if [ -n "$CREATED_DMG" ] && [ -f "$CREATED_DMG" ]; then
+            # Rename to our expected name if different
+            if [ "$CREATED_DMG" != "./$DMG_NAME" ]; then
+                mv "$CREATED_DMG" "$DMG_NAME"
+            fi
+            
+            log_success "DMG created: $DMG_NAME"
+            
+            # Show file size
+            SIZE=$(du -h "$DMG_NAME" | cut -f1)
+            log_info "DMG size: $SIZE"
+            
+            # Store DMG name for later steps
+            echo "$DMG_NAME" > dmg_name.txt
+        else
+            log_error "Could not find created DMG file"
+            exit 1
+        fi
     else
         log_error "DMG creation failed"
         exit 1
@@ -459,6 +442,11 @@ main() {
                     echo "Environment variables:"
                     echo "  SKIP_SIGNING=true  Skip code signing"
                     echo "  CI=true           Run in CI mode"
+                    echo ""
+                    echo "Dependencies:"
+                    echo "  - Xcode (required)"
+                    echo "  - Node.js (required for modern create-dmg)"
+                    echo "  - Homebrew (recommended for dependency installation)"
                     exit 0
                     ;;
                 *)

@@ -27,6 +27,15 @@ jobs:
       with:
         xcode-version: '16.2'
     
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: |
+          package-lock.json
+          **/package-lock.json
+    
     - name: Make build script executable
       run: chmod +x scripts/build-dmg.sh
     
