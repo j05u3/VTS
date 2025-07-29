@@ -244,7 +244,7 @@ VTS/
 ├── VTSApp/
 │   ├── Info.plist                  # App configuration
 │   └── VTSApp.entitlements         # App permissions
-└── SETUP.md                        # This guide
+└── DISTRIBUTION_SETUP.md                        # This guide
 ```
 
 ## 🔄 Version Management

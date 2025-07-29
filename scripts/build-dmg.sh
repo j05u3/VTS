@@ -145,17 +145,17 @@ setup_keychain() {
     # Create temporary keychain
     KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
     
-    security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-    security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-    security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+    security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+    security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+    security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
     
     # Import certificate
-    echo $BUILD_CERTIFICATE_BASE64 | base64 --decode > certificate.p12
-    security import certificate.p12 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-    security list-keychain -d user -s $KEYCHAIN_PATH
+    printf '%s' "$BUILD_CERTIFICATE_BASE64" | base64 --decode > certificate.p12
+    security import certificate.p12 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+    security list-keychain -d user -s "$KEYCHAIN_PATH"
     
     # Verify certificate
-    security find-identity -v -p codesigning $KEYCHAIN_PATH
+    security find-identity -v -p codesigning "$KEYCHAIN_PATH"
     
     log_success "Keychain setup completed"
 }
@@ -301,7 +301,7 @@ code_sign() {
         # Unlock keychain if in CI mode
         if [ "$CI_MODE" = "true" ]; then
             KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-            security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+            security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
         fi
         
         # Sign the app
@@ -400,7 +400,7 @@ cleanup_keychain() {
     log_info "Cleaning up temporary keychain..."
     KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
     if [ -f "$KEYCHAIN_PATH" ]; then
-        security delete-keychain $KEYCHAIN_PATH
+        security delete-keychain "$KEYCHAIN_PATH"
     fi
     rm -f certificate.p12
     log_success "Keychain cleanup completed"
@@ -485,7 +485,7 @@ main() {
         echo "3. Launch the app from Applications"
         echo ""
         echo "For distribution, consider code signing and notarization."
-        echo "See SETUP.md for details on configuring certificates."
+        echo "See DISTRIBUTION_SETUP.md for details on configuring certificates."
     else
         log_success "CI build completed successfully!"
         DMG_NAME=$(cat dmg_name.txt 2>/dev/null || echo "$APP_NAME-$VERSION-Universal.dmg")
