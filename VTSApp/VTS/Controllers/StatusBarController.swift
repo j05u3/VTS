@@ -171,8 +171,16 @@ public class StatusBarController: ObservableObject {
     @objc private func showAbout() {
         let alert = NSAlert()
         alert.messageText = "VTS"
+
+        // Get version from Bundle
+        let version =
+            Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+
+        // Get current hotkey from manager
+        let hotkeyString = hotkeyManager.currentHotkeyString
+
         alert.informativeText =
-            "Version 0.2.0\n\nA modern macOS speech-to-text application that converts your voice to text using AI-powered transcription services from OpenAI and Groq.\n\nQuick Start:\n• Press ⌘⇧; to start/stop recording\n• Set up your API keys in Settings\n• Speak naturally and watch your words appear!"
+            "Version \(version)\n\nA modern macOS speech-to-text application that converts your voice to text using AI-powered transcription services from OpenAI and Groq.\n\nQuick Start:\n• Press \(hotkeyString) to start/stop recording\n• Set up your API keys in Settings\n• Speak naturally and watch your words appear!"
         alert.alertStyle = .informational
         alert.runModal()
     }
