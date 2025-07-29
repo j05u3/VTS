@@ -287,7 +287,6 @@ get_signing_identity() {
                sed 's/.*"\(.*\)".*/\1/')
     
     if [ -n "$identity" ]; then
-        log_info "Found certificate for team $APPLE_TEAM_ID: $identity"
         echo "$identity"
         return 0
     else
