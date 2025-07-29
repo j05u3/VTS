@@ -229,6 +229,30 @@ build_app() {
     log_success "Application export completed"
 }
 
+# Get code signing identity if available
+get_signing_identity() {
+    if [ "$SKIP_SIGNING" = "true" ]; then
+        return 1
+    fi
+    
+    # Unlock keychain if in CI mode
+    if [ "$CI_MODE" = "true" ]; then
+        KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" 2>/dev/null || true
+    fi
+    
+    # Try to find Developer ID Application certificate
+    local identity
+    identity=$(security find-identity -v -p codesigning 2>/dev/null | grep "Developer ID Application" | head -n1 | sed 's/.*"\(.*\)".*/\1/')
+    
+    if [ -n "$identity" ]; then
+        echo "$identity"
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Create DMG using modern sindresorhus/create-dmg
 create_dmg() {
     log_info "Creating DMG with modern create-dmg..."
@@ -246,11 +270,27 @@ create_dmg() {
     # Options for create-dmg:
     # --overwrite: Replace existing DMG
     # --dmg-title: Custom title (will use app name by default)
+    # --identity: Code signing identity (automatic by default)
     CREATE_DMG_ARGS=("--overwrite")
     
     # Set custom title if needed
     if [ ${#APP_NAME} -le 27 ]; then
         CREATE_DMG_ARGS+=("--dmg-title" "$APP_NAME $VERSION")
+    fi
+    
+    # Add code signing identity if available
+    local signing_identity
+    if signing_identity=$(get_signing_identity); then
+        log_info "Code signing identity found: $signing_identity"
+        CREATE_DMG_ARGS+=("--identity" "$signing_identity")
+    else
+        if [ "$SKIP_SIGNING" != "true" ]; then
+            log_error "No Developer ID Application certificate found, but signing is required"
+            log_error "Either provide a valid certificate or use --skip-signing / SKIP_SIGNING=true"
+            exit 1
+        else
+            log_info "No code signing identity found, DMG will be unsigned (SKIP_SIGNING=true)"
+        fi
     fi
     
     # Create the DMG
@@ -282,53 +322,45 @@ create_dmg() {
     fi
 }
 
-# Code signing function
+# Code signing function (for app verification and DMG verification)
 code_sign() {
     if [ "$SKIP_SIGNING" = "true" ]; then
-        log_info "Skipping code signing (SKIP_SIGNING=true)"
+        log_info "Skipping code signing verification (SKIP_SIGNING=true)"
         return
     fi
     
-    log_info "Code signing application and DMG..."
+    log_info "Verifying code signatures..."
     
     APP_PATH="build/export/$APP_NAME.app"
     DMG_NAME=$(cat dmg_name.txt)
     
-    # Check if Developer ID certificate is available
-    if security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
-        log_info "Code signing certificate found. Signing application..."
+    # Get signing identity
+    local signing_identity
+    if signing_identity=$(get_signing_identity); then
+        log_info "Code signing certificate found: $signing_identity"
         
-        # Unlock keychain if in CI mode
-        if [ "$CI_MODE" = "true" ]; then
-            KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-            security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-        fi
-        
-        # Sign the app
+        # Sign the app (create-dmg doesn't sign the app, only the DMG)
+        log_info "Signing application..."
         codesign \
             --deep \
             --force \
             --options runtime \
             --timestamp \
-            --sign "Developer ID Application" \
+            --sign "$signing_identity" \
             "$APP_PATH"
         
         log_success "Application signed"
         
         # Verify signatures
+        log_info "Verifying signatures..."
         codesign --verify --verbose "$APP_PATH"
         codesign --verify --verbose "$DMG_NAME"
         
         log_success "Code signing completed and verified"
     else
-        if [ "$CI_MODE" = "true" ]; then
-            log_error "No Developer ID Application certificate found in CI"
-            exit 1
-        else
-            log_warning "No Developer ID Application certificate found"
-            log_info "DMG will be created without code signing"
-            log_info "To skip this check, run with: SKIP_SIGNING=true ./scripts/build-dmg.sh"
-        fi
+        log_error "No Developer ID Application certificate found, but signing is required"
+        log_error "Either provide a valid certificate or use --skip-signing / SKIP_SIGNING=true"
+        exit 1
     fi
 }
 
@@ -471,7 +503,6 @@ main() {
     
     # Cleanup
     cleanup_keychain  # CI only
-    rm -f dmg_name.txt
     
     if [ "$CI_MODE" != "true" ]; then
         echo ""
@@ -491,6 +522,8 @@ main() {
         DMG_NAME=$(cat dmg_name.txt 2>/dev/null || echo "$APP_NAME-$VERSION-Universal.dmg")
         echo "DMG_NAME=$DMG_NAME" >> "$GITHUB_ENV"
     fi
+    
+    rm -f dmg_name.txt
 }
 
 # Run main function
