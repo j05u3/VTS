@@ -30,34 +30,26 @@ https://github.com/user-attachments/assets/59563387-5d46-47eb-8f58-2607c4901135
 
 https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
 
-## Requirements
+## 📦 Installation
 
+**Ready to use VTS?** Head over to our [**Releases Page**](https://github.com/j05u3/VTS/releases/latest) for:
+- 📥 **One-click downloads** for macOS (Apple Silicon & Intel)
+- 📋 **Complete installation instructions**
+- 🔍 **System requirements** and compatibility info
+- 📝 **Release notes** with latest features and fixes
+
+### Requirements for End Users
 - **macOS 14.0+** (Apple Silicon & Intel supported)
-- **Xcode 15+** for building
-- **API key** from OpenAI or Groq
+- **API key** from OpenAI or Groq (see setup below)
 
-## Quick Start
+### API Key Setup
 
-### 1. Get API Keys
+After installing VTS, you'll need an API key from one of these providers:
 
-Sign up and get your API key: (only one of them is required, you choose)
+- **OpenAI**: [Get your API key here](https://platform.openai.com/api-keys)
+- **Groq**: [Get your API key here](https://console.groq.com/keys)
 
-- **OpenAI**: https://platform.openai.com/api-keys
-- **Groq**: https://console.groq.com/keys
-
-### 2. Clone and Build
-
-```bash
-git clone <your-repo-url>
-cd VTS
-open VTSApp.xcodeproj
-```
-
-### 3. Run the App
-
-1. In Xcode, select the **VTSApp** scheme
-2. Build and run with **⌘R**
-3. Grant microphone permission when prompted
+*Only one API key is required - choose the provider you prefer!*
 
 ## Usage
 
@@ -83,7 +75,51 @@ open VTSApp.xcodeproj
 - Examples: "Medical terminology", "Technical jargon", "Names: John, Sarah, Mike"
 - Prompts help the AI better understand domain-specific language
 
-## Architecture
+## 🔧 Troubleshooting
+
+### Common Issues
+- **Microphone Permission Denied**: Check System Settings > Privacy & Security > Microphone
+- **No Microphones Found**: Click "Refresh" in the Microphone Priority section
+- **Wrong Microphone Active**: Set your preferred priority order or check device connections
+- **App Not Responding to Hotkey**: Ensure accessibility permissions are granted when prompted
+
+---
+
+## 🛠️ Development
+
+*This section is for developers who want to build VTS from source or contribute to the project.*
+
+### Development Requirements
+- **macOS 14.0+** (Apple Silicon & Intel supported)
+- **Xcode 15+** for building
+- **API key** from OpenAI or Groq for testing
+
+### Building from Source
+
+1. **Clone the repository:**
+```bash
+git clone https://github.com/j05u3/VTS.git
+cd VTS
+```
+
+2. **Open in Xcode:**
+```bash
+open VTSApp.xcodeproj
+```
+
+3. **Build and run:**
+   - In Xcode, select the **VTSApp** scheme
+   - Build and run with **⌘R**
+   - Grant microphone permission when prompted
+
+### Command Line Building
+
+```bash
+# Build via command line
+xcodebuild -project VTSApp.xcodeproj -scheme VTSApp build
+```
+
+### Architecture
 
 VTS follows a clean, modular architecture:
 
@@ -93,36 +129,25 @@ VTS follows a clean, modular architecture:
 - **STTProvider Protocol**: Clean interface allowing easy addition of new providers
 - **Modern SwiftUI**: Reactive UI with proper state management and real-time updates
 
-## Development
-
-### Building
-
-```bash
-# Open in Xcode (recommended)
-open VTSApp.xcodeproj
-
-# Or build via command line
-xcodebuild -project VTSApp.xcodeproj -scheme VTSApp build
-```
-
 ### Testing
 
 Currently, VTS includes manual testing capabilities through the built-in Text Injection Test Suite accessible from the app's interface. This allows you to test text insertion functionality across different applications.
 
 Automated unit tests are planned for future releases.
 
-## Troubleshooting
+### Development Troubleshooting
 
-### Microphone Issues
-- **Permission Denied**: Check System Settings > Privacy & Security > Microphone
-- **No Devices Found**: Click "Refresh" in Microphone Priority section
-- **Wrong Device Active**: Set priority order or check device connections
-
-### Accessibility Permissions (Development)
+#### Accessibility Permissions (Development)
 - **Permission Not Updating**: During development/testing, when the app changes (rebuild, code changes), macOS treats it as a "new" app
 - **Solution**: Remove the old app entry from System Settings > Privacy & Security > Accessibility, then re-grant permission
 - **Why This Happens**: Each build gets a different signature, so macOS sees it as a different application
 - **Quick Fix**: Check the app list in Accessibility settings and remove any old/duplicate VTS entries
+
+### Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS development.
+
+---
 
 ## Roadmap
 
@@ -141,10 +166,6 @@ Automated unit tests are planned for future releases.
 - [ ] **LLM step**: Use LLM to process the transcription and improve accuracy, maybe targetted to the app you're using or context in general. (Be able to easily input emojis?)
 - [ ] **Advanced Audio Processing**: Noise reduction and gain control, but also some STT providers can do this so maybe not needed?.
 - [ ] **Accessibility Features**: VoiceOver support and high contrast modes
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## License
 
