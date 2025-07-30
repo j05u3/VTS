@@ -139,11 +139,11 @@ Test your setup by creating a release:
 
 **Option A (Recommended)**: Use the tag workflow
 - Go to **Actions** → **Create and Push Tag**
-- Enter version like `0.2.1` → Creates `v0.2.1` tag automatically
+- Enter version like `0.0.1` → Creates `v0.0.1` tag automatically
 
 **Option B**: Manual tag creation
 ```bash
-git tag v0.2.1 && git push origin v0.2.1
+git tag v0.0.1 && git push origin v0.0.1
 ```
 
 Monitor the build in the **Actions** tab.
@@ -256,7 +256,7 @@ Two ways to create releases:
 
 ### Manual Tags
 ```bash
-git tag v1.2.3 && git push origin v1.2.3
+git tag v0.1.1 && git push origin v0.1.1
 ```
 
 The release workflow extracts version from tags and uses GitHub run numbers for build numbers.
@@ -286,6 +286,6 @@ If you encounter issues:
 Once set up, create releases easily:
 
 **Tag Workflow**: Actions → Create and Push Tag → Enter version → Auto-release
-**Manual**: `git tag v1.2.3 && git push origin v1.2.3` → Auto-release
+**Manual**: `git tag v0.1.1 && git push origin v0.1.1` → Auto-release
 
 Result: Professional DMG with code signing, notarization, and GitHub release! 🚀
