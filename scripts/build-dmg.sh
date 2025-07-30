@@ -16,11 +16,11 @@
 set -e
 
 # Configuration
-APP_NAME="VTSApp"
-BUNDLE_ID="com.voicetypestudio.app"
+APP_NAME="${APP_NAME:-"VTS"}"
+BUNDLE_ID="${BUNDLE_ID:-"com.voicetypestudio.app"}"
 SCHEME="VTSApp"
 PROJECT="VTSApp.xcodeproj"
-APPLE_TEAM_ID="887583966J"
+APPLE_TEAM_ID="${APPLE_TEAM_ID:-"887583966J"}"
 
 # Global variables
 KEYCHAIN_PATH=""

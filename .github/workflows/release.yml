@@ -5,7 +5,7 @@ on:
     tags: ['v*']
 
 env:
-  APP_NAME: "VTSApp"
+  APP_NAME: "VTS"
   BUNDLE_ID: "com.voicetypestudio.app"
 
 permissions:
@@ -40,6 +40,8 @@ jobs:
         APPLE_ID: ${{ secrets.APPLE_ID }}
         APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
         APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        APP_NAME: ${{ env.APP_NAME }}
+        BUNDLE_ID: ${{ env.BUNDLE_ID }}
         GITHUB_ACTIONS: true
         GITHUB_REF: ${{ github.ref }}
         GITHUB_RUN_NUMBER: ${{ github.run_number }}
@@ -71,8 +73,6 @@ jobs:
         draft: false
         prerelease: false
         body: |
-          ## ${{ env.APP_NAME }} ${{ steps.get_version.outputs.version_number }}
-          
           ### Download
           - **Universal Binary (Intel + Apple Silicon)**: Download the DMG below
           - **Minimum macOS Version**: 14.0 (Sonoma)
