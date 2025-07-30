@@ -3,12 +3,6 @@ name: Build and Release macOS App
 on:
   push:
     tags: ['v*']
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to build (e.g., v1.0.0)'
-        required: true
-        default: 'v1.0.0'
 
 env:
   APP_NAME: "VTSApp"
@@ -49,17 +43,12 @@ jobs:
         GITHUB_ACTIONS: true
         GITHUB_REF: ${{ github.ref }}
         GITHUB_RUN_NUMBER: ${{ github.run_number }}
-        INPUT_VERSION: ${{ github.event.inputs.version }}
       run: ./scripts/build-dmg.sh
 
     - name: Extract version info
       id: get_version
       run: |
-        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          VERSION="${{ github.event.inputs.version }}"
-        else
-          VERSION=${GITHUB_REF#refs/tags/}
-        fi
+        VERSION=${GITHUB_REF#refs/tags/}
         VERSION_NUMBER=${VERSION#v}  # Remove 'v' prefix
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
