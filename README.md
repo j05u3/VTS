@@ -1,5 +1,10 @@
 # 🔵 VTS - Voice-Type Studio
 
+[![Build Status](https://github.com/j05u3/VTS/workflows/Build%20and%20Release%20macOS%20App/badge.svg)](https://github.com/j05u3/VTS/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Latest Release](https://img.shields.io/github/v/release/j05u3/VTS)](https://github.com/j05u3/VTS/releases/latest)
+[![Platform](https://img.shields.io/badge/platform-macOS%2014.0%2B-blue)](https://developer.apple.com/macos/)
+
 **The open-source macOS dictation replacement you've been waiting for!** 🚀
 
 Transform your voice into text instantly with the power of **OpenAI** and **Groq** APIs. Say goodbye to macOS dictation limitations and hello to lightning-fast, accurate transcription with your own custom hotkeys! ⚡️
