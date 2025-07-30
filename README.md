@@ -75,6 +75,14 @@ After installing VTS, you'll need an API key from one of these providers:
 - Examples: "Medical terminology", "Technical jargon", "Names: John, Sarah, Mike"
 - Prompts help the AI better understand domain-specific language
 
+
+## Privacy & Security
+
+- **No audio storage**: Audio is processed in real-time, never stored locally
+- **API keys in memory only**: Keys are not persisted between sessions
+- **TLS encryption**: All API communication uses HTTPS
+- **Microphone permission**: Explicit user consent required for audio access
+
 ## 🔧 Troubleshooting
 
 ### Common Issues
@@ -170,13 +178,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS d
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
-
-## Privacy & Security
-
-- **No audio storage**: Audio is processed in real-time, never stored locally
-- **API keys in memory only**: Keys are not persisted between sessions
-- **TLS encryption**: All API communication uses HTTPS
-- **Microphone permission**: Explicit user consent required for audio access
 
 ## Acknowledgements
 
