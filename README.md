@@ -125,7 +125,7 @@ Automated unit tests are planned for future releases.
 - [ ] **Auto-open at login**: Auto-open at login. (Maybe a checkbox in the preferences window?)
 - [ ] **Auto-update System**: Seamless updates via Sparkle framework
 
-### In a future or maybe pro version, to be decided
+### In a future or maybe pro version, to be decided, your feedback is welcome!
 - [ ] **Comprehensive Test Suite**: Automated unit tests covering:
   - Core transcription functionality
   - Provider validation and error handling  
