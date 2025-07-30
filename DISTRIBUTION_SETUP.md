@@ -135,21 +135,18 @@ The script will automatically:
 
 ### 2. CI/CD Test
 
-1. **Create a test release**:
-   ```bash
-   git tag v0.2.1
-   git push origin v0.2.1
-   ```
+Test your setup by creating a release:
 
-2. **Monitor the workflow**:
-   - Go to **Actions** tab in your GitHub repository
-   - Watch the build process
-   - Check for any errors
+**Option A (Recommended)**: Use the tag workflow
+- Go to **Actions** → **Create and Push Tag**
+- Enter version like `0.2.1` → Creates `v0.2.1` tag automatically
 
-3. **Manual trigger** (alternative):
-   - Go to **Actions** → **Build and Release macOS App**
-   - Click **Run workflow**
-   - Enter version like `v0.2.1`
+**Option B**: Manual tag creation
+```bash
+git tag v0.2.1 && git push origin v0.2.1
+```
+
+Monitor the build in the **Actions** tab.
 
 ## 🔍 Troubleshooting
 
@@ -237,7 +234,8 @@ Your repository should have these files for CI/CD:
 VTS/
 ├── .github/
 │   └── workflows/
-│       └── release.yml              # GitHub Actions workflow
+│       ├── create-tag.yml           # Tag creation workflow
+│       └── release.yml              # GitHub Actions release workflow
 ├── scripts/
 │   ├── ExportOptions.plist          # Xcode export settings
 │   └── build-dmg.sh                # Unified build script
@@ -249,16 +247,19 @@ VTS/
 
 ## 🔄 Version Management
 
-The CI/CD automatically updates version numbers:
+Two ways to create releases:
 
-- **Marketing version**: Extracted from git tag (e.g., `v1.2.3` → `1.2.3`)
-- **Build number**: Uses GitHub run number for uniqueness
+### Tag Workflow (Recommended)
+1. Go to **Actions** → **Create and Push Tag**
+2. Enter version (e.g., `1.2.3`) → Auto-validates semver and adds 'v' prefix
+3. Creates tag `v1.2.3` → Triggers release automatically
 
-To release a new version:
+### Manual Tags
 ```bash
-git tag v1.2.3
-git push origin v1.2.3
+git tag v1.2.3 && git push origin v1.2.3
 ```
+
+The release workflow extracts version from tags and uses GitHub run numbers for build numbers.
 
 ## 🛡️ Security Best Practices
 
@@ -282,12 +283,9 @@ If you encounter issues:
 
 ## 🎉 Success!
 
-Once everything is set up:
+Once set up, create releases easily:
 
-1. **Push a tag** → Automatic build starts
-2. **DMG is created** with modern tooling and beautiful design
-3. **Code signed and notarized** by Apple
-4. **Released to GitHub** with checksums
-5. **Users get a professional installation experience** 🚀
+**Tag Workflow**: Actions → Create and Push Tag → Enter version → Auto-release
+**Manual**: `git tag v1.2.3 && git push origin v1.2.3` → Auto-release
 
-Your users will get a sleek, modern DMG with automatic layout and custom icons!
+Result: Professional DMG with code signing, notarization, and GitHub release! 🚀
