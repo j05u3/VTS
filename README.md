@@ -79,7 +79,7 @@ After installing VTS, you'll need an API key from one of these providers:
 ## Privacy & Security
 
 - **No audio storage**: Audio is processed in real-time, never stored locally
-- **API keys in memory only**: Keys are not persisted between sessions
+- **API keys are safe**: Keys are stored in Keychain
 - **TLS encryption**: All API communication uses HTTPS
 - **Microphone permission**: Explicit user consent required for audio access
 
