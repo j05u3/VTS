@@ -239,7 +239,7 @@ build_app() {
     fi
     
     # Verify the build
-    local app_path="build/export/$APP_NAME.app"
+    local app_path="build/export/$SCHEME.app"
     if [ ! -d "$app_path" ]; then
         log_error "Application not found at $app_path"
         exit 1
@@ -247,7 +247,7 @@ build_app() {
     
     # Verify universal binary
     log_info "Verifying universal binary..."
-    local binary_path="$app_path/Contents/MacOS/$APP_NAME"
+    local binary_path="$app_path/Contents/MacOS/$SCHEME"
     if [ -f "$binary_path" ]; then
         lipo -info "$binary_path"
         if lipo -info "$binary_path" | grep -q "arm64.*x86_64\|x86_64.*arm64"; then
@@ -301,7 +301,7 @@ get_signing_identity() {
 create_dmg() {
     log_info "Creating DMG with modern create-dmg..."
     
-    APP_PATH="build/export/$APP_NAME.app"
+    APP_PATH="build/export/$SCHEME.app"
     DMG_NAME="$APP_NAME-$VERSION-Universal.dmg"
     
     # Remove old DMG if exists
@@ -388,7 +388,7 @@ sign_app_bundle() {
     
     log_info "Signing application bundle..."
     
-    APP_PATH="build/export/$APP_NAME.app"
+    APP_PATH="build/export/$SCHEME.app"
     
     # Get signing identity
     local signing_identity
@@ -478,7 +478,7 @@ validate_build() {
     # Validate signatures if not skipping
     if [ "$SKIP_SIGNING" != "true" ]; then
         # Check app bundle signature
-        local app_path="build/export/$APP_NAME.app"
+        local app_path="build/export/$SCHEME.app"
         if [ -d "$app_path" ]; then
             if codesign --verify --deep --strict "$app_path" 2>/dev/null; then
                 log_success "App bundle signature is valid"
