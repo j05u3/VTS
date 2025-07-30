@@ -20,8 +20,8 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
+        token: ${{ secrets.FINE_GRAINED_PAT }}
+
     - name: Validate semver format
       run: |
         VERSION="${{ github.event.inputs.version }}"
