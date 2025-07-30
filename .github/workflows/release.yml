@@ -18,6 +18,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history and tags
       
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1
