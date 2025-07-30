@@ -50,9 +50,18 @@ jobs:
       run: |
         VERSION=${GITHUB_REF#refs/tags/}
         VERSION_NUMBER=${VERSION#v}  # Remove 'v' prefix
+        
+        # Get the previous tag for comparison
+        PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -v "^${VERSION}$" | head -n1)
+        if [ -z "$PREVIOUS_TAG" ]; then
+          PREVIOUS_TAG="v0.0.7"  # Fallback for first release
+        fi
+        
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+        echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
         echo "Building version: $VERSION_NUMBER"
+        echo "Previous tag: $PREVIOUS_TAG"
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -77,13 +86,8 @@ jobs:
           ### Verification
           This release is code-signed and notarized by Apple for security.
           
-          **SHA-256 Checksum:**
-          ```
-          $(head -n1 checksums.txt)
-          ```
-          
           ### Changes
-          See the [commit history](https://github.com/j05u3/VTS/compare/v0.1.0...${{ steps.get_version.outputs.version }}) for detailed changes.
+          See the [commit history](https://github.com/j05u3/VTS/compare/${{ steps.get_version.outputs.previous_tag }}...${{ steps.get_version.outputs.version }}) for detailed changes.
         files: |
           ${{ env.APP_NAME }}-${{ steps.get_version.outputs.version_number }}-Universal.dmg
           checksums.txt

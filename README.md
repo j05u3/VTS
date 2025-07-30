@@ -122,7 +122,6 @@ Automated unit tests are planned for future releases.
 ## Roadmap
 
 - [ ] **Onboarding**: Onboarding flow to help users get started.
-- [ ] **Notarization and code signing**: Notarization and code signing are required to run the app on macOS.
 - [ ] **Auto-open at login**: Auto-open at login. (Maybe a checkbox in the preferences window?)
 - [ ] **Auto-update System**: Seamless updates via Sparkle framework
 
