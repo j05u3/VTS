@@ -25,6 +25,15 @@
 		CA4830A72E2B85730085EEF7 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4830A62E2B85700085EEF7 /* NotificationManager.swift */; };
 		CA4830AD2E2B859F0085EEF7 /* RetryContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4830AC2E2B859C0085EEF7 /* RetryContext.swift */; };
 		CA5A13F92E3C5DA800C01C44 /* AutoScrollingTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A13F82E3C5DA800C01C44 /* AutoScrollingTextEditor.swift */; };
+		CA5A14112E3CAD7500C01C44 /* OnboardingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A14102E3CAD7500C01C44 /* OnboardingManager.swift */; };
+		CA5A141B2E3CADD900C01C44 /* OnboardingWelcomeStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A14182E3CADD900C01C44 /* OnboardingWelcomeStep.swift */; };
+		CA5A141C2E3CADD900C01C44 /* OnboardingNotificationsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A14162E3CADD900C01C44 /* OnboardingNotificationsStep.swift */; };
+		CA5A141D2E3CADD900C01C44 /* OnboardingCompletionStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A14142E3CADD900C01C44 /* OnboardingCompletionStep.swift */; };
+		CA5A141E2E3CADD900C01C44 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A141A2E3CADD900C01C44 /* OnboardingView.swift */; };
+		CA5A141F2E3CADD900C01C44 /* OnboardingMicrophoneStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A14152E3CADD900C01C44 /* OnboardingMicrophoneStep.swift */; };
+		CA5A14202E3CADD900C01C44 /* OnboardingAccessibilityStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A14122E3CADD900C01C44 /* OnboardingAccessibilityStep.swift */; };
+		CA5A14212E3CADD900C01C44 /* OnboardingTestStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A14172E3CADD900C01C44 /* OnboardingTestStep.swift */; };
+		CA5A14222E3CADD900C01C44 /* OnboardingAPIKeyStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A14132E3CADD900C01C44 /* OnboardingAPIKeyStep.swift */; };
 		CA98AAD52E24E862004C23D7 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AAD12E24E862004C23D7 /* PreferencesView.swift */; };
 		CA98AAD62E24E862004C23D7 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AAD22E24E862004C23D7 /* StatusBarController.swift */; };
 		CA98AAD72E24E862004C23D7 /* TextInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AAD32E24E862004C23D7 /* TextInjector.swift */; };
@@ -54,6 +63,15 @@
 		CA4830A62E2B85700085EEF7 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		CA4830AC2E2B859C0085EEF7 /* RetryContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetryContext.swift; sourceTree = "<group>"; };
 		CA5A13F82E3C5DA800C01C44 /* AutoScrollingTextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoScrollingTextEditor.swift; sourceTree = "<group>"; };
+		CA5A14102E3CAD7500C01C44 /* OnboardingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingManager.swift; sourceTree = "<group>"; };
+		CA5A14122E3CADD900C01C44 /* OnboardingAccessibilityStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAccessibilityStep.swift; sourceTree = "<group>"; };
+		CA5A14132E3CADD900C01C44 /* OnboardingAPIKeyStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAPIKeyStep.swift; sourceTree = "<group>"; };
+		CA5A14142E3CADD900C01C44 /* OnboardingCompletionStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCompletionStep.swift; sourceTree = "<group>"; };
+		CA5A14152E3CADD900C01C44 /* OnboardingMicrophoneStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingMicrophoneStep.swift; sourceTree = "<group>"; };
+		CA5A14162E3CADD900C01C44 /* OnboardingNotificationsStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingNotificationsStep.swift; sourceTree = "<group>"; };
+		CA5A14172E3CADD900C01C44 /* OnboardingTestStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTestStep.swift; sourceTree = "<group>"; };
+		CA5A14182E3CADD900C01C44 /* OnboardingWelcomeStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomeStep.swift; sourceTree = "<group>"; };
+		CA5A141A2E3CADD900C01C44 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		CA98AAD12E24E862004C23D7 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		CA98AAD22E24E862004C23D7 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		CA98AAD32E24E862004C23D7 /* TextInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInjector.swift; sourceTree = "<group>"; };
@@ -139,6 +157,7 @@
 		1A8E3D501C8F4E1C00123467 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				CA5A14102E3CAD7500C01C44 /* OnboardingManager.swift */,
 				CA4830A62E2B85700085EEF7 /* NotificationManager.swift */,
 				1A8E3D3F1C8F4E1C00123457 /* CaptureEngine.swift */,
 				1A8E3D401C8F4E1C00123458 /* DeviceManager.swift */,
@@ -186,6 +205,8 @@
 		1A8E3D551C8F4E1C00123472 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				CA5A14192E3CADD900C01C44 /* OnboardingSteps */,
+				CA5A141A2E3CADD900C01C44 /* OnboardingView.swift */,
 				CA5A13F82E3C5DA800C01C44 /* AutoScrollingTextEditor.swift */,
 				CA98AAD12E24E862004C23D7 /* PreferencesView.swift */,
 				CA98AADA2E262796004C23D7 /* TextInjectionTestView.swift */,
@@ -199,6 +220,20 @@
 				CA98AAD22E24E862004C23D7 /* StatusBarController.swift */,
 			);
 			path = Controllers;
+			sourceTree = "<group>";
+		};
+		CA5A14192E3CADD900C01C44 /* OnboardingSteps */ = {
+			isa = PBXGroup;
+			children = (
+				CA5A14122E3CADD900C01C44 /* OnboardingAccessibilityStep.swift */,
+				CA5A14132E3CADD900C01C44 /* OnboardingAPIKeyStep.swift */,
+				CA5A14142E3CADD900C01C44 /* OnboardingCompletionStep.swift */,
+				CA5A14152E3CADD900C01C44 /* OnboardingMicrophoneStep.swift */,
+				CA5A14162E3CADD900C01C44 /* OnboardingNotificationsStep.swift */,
+				CA5A14172E3CADD900C01C44 /* OnboardingTestStep.swift */,
+				CA5A14182E3CADD900C01C44 /* OnboardingWelcomeStep.swift */,
+			);
+			path = OnboardingSteps;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -301,6 +336,15 @@
 				CA5A13F92E3C5DA800C01C44 /* AutoScrollingTextEditor.swift in Sources */,
 				CA98AADD2E264E60004C23D7 /* SimpleHotkeyManager.swift in Sources */,
 				1A8E3D461C8F4E1C00123463 /* TranscriptionModels.swift in Sources */,
+				CA5A14112E3CAD7500C01C44 /* OnboardingManager.swift in Sources */,
+				CA5A141B2E3CADD900C01C44 /* OnboardingWelcomeStep.swift in Sources */,
+				CA5A141C2E3CADD900C01C44 /* OnboardingNotificationsStep.swift in Sources */,
+				CA5A141D2E3CADD900C01C44 /* OnboardingCompletionStep.swift in Sources */,
+				CA5A141E2E3CADD900C01C44 /* OnboardingView.swift in Sources */,
+				CA5A141F2E3CADD900C01C44 /* OnboardingMicrophoneStep.swift in Sources */,
+				CA5A14202E3CADD900C01C44 /* OnboardingAccessibilityStep.swift in Sources */,
+				CA5A14212E3CADD900C01C44 /* OnboardingTestStep.swift in Sources */,
+				CA5A14222E3CADD900C01C44 /* OnboardingAPIKeyStep.swift in Sources */,
 				CA4830AD2E2B859F0085EEF7 /* RetryContext.swift in Sources */,
 				1A8E3D471C8F4E1C00123464 /* AsyncExtensions.swift in Sources */,
 			);
@@ -432,8 +476,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = VTSApp/VTSApp-Debug.entitlements;
 				CODE_SIGNING_REQUIRED = YES;
+				CODE_SIGN_ENTITLEMENTS = "VTSApp/VTSApp-Debug.entitlements";
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;

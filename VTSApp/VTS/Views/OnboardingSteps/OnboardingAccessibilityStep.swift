@@ -53,7 +53,7 @@ struct OnboardingAccessibilityStep: View {
             // Main content
             VStack(spacing: 24) {
                 // Permission status
-                PermissionStatusCard(
+                AccessibilityPermissionCard(
                     hasPermission: hasPermission,
                     title: "Accessibility Permission",
                     grantedMessage: "✅ Accessibility access granted! Text will be automatically inserted into applications.",
@@ -190,7 +190,7 @@ struct BenefitRow: View {
 }
 
 // Reusable permission status card for accessibility
-struct PermissionStatusCard: View {
+struct AccessibilityPermissionCard: View {
     let hasPermission: Bool
     let title: String
     let grantedMessage: String

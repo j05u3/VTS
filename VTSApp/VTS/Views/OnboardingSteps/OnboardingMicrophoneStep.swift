@@ -42,7 +42,7 @@ struct OnboardingMicrophoneStep: View {
             
             // Status and explanation
             VStack(spacing: 20) {
-                PermissionStatusCard(
+                MicrophonePermissionCard(
                     status: permissionStatus,
                     title: "Microphone Permission",
                     grantedMessage: "✅ Microphone access granted! VTS can now record audio for transcription.",
@@ -159,7 +159,7 @@ struct OnboardingMicrophoneStep: View {
     }
 }
 
-struct PermissionStatusCard: View {
+struct MicrophonePermissionCard: View {
     let status: AVAuthorizationStatus
     let title: String
     let grantedMessage: String
