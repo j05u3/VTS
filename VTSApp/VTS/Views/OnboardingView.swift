@@ -28,22 +28,25 @@ struct OnboardingView: View {
                     .padding(.horizontal, 40)
                     .padding(.top, 20)
                     
-                    // Main content area
-                    ZStack {
-                        ForEach(OnboardingStep.allCases, id: \.self) { step in
-                            if step == onboardingManager.currentStep {
-                                stepView(for: step)
-                                    .transition(.asymmetric(
-                                        insertion: .move(edge: .trailing).combined(with: .opacity),
-                                        removal: .move(edge: .leading).combined(with: .opacity)
-                                    ))
+                    // Main content area - scrollable
+                    ScrollView {
+                        ZStack {
+                            ForEach(OnboardingStep.allCases, id: \.self) { step in
+                                if step == onboardingManager.currentStep {
+                                    stepView(for: step)
+                                        .transition(.asymmetric(
+                                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                                            removal: .move(edge: .leading).combined(with: .opacity)
+                                        ))
+                                }
                             }
                         }
+                        .frame(maxWidth: .infinity)
+                        .animation(.easeInOut(duration: 0.3), value: onboardingManager.currentStep)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .animation(.easeInOut(duration: 0.3), value: onboardingManager.currentStep)
                     
-                    // Navigation buttons
+                    // Navigation buttons - always visible at bottom
                     OnboardingNavigationView(
                         currentStep: onboardingManager.currentStep,
                         onNext: { onboardingManager.nextStep() },
@@ -54,6 +57,7 @@ struct OnboardingView: View {
                     )
                     .padding(.horizontal, 40)
                     .padding(.bottom, 30)
+                    .background(Color(NSColor.windowBackgroundColor).opacity(0.95))
                 }
             }
         }

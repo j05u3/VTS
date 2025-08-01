@@ -5,8 +5,6 @@ struct OnboardingWelcomeStep: View {
     
     var body: some View {
         VStack(spacing: 40) {
-            Spacer()
-            
             // Hero section
             VStack(spacing: 20) {
                 Image(systemName: "waveform.and.mic")
@@ -72,10 +70,9 @@ struct OnboardingWelcomeStep: View {
                 .animation(.easeOut(duration: 0.6).delay(0.7), value: animateFeatures)
             }
             .frame(maxWidth: 600)
-            
-            Spacer()
         }
         .padding(.horizontal, 60)
+        .padding(.vertical, 40)
         .onAppear {
             animateFeatures = true
         }

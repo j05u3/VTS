@@ -13,8 +13,6 @@ struct OnboardingMicrophoneStep: View {
     
     var body: some View {
         VStack(spacing: 40) {
-            Spacer()
-            
             // Header section
             VStack(spacing: 20) {
                 ZStack {
@@ -107,10 +105,9 @@ struct OnboardingMicrophoneStep: View {
                     .frame(maxWidth: 600)
                 }
             }
-            
-            Spacer()
         }
         .padding(.horizontal, 60)
+        .padding(.vertical, 40)
         .onAppear {
             updatePermissionStatus()
             animateIcon = true

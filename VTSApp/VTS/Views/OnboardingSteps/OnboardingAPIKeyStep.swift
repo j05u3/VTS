@@ -15,8 +15,6 @@ struct OnboardingAPIKeyStep: View {
     
     var body: some View {
         VStack(spacing: 40) {
-            Spacer()
-            
             // Header section
             VStack(spacing: 20) {
                 Image(systemName: "brain.head.profile")
@@ -134,10 +132,9 @@ struct OnboardingAPIKeyStep: View {
                 RoundedRectangle(cornerRadius: 16)
                     .fill(Color(NSColor.controlBackgroundColor))
             )
-            
-            Spacer()
         }
         .padding(.horizontal, 60)
+        .padding(.vertical, 40)
         .alert("Success!", isPresented: $showingSuccess) {
             Button("OK") { }
         } message: {
