@@ -6,8 +6,31 @@ import Combine
 @main
 struct VTSApp: App {
     @StateObject private var appState = AppState()
+    @StateObject private var onboardingManager = OnboardingManager.shared
     
     var body: some Scene {
+        WindowGroup {
+            if !onboardingManager.isOnboardingCompleted {
+                OnboardingView(appState: appState)
+                    .environmentObject(onboardingManager)
+                    .onReceive(onboardingManager.$isOnboardingCompleted) { completed in
+                        if completed {
+                            // Initialize the main app after onboarding
+                            appState.initializeMainApp()
+                        }
+                    }
+            } else {
+                // Show empty view since main app runs in status bar
+                EmptyView()
+                    .frame(width: 0, height: 0)
+                    .onAppear {
+                        appState.initializeMainApp()
+                    }
+            }
+        }
+        .windowStyle(HiddenTitleBarWindowStyle())
+        .windowResizability(.contentSize)
+        
         Settings {
             EmptyView()
         }
@@ -136,9 +159,10 @@ class AppState: ObservableObject {
     private let apiKeyManager = APIKeyManager()
     private let hotkeyManager = SimpleHotkeyManager.shared
     private let notificationManager = NotificationManager.shared
-    private var cancellables = Set<AnyCancellable>()
+    internal var cancellables = Set<AnyCancellable>()
     
     private var settingsWindowController: SettingsWindowController?
+    private var isMainAppInitialized = false
     
     // Keys for UserDefaults storage
     private let systemPromptKey = "systemPrompt"
@@ -197,6 +221,16 @@ class AppState: ObservableObject {
         loadSystemPrompt()
         setupTranscriptionService()
         setupObservableObjectBindings()
+        
+        // Only initialize main app if onboarding is completed
+        if OnboardingManager.shared.isOnboardingCompleted {
+            initializeMainApp()
+        }
+    }
+    
+    func initializeMainApp() {
+        guard !isMainAppInitialized else { return }
+        isMainAppInitialized = true
         
         // Defer UI setup until after app launch
         DispatchQueue.main.async {
