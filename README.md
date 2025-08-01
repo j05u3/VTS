@@ -169,7 +169,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS d
 
 ## Roadmap
 
-- [ ] **Onboarding**: Onboarding flow to help users get started.
 - [ ] **Auto-open at login**: Auto-open at login. (Maybe a checkbox in the preferences window?)
 - [ ] **Auto-update System**: Seamless updates via Sparkle framework
 
