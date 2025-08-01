@@ -26,8 +26,8 @@ struct OnboardingWelcomeStep: View {
             
             // Features grid
             LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
+                GridItem(.flexible(), spacing: 20),
+                GridItem(.flexible(), spacing: 20)
             ], spacing: 20) {
                 FeatureCard(
                     icon: "key.fill",
@@ -102,7 +102,7 @@ struct FeatureCard: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
-        .frame(maxWidth: .infinity, minHeight: 90) // Fixed minimum height for all cards
+        .frame(maxWidth: .infinity, minHeight: 80) // Fixed minimum height for all cards
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
