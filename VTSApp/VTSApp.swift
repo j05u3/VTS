@@ -17,6 +17,9 @@ struct VTSApp: App {
                         if completed {
                             // Initialize the main app after onboarding
                             appState.initializeMainApp()
+                            
+                            // Close the onboarding window
+                            NSApplication.shared.windows.first?.close()
                         }
                     }
             } else {
@@ -25,10 +28,11 @@ struct VTSApp: App {
                     .frame(width: 0, height: 0)
                     .onAppear {
                         appState.initializeMainApp()
+                        // Close the main window immediately when onboarding is done
+                        NSApplication.shared.windows.first?.close()
                     }
             }
         }
-        .windowStyle(HiddenTitleBarWindowStyle())
         .windowResizability(.contentSize)
         
         Settings {
