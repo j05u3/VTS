@@ -31,16 +31,6 @@ struct OnboardingAccessibilityStep: View {
                     Text("Text Insertion Access")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                    
-                    Text("(Optional)")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.secondary.opacity(0.2))
-                        )
                 }
                 
                 Text("Enable automatic text insertion to seamlessly add transcribed text into any application")
@@ -118,7 +108,7 @@ struct OnboardingAccessibilityStep: View {
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
-                        Text("• You can still use VTS for voice transcription\n• Transcribed text will be copied to clipboard\n• You'll need to paste manually with ⌘V")
+                        Text("• You can still use VTS for voice transcription\n• Transcribed text can be copied to clipboard\n• You'll need to paste manually with ⌘V")
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)

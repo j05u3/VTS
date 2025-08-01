@@ -25,7 +25,7 @@ struct OnboardingAPIKeyStep: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                Text("Connect your AI provider to enable voice transcription")
+                Text("Connect your AI provider to enable voice transcription. Your API key will be stored securely in Keychain.")
                     .font(.title3)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -176,7 +176,7 @@ struct OnboardingAPIKeyStep: View {
             showingSuccess = true
             isSaving = false
         } catch {
-            errorMessage = "Failed to save API key: \(error.localizedDescription)"
+            errorMessage = "Failed to save API key: \(error.localizedDescription)\n\nIf you see a keychain permission dialog, please click \"Allow\" to securely store your API key."
             isSaving = false
         }
     }

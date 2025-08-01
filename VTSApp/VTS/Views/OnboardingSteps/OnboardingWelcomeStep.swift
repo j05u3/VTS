@@ -30,16 +30,6 @@ struct OnboardingWelcomeStep: View {
                 GridItem(.flexible())
             ], spacing: 20) {
                 FeatureCard(
-                    icon: "brain.head.profile",
-                    title: "AI-Powered",
-                    description: "OpenAI & Groq integration for superior accuracy",
-                    color: .green
-                )
-                .opacity(animateFeatures ? 1.0 : 0.0)
-                .offset(y: animateFeatures ? 0 : 20)
-                .animation(.easeOut(duration: 0.6).delay(0.4), value: animateFeatures)
-                
-                FeatureCard(
                     icon: "key.fill",
                     title: "Your Keys",
                     description: "Bring your own API keys - no subscriptions",
@@ -50,16 +40,6 @@ struct OnboardingWelcomeStep: View {
                 .animation(.easeOut(duration: 0.6).delay(0.5), value: animateFeatures)
                 
                 FeatureCard(
-                    icon: "keyboard",
-                    title: "Smart Hotkeys",
-                    description: "Customizable global shortcuts for instant access",
-                    color: .purple
-                )
-                .opacity(animateFeatures ? 1.0 : 0.0)
-                .offset(y: animateFeatures ? 0 : 20)
-                .animation(.easeOut(duration: 0.6).delay(0.6), value: animateFeatures)
-                
-                FeatureCard(
                     icon: "text.insert",
                     title: "Auto-Insert",
                     description: "Direct text insertion into any application",
@@ -68,6 +48,26 @@ struct OnboardingWelcomeStep: View {
                 .opacity(animateFeatures ? 1.0 : 0.0)
                 .offset(y: animateFeatures ? 0 : 20)
                 .animation(.easeOut(duration: 0.6).delay(0.7), value: animateFeatures)
+                
+                FeatureCard(
+                    icon: "keyboard",
+                    title: "Smart Hotkeys",
+                    description: "Customizable global shortcuts for instant access",
+                    color: .purple
+                )
+                .opacity(animateFeatures ? 1.0 : 0.0)
+                .offset(y: animateFeatures ? 0 : 20)
+                .animation(.easeOut(duration: 0.6).delay(0.6), value: animateFeatures)
+
+                FeatureCard(
+                    icon: "brain.head.profile",
+                    title: "AI-Powered",
+                    description: "OpenAI & Groq integration for superior accuracy",
+                    color: .green
+                )
+                .opacity(animateFeatures ? 1.0 : 0.0)
+                .offset(y: animateFeatures ? 0 : 20)
+                .animation(.easeOut(duration: 0.6).delay(0.4), value: animateFeatures)
             }
             .frame(maxWidth: 600)
         }
@@ -90,6 +90,7 @@ struct FeatureCard: View {
             Image(systemName: icon)
                 .font(.title)
                 .foregroundColor(color)
+                .frame(height: 24) // Fixed height for all icons
             
             Text(title)
                 .font(.headline)
@@ -101,7 +102,7 @@ struct FeatureCard: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 90) // Fixed minimum height for all cards
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)

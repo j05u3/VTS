@@ -29,7 +29,7 @@ struct OnboardingView: View {
                     .padding(.top, 20)
                     
                     // Main content area - scrollable
-                    ScrollView {
+                    ScrollView(showsIndicators: false) {
                         ZStack {
                             ForEach(OnboardingStep.allCases, id: \.self) { step in
                                 if step == onboardingManager.currentStep {
@@ -45,6 +45,7 @@ struct OnboardingView: View {
                         .animation(.easeInOut(duration: 0.3), value: onboardingManager.currentStep)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .scrollContentBackground(.hidden)
                     
                     // Navigation buttons - always visible at bottom
                     OnboardingNavigationView(
@@ -56,8 +57,8 @@ struct OnboardingView: View {
                         }
                     )
                     .padding(.horizontal, 40)
+                    .padding(.top, 20)
                     .padding(.bottom, 30)
-                    .background(Color(NSColor.windowBackgroundColor).opacity(0.95))
                 }
             }
         }
@@ -79,6 +80,8 @@ struct OnboardingView: View {
             OnboardingWelcomeStep()
         case .microphone:
             OnboardingMicrophoneStep(appState: appState)
+        case .keychain:
+            OnboardingKeychainStep()
         case .apiKey:
             OnboardingAPIKeyStep(appState: appState)
         case .accessibility:
@@ -101,9 +104,16 @@ struct OnboardingHeaderView: View {
         VStack(spacing: 20) {
             // App icon and name
             HStack {
-                Image(systemName: "mic.circle.fill")
-                    .font(.largeTitle)
-                    .foregroundColor(.blue)
+                if let nsImage = NSApplication.shared.applicationIconImage {
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .frame(width: 32, height: 32)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                } else {
+                    Image(systemName: "mic.circle.fill")
+                        .font(.largeTitle)
+                        .foregroundColor(.blue)
+                }
                 
                 Text("VTS")
                     .font(.largeTitle)
