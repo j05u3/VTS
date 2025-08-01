@@ -26,6 +26,11 @@ https://github.com/user-attachments/assets/59563387-5d46-47eb-8f58-2607c4901135
 - 💬 **Context-Aware**: Custom system prompt boosts accuracy for your specific needs  
 - 🔓 **100% Open Source**: Full transparency, community-driven, modify as you wish
 
+## 📷 Screenshots
+
+<img width="350" alt="image" src="https://github.com/user-attachments/assets/57fdf28d-120e-4bfb-9dfd-5413e7c65127" /> <img width="350" alt="image" src="https://github.com/user-attachments/assets/d165c874-9df4-41af-b49d-f4220896d699" />
+ <img width="350" alt="image" src="https://github.com/user-attachments/assets/b7aacf73-842a-4292-9418-d9fb7df13eee" />
+
 ## 🎬 Longer Demo
 
 https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
