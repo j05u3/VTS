@@ -24,6 +24,7 @@
 		CA4830A52E2B7E540085EEF7 /* BaseSTTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4830A42E2B7E540085EEF7 /* BaseSTTProvider.swift */; };
 		CA4830A72E2B85730085EEF7 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4830A62E2B85700085EEF7 /* NotificationManager.swift */; };
 		CA4830AD2E2B859F0085EEF7 /* RetryContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4830AC2E2B859C0085EEF7 /* RetryContext.swift */; };
+		CA5A13F92E3C5DA800C01C44 /* AutoScrollingTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A13F82E3C5DA800C01C44 /* AutoScrollingTextEditor.swift */; };
 		CA98AAD52E24E862004C23D7 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AAD12E24E862004C23D7 /* PreferencesView.swift */; };
 		CA98AAD62E24E862004C23D7 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AAD22E24E862004C23D7 /* StatusBarController.swift */; };
 		CA98AAD72E24E862004C23D7 /* TextInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AAD32E24E862004C23D7 /* TextInjector.swift */; };
@@ -52,6 +53,7 @@
 		CA4830A42E2B7E540085EEF7 /* BaseSTTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseSTTProvider.swift; sourceTree = "<group>"; };
 		CA4830A62E2B85700085EEF7 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		CA4830AC2E2B859C0085EEF7 /* RetryContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetryContext.swift; sourceTree = "<group>"; };
+		CA5A13F82E3C5DA800C01C44 /* AutoScrollingTextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoScrollingTextEditor.swift; sourceTree = "<group>"; };
 		CA98AAD12E24E862004C23D7 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		CA98AAD22E24E862004C23D7 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		CA98AAD32E24E862004C23D7 /* TextInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInjector.swift; sourceTree = "<group>"; };
@@ -184,6 +186,7 @@
 		1A8E3D551C8F4E1C00123472 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				CA5A13F82E3C5DA800C01C44 /* AutoScrollingTextEditor.swift */,
 				CA98AAD12E24E862004C23D7 /* PreferencesView.swift */,
 				CA98AADA2E262796004C23D7 /* TextInjectionTestView.swift */,
 			);
@@ -295,6 +298,7 @@
 				1A8E3D441C8F4E1C00123461 /* GroqProvider.swift in Sources */,
 				1A8E3D451C8F4E1C00123462 /* STTProvider.swift in Sources */,
 				CA4830A72E2B85730085EEF7 /* NotificationManager.swift in Sources */,
+				CA5A13F92E3C5DA800C01C44 /* AutoScrollingTextEditor.swift in Sources */,
 				CA98AADD2E264E60004C23D7 /* SimpleHotkeyManager.swift in Sources */,
 				1A8E3D461C8F4E1C00123463 /* TranscriptionModels.swift in Sources */,
 				CA4830AD2E2B859F0085EEF7 /* RetryContext.swift in Sources */,
@@ -443,7 +447,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.voicetypestudio.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voicetypestudio.app.debug;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
