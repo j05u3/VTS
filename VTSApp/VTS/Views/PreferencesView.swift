@@ -346,7 +346,7 @@ struct PreferencesView: View {
             
             // Permissions Tab (unchanged)
             VStack(spacing: 20) {
-                Text("Permissions & Accessibility")
+                Text("Permissions")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
