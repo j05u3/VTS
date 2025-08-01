@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import KeyboardShortcuts
 
 struct PreferencesView: View {
@@ -89,17 +90,10 @@ struct PreferencesView: View {
                                             .fill(Color(NSColor.textBackgroundColor))
                                     )
                                 
-                                // ScrollView with TextEditor for multi-line support
-                                ScrollView(.vertical, showsIndicators: true) {
-                                    TextEditor(text: $appState.systemPrompt)
-                                        .font(.system(size: 13))
-                                        .scrollContentBackground(.hidden)
-                                        .background(Color.clear)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 6)
-                                        .frame(minHeight: 60) // Approximately 3 lines
-                                }
-                                .frame(height: 60) // Fixed height for exactly 3 lines
+                                // Auto-scrolling TextEditor that keeps cursor visible
+                                AutoScrollingTextEditor(text: $appState.systemPrompt)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 6)
                                 
                                 // Placeholder text when empty
                                 if appState.systemPrompt.isEmpty {

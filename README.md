@@ -163,15 +163,16 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS d
 - [ ] **Auto-open at login**: Auto-open at login. (Maybe a checkbox in the preferences window?)
 - [ ] **Auto-update System**: Seamless updates via Sparkle framework
 
-### In a future or maybe pro version, to be decided, your feedback is welcome!
+### In a future or maybe pro version, to be decided/ordered by priority, your feedback is welcome!
 
 - [ ] **More models/providers**: Support for more STT providers like Google, Azure, etc.
+- [ ] **Safe auto-cut**: Auto-cut to maximum time if the user forgets to end (or accidentally starts).
 - [ ] **Comprehensive Test Suite**: Automated unit tests covering:
   - Core transcription functionality
   - Provider validation and error handling  
   - Device management and priority logic
   - Integration flows and edge cases
-- [ ] **LLM step**: Use LLM to process the transcription and improve accuracy, maybe targetted to the app you're using or context in general. (Be able to easily input emojis?)
+- [ ] **LLM step**: Use LLM to process the transcription and improve accuracy, maybe targetted to the app you're using or context in general. (Be able to easily input emojis?). I mean apply transformations based on the app you're injecting text to.
 - [ ] **Advanced Audio Processing**: Noise reduction and gain control, but also some STT providers can do this so maybe not needed?.
 - [ ] **Accessibility Features**: VoiceOver support and high contrast modes
 
