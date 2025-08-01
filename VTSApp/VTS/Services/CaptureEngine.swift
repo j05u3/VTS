@@ -47,6 +47,16 @@ public class CaptureEngine: ObservableObject {
         }
     }
     
+    public func requestMicrophonePermissionExplicitly() {
+        print("🎤 Explicitly requesting microphone permission...")
+        AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
+            print("🎤 Explicit permission request result: \(granted)")
+            Task { @MainActor in
+                self?.permissionGranted = granted
+            }
+        }
+    }
+    
     public func start(deviceID: String? = nil) throws -> AsyncThrowingStream<Data, Error> {
         guard permissionGranted else {
             throw STTError.audioProcessingError("Microphone permission not granted")

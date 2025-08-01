@@ -370,7 +370,8 @@ struct PreferencesView: View {
                             
                             if !captureEngine.permissionGranted {
                                 Button("Grant") {
-                                    // Permission will be requested automatically
+                                    // Explicitly request permission
+                                    captureEngine.requestMicrophonePermissionExplicitly()
                                 }
                                 .buttonStyle(.bordered)
                             }
