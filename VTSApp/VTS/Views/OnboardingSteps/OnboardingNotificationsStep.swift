@@ -70,12 +70,6 @@ struct OnboardingNotificationsStep: View {
                             description: "Alerts when your API key is invalid, expired, or rate limited"
                         )
                         NotificationBenefitRow(
-                            icon: "checkmark.circle.fill",
-                            iconColor: .green,
-                            title: "Success confirmations",
-                            description: "Confirmation when transcription completes successfully"
-                        )
-                        NotificationBenefitRow(
                             icon: "arrow.clockwise",
                             iconColor: .blue,
                             title: "Retry suggestions",
@@ -124,7 +118,7 @@ struct OnboardingNotificationsStep: View {
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
-                        Text("• Notifications are only sent for important events\n• You can disable them anytime in System Settings\n• No personal data is included in notification content")
+                        Text("• Notifications are only sent for important events\n• You can disable them anytime in System Settings")
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)

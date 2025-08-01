@@ -110,9 +110,32 @@ struct OnboardingMicrophoneStep: View {
         .onAppear {
             captureEngine.updatePermissionStatus()
             animateIcon = true
+            
+            // Set up a timer to periodically check permission status
+            // in case user grants it through System Settings
+            Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { timer in
+                let oldStatus = captureEngine.permissionStatus
+                captureEngine.updatePermissionStatus()
+                
+                // If status changed, update the UI
+                if oldStatus != captureEngine.permissionStatus {
+                    DispatchQueue.main.async {
+                        appState.objectWillChange.send()
+                    }
+                }
+                
+                // Stop timer if permission is granted
+                if captureEngine.permissionGranted {
+                    timer.invalidate()
+                }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             captureEngine.updatePermissionStatus()
+            // Force a UI update to refresh the navigation state
+            DispatchQueue.main.async {
+                appState.objectWillChange.send()
+            }
         }
         .alert("Permission Required", isPresented: $showingPermissionAlert) {
             Button("Open Settings") { openSystemPreferences() }
@@ -139,6 +162,11 @@ struct OnboardingMicrophoneStep: View {
         captureEngine.requestMicrophonePermission { granted in
             if !granted {
                 showingPermissionAlert = true
+            }
+            // Force a UI update to refresh the navigation state
+            DispatchQueue.main.async {
+                // This will trigger a re-evaluation of the navigation state
+                appState.objectWillChange.send()
             }
         }
     }

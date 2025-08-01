@@ -119,4 +119,30 @@ public enum OnboardingStep: Int, CaseIterable {
             return false
         }
     }
+    
+    @MainActor
+    func canProceed(with appState: AppState) -> Bool {
+        switch self {
+        case .microphone:
+            return appState.captureEngineService.permissionGranted
+        case .apiKey:
+            return appState.apiKeyManagerService.hasAPIKey(for: appState.selectedProvider)
+        default:
+            return true
+        }
+    }
+    
+    @MainActor
+    func proceedBlockerMessage(with appState: AppState) -> String? {
+        return canProceed(with: appState) ? nil : {
+            switch self {
+            case .microphone:
+            return "Microphone permission is required to continue"
+            case .apiKey:
+            return "API key setup is required to continue"
+            default:
+            return nil
+            }
+        }()
+    }
 }

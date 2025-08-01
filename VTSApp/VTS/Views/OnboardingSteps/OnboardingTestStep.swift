@@ -70,7 +70,7 @@ struct OnboardingTestStep: View {
                                     Text("Ready to test!")
                                         .font(.headline)
                                     
-                                    Text("Click the button below and say something like:\n\"Hello, this is a test of my voice transcription setup.\"")
+                                    Text("Click the button below and say something")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                         .multilineTextAlignment(.center)
@@ -411,10 +411,9 @@ struct TestTipsCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             VStack(alignment: .leading, spacing: 8) {
-                TipRow(icon: "mic.fill", tip: "Speak clearly and at a normal pace")
                 TipRow(icon: "speaker.wave.2.fill", tip: "Ensure your microphone volume is adequate")
-                TipRow(icon: "wifi", tip: "Check your internet connection for AI processing")
-                TipRow(icon: "quiet.fill", tip: "Minimize background noise when possible")
+                TipRow(icon: "wifi", tip: "Check your internet connection")
+                TipRow(icon: "mic.fill", tip: "Minimize background noise when possible")
             }
         }
         .padding(16)

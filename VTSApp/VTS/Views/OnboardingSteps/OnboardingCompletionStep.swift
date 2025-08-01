@@ -134,14 +134,6 @@ struct OnboardingCompletionStep: View {
                     )
                     .opacity(animateSuccess ? 1.0 : 0.0)
                     .animation(.easeOut(duration: 0.6).delay(2.4), value: animateSuccess)
-                    
-                    ResourceButton(
-                        title: "Settings",
-                        icon: "gear.fill",
-                        action: { /* Will be handled by parent */ }
-                    )
-                    .opacity(animateSuccess ? 1.0 : 0.0)
-                    .animation(.easeOut(duration: 0.6).delay(2.6), value: animateSuccess)
                 }
             }
             

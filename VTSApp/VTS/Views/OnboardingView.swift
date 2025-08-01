@@ -50,6 +50,7 @@ struct OnboardingView: View {
                     // Navigation buttons - always visible at bottom
                     OnboardingNavigationView(
                         currentStep: onboardingManager.currentStep,
+                        appState: appState,
                         onNext: { onboardingManager.nextStep() },
                         onPrevious: { onboardingManager.previousStep() },
                         onComplete: { 
@@ -147,40 +148,53 @@ struct OnboardingHeaderView: View {
 
 struct OnboardingNavigationView: View {
     let currentStep: OnboardingStep
+    let appState: AppState
     let onNext: () -> Void
     let onPrevious: () -> Void
     let onComplete: () -> Void
     
+    private var canProceed: Bool {
+        currentStep.canProceed(with: appState)
+    }
+    
+    private var blockerMessage: String? {
+        currentStep.proceedBlockerMessage(with: appState)
+    }
+    
     var body: some View {
-        HStack {
-            // Previous button
-            if currentStep != .welcome {
-                Button("Previous") {
-                    onPrevious()
+        VStack(spacing: 12) {            
+            HStack {
+                // Previous button
+                if currentStep != .welcome {
+                    Button("Previous") {
+                        onPrevious()
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .buttonStyle(.bordered)
-            }
-            
-            Spacer()
-            
-            // Skip button for optional steps
-            if currentStep.isOptional {
-                Button("Skip") {
-                    onNext()
+                
+                Spacer()
+                
+                // Skip button for optional steps
+                if currentStep.isOptional {
+                    Button("Skip") {
+                        onNext()
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .buttonStyle(.bordered)
-            }
-            
-            // Next/Complete button
-            Button(currentStep == .completion ? "Complete Setup" : "Continue") {
-                if currentStep == .completion {
-                    onComplete()
-                } else {
-                    onNext()
+                
+                // Next/Complete button
+                Button(currentStep == .completion ? "Complete Setup" : "Continue") {
+                    if currentStep == .completion {
+                        onComplete()
+                    } else {
+                        onNext()
+                    }
                 }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.return, modifiers: [])
+                .disabled(!canProceed)
+                .help(blockerMessage ?? "")
             }
-            .buttonStyle(.borderedProminent)
-            .keyboardShortcut(.return, modifiers: [])
         }
     }
 }
