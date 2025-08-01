@@ -34,7 +34,6 @@
 		CA5A14202E3CADD900C01C44 /* OnboardingAccessibilityStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A14122E3CADD900C01C44 /* OnboardingAccessibilityStep.swift */; };
 		CA5A14212E3CADD900C01C44 /* OnboardingTestStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A14172E3CADD900C01C44 /* OnboardingTestStep.swift */; };
 		CA5A14222E3CADD900C01C44 /* OnboardingAPIKeyStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A14132E3CADD900C01C44 /* OnboardingAPIKeyStep.swift */; };
-		CA5A14342E3D2A0800C01C44 /* OnboardingKeychainStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A14332E3D2A0800C01C44 /* OnboardingKeychainStep.swift */; };
 		CA98AAD52E24E862004C23D7 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AAD12E24E862004C23D7 /* PreferencesView.swift */; };
 		CA98AAD62E24E862004C23D7 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AAD22E24E862004C23D7 /* StatusBarController.swift */; };
 		CA98AAD72E24E862004C23D7 /* TextInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AAD32E24E862004C23D7 /* TextInjector.swift */; };
@@ -73,7 +72,6 @@
 		CA5A14172E3CADD900C01C44 /* OnboardingTestStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTestStep.swift; sourceTree = "<group>"; };
 		CA5A14182E3CADD900C01C44 /* OnboardingWelcomeStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomeStep.swift; sourceTree = "<group>"; };
 		CA5A141A2E3CADD900C01C44 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
-		CA5A14332E3D2A0800C01C44 /* OnboardingKeychainStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingKeychainStep.swift; sourceTree = "<group>"; };
 		CA98AAD12E24E862004C23D7 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		CA98AAD22E24E862004C23D7 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		CA98AAD32E24E862004C23D7 /* TextInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInjector.swift; sourceTree = "<group>"; };
@@ -227,7 +225,6 @@
 		CA5A14192E3CADD900C01C44 /* OnboardingSteps */ = {
 			isa = PBXGroup;
 			children = (
-				CA5A14332E3D2A0800C01C44 /* OnboardingKeychainStep.swift */,
 				CA5A14122E3CADD900C01C44 /* OnboardingAccessibilityStep.swift */,
 				CA5A14132E3CADD900C01C44 /* OnboardingAPIKeyStep.swift */,
 				CA5A14142E3CADD900C01C44 /* OnboardingCompletionStep.swift */,
@@ -322,7 +319,6 @@
 			files = (
 				1A8E3D2C2C8F4E1B00123456 /* ContentView.swift in Sources */,
 				CA4830A52E2B7E540085EEF7 /* BaseSTTProvider.swift in Sources */,
-				CA5A14342E3D2A0800C01C44 /* OnboardingKeychainStep.swift in Sources */,
 				1A8E3D2A2C8F4E1B00123456 /* VTSApp.swift in Sources */,
 				CA98AADF2E265823004C23D7 /* AudioLevelView.swift in Sources */,
 				1A8E3D401C8F4E1C00123457 /* CaptureEngine.swift in Sources */,
@@ -496,7 +492,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.voicetypestudio.app.debug7;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voicetypestudio.app.debug15;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

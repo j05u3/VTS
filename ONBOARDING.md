@@ -28,12 +28,11 @@ Located in `VTSApp/VTS/Views/OnboardingSteps/`:
 
 1. **OnboardingWelcomeStep**: App introduction with feature highlights
 2. **OnboardingMicrophoneStep**: Microphone permission with explanation
-3. **OnboardingKeychainStep**: Keychain access explanation and preparation
-4. **OnboardingAPIKeyStep**: AI provider setup with key management
-5. **OnboardingAccessibilityStep**: Text insertion permission (optional)
-6. **OnboardingNotificationsStep**: Notification permission setup
-7. **OnboardingTestStep**: Live recording and transcription test
-8. **OnboardingCompletionStep**: Celebration and quick start guide
+3. **OnboardingAPIKeyStep**: AI provider setup with key management
+4. **OnboardingAccessibilityStep**: Text insertion permission (optional)
+5. **OnboardingNotificationsStep**: Notification permission setup
+6. **OnboardingTestStep**: Live recording and transcription test
+7. **OnboardingCompletionStep**: Celebration and quick start guide
 
 ## Integration
 
@@ -45,8 +44,7 @@ Located in `VTSApp/VTS/Views/OnboardingSteps/`:
 
 ### Permission Integration
 - **Microphone**: Uses existing `CaptureEngine.permissionGranted`
-- **Keychain**: Educational step explaining secure storage before API key setup
-- **API Keys**: Integrates with existing `APIKeyManager`
+- **API Keys**: Integrates with existing `APIKeyManager` for secure keychain storage
 - **Accessibility**: Uses existing `TextInjector.hasAccessibilityPermission`
 - **Notifications**: Uses existing `NotificationManager.shared`
 
@@ -98,7 +96,6 @@ VTSApp/VTS/
 │   └── OnboardingSteps/
 │       ├── OnboardingWelcomeStep.swift
 │       ├── OnboardingMicrophoneStep.swift
-│       ├── OnboardingKeychainStep.swift
 │       ├── OnboardingAPIKeyStep.swift
 │       ├── OnboardingAccessibilityStep.swift
 │       ├── OnboardingNotificationsStep.swift

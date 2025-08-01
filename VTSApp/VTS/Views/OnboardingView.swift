@@ -81,8 +81,6 @@ struct OnboardingView: View {
             OnboardingWelcomeStep()
         case .microphone:
             OnboardingMicrophoneStep(appState: appState)
-        case .keychain:
-            OnboardingKeychainStep()
         case .apiKey:
             OnboardingAPIKeyStep(appState: appState)
         case .accessibility:

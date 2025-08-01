@@ -56,8 +56,12 @@ public class APIKeyManager: ObservableObject {
     @Published public var keysUpdated = 0
     
     public init() {
-        // Create keychain with app-specific service identifier
-        keychain = Keychain(service: "com.vts.apikeys")
+        // Create keychain with bundle-specific service identifier
+        // This ensures debug and production builds use separate keychains
+        let bundleIdentifier = Bundle.main.bundleIdentifier ?? "com.vts.app"
+        let serviceIdentifier = "\(bundleIdentifier).apikeys"
+        
+        keychain = Keychain(service: serviceIdentifier)
             .accessibility(.whenUnlocked)
     }
     

@@ -44,12 +44,11 @@ public class OnboardingManager: ObservableObject {
 public enum OnboardingStep: Int, CaseIterable {
     case welcome = 0
     case microphone = 1
-    case keychain = 2
-    case apiKey = 3
-    case accessibility = 4
-    case notifications = 5
-    case test = 6
-    case completion = 7
+    case apiKey = 2
+    case accessibility = 3
+    case notifications = 4
+    case test = 5
+    case completion = 6
     
     public func next() -> OnboardingStep {
         let allCases = OnboardingStep.allCases
@@ -75,8 +74,6 @@ public enum OnboardingStep: Int, CaseIterable {
             return "Welcome to VTS"
         case .microphone:
             return "Microphone Access"
-        case .keychain:
-            return "Secure Storage"
         case .apiKey:
             return "AI Provider Setup"
         case .accessibility:
@@ -96,8 +93,6 @@ public enum OnboardingStep: Int, CaseIterable {
             return "Your AI-powered voice transcription assistant"
         case .microphone:
             return "Required for recording audio"
-        case .keychain:
-            return "Secure storage for your API keys"
         case .apiKey:
             return "Connect your AI provider for transcription"
         case .accessibility:
