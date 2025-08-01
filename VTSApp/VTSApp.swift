@@ -167,7 +167,7 @@ class AppState: ObservableObject {
     private let apiKeyManager = APIKeyManager()
     private let hotkeyManager = SimpleHotkeyManager.shared
     private let notificationManager = NotificationManager.shared
-    internal var cancellables = Set<AnyCancellable>()
+    private var cancellables = Set<AnyCancellable>()
     
     private var settingsWindowController: SettingsWindowController?
     private var isMainAppInitialized = false

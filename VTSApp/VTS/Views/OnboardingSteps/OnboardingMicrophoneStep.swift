@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import Combine
 
 struct OnboardingMicrophoneStep: View {
     @ObservedObject var appState: AppState
@@ -110,24 +111,17 @@ struct OnboardingMicrophoneStep: View {
         .onAppear {
             captureEngine.updatePermissionStatus()
             animateIcon = true
+        }
+        .onReceive(Timer.publish(every: 2.0, on: .main, in: .common).autoconnect()) { _ in
+            // Only continue checking if permission is not yet granted
+            guard !captureEngine.permissionGranted else { return }
             
-            // Set up a timer to periodically check permission status
-            // in case user grants it through System Settings
-            Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { timer in
-                let oldStatus = captureEngine.permissionStatus
-                captureEngine.updatePermissionStatus()
-                
-                // If status changed, update the UI
-                if oldStatus != captureEngine.permissionStatus {
-                    DispatchQueue.main.async {
-                        appState.objectWillChange.send()
-                    }
-                }
-                
-                // Stop timer if permission is granted
-                if captureEngine.permissionGranted {
-                    timer.invalidate()
-                }
+            let oldStatus = captureEngine.permissionStatus
+            captureEngine.updatePermissionStatus()
+            
+            // If status changed, update the UI
+            if oldStatus != captureEngine.permissionStatus {
+                appState.objectWillChange.send()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in

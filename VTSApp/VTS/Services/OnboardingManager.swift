@@ -132,11 +132,11 @@ public enum OnboardingStep: Int, CaseIterable {
         return canProceed(with: appState) ? nil : {
             switch self {
             case .microphone:
-            return "Microphone permission is required to continue"
+                return "Microphone permission is required to continue"
             case .apiKey:
-            return "API key setup is required to continue"
+                return "API key setup is required to continue"
             default:
-            return nil
+                return nil
             }
         }()
     }

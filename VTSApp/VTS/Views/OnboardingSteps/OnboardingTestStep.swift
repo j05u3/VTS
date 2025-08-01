@@ -135,7 +135,9 @@ struct OnboardingTestStep: View {
         .padding(.horizontal, 60)
         .onAppear {
             animateWaveform = true
-            setupAudioLevelBinding()
+        }
+        .onReceive(appState.captureEngineService.$audioLevel) { level in
+            audioLevel = level
         }
         .onReceive(transcriptionService.$isTranscribing) { isTranscribing in
             isProcessing = isTranscribing
@@ -148,13 +150,6 @@ struct OnboardingTestStep: View {
     private var canStartTest: Bool {
         captureEngine.permissionGranted && 
         apiKeyManager.hasAPIKey(for: appState.selectedProvider)
-    }
-    
-    private func setupAudioLevelBinding() {
-        // Sync audio level from capture engine
-        appState.captureEngineService.$audioLevel
-            .assign(to: \.audioLevel, on: self)
-            .store(in: &appState.cancellables)
     }
     
     private func startTest() {
