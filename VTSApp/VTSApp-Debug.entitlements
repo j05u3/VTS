@@ -5,9 +5,6 @@
     <!-- Mic access for NON-hardened runtime builds -->
     <key>com.apple.security.device.microphone</key>
     <true/>
-    <!-- Camera access for NON-hardened runtime builds -->
-    <key>com.apple.security.device.camera</key>
-    <true/>
     <!-- Outbound networking for NON-hardened runtime builds -->
     <key>com.apple.security.network.client</key>
     <true/>
