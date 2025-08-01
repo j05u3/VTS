@@ -1,12 +1,14 @@
 import AVFoundation
 import Foundation
 import CoreAudio
+import AppKit
 
 @MainActor
 public class CaptureEngine: ObservableObject {
     @Published public var isRecording = false
     @Published public var audioLevel: Float = 0.0
     @Published public var permissionGranted = false
+    @Published public var permissionStatus: AVAuthorizationStatus = .notDetermined
     
     private var audioEngine: AVAudioEngine?
     private var inputNode: AVAudioInputNode?
@@ -25,36 +27,43 @@ public class CaptureEngine: ObservableObject {
     private let audioLevelLogInterval = 50  // Log every 50th audio level update
     
     public init() {
-        checkMicrophonePermission()
+        updatePermissionStatus()
     }
     
-    private func checkMicrophonePermission() {
-        // On macOS, we check microphone permissions differently
+    public func updatePermissionStatus() {
+        // Check current permission status without requesting
         let status = AVCaptureDevice.authorizationStatus(for: .audio)
+        permissionStatus = status
         switch status {
         case .authorized:
             permissionGranted = true
-        case .denied, .restricted:
+        case .denied, .restricted, .notDetermined:
             permissionGranted = false
-        case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
-                Task { @MainActor in
-                    self?.permissionGranted = granted
-                }
-            }
         @unknown default:
             permissionGranted = false
         }
     }
     
-    public func requestMicrophonePermissionExplicitly() {
-        print("🎤 Explicitly requesting microphone permission...")
+    public func requestMicrophonePermission(completion: @escaping (Bool) -> Void = { _ in }) {
+        print("🎤 Requesting microphone permission...")
         AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
-            print("🎤 Explicit permission request result: \(granted)")
+            print("🎤 Permission request result: \(granted)")
             Task { @MainActor in
-                self?.permissionGranted = granted
+                self?.updatePermissionStatus()
+                completion(granted)
             }
         }
+    }
+    
+    public func requestMicrophonePermissionExplicitly() {
+        requestMicrophonePermission()
+    }
+    
+    public func openMicrophoneSettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") else {
+            return
+        }
+        NSWorkspace.shared.open(url)
     }
     
     public func start(deviceID: String? = nil) throws -> AsyncThrowingStream<Data, Error> {

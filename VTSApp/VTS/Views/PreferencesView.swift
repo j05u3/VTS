@@ -571,6 +571,37 @@ struct PreferencesView: View {
                 Image(systemName: "keyboard")
                 Text(hotkeysTabTitle)
             }
+            
+            // Advanced Settings Tab
+            VStack(spacing: 20) {
+                Text("Advanced Settings")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                
+                GroupBox("Onboarding") {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Reset the first-time setup experience")
+                            .font(.headline)
+                        
+                        Text("This will reset the onboarding flow and show the welcome screen when you restart the app. Useful for testing or if you want to review the setup process.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        Button("Reset Onboarding") {
+                            OnboardingManager.shared.resetOnboarding()
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .padding()
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .tabItem {
+                Image(systemName: "gearshape.2")
+                Text("Advanced")
+            }
         }
         .frame(width: 600, height: 650)
         .sheet(isPresented: $showingTestInjectionView) {

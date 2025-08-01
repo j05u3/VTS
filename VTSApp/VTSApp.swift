@@ -6,8 +6,35 @@ import Combine
 @main
 struct VTSApp: App {
     @StateObject private var appState = AppState()
+    @StateObject private var onboardingManager = OnboardingManager.shared
     
     var body: some Scene {
+        WindowGroup {
+            if !onboardingManager.isOnboardingCompleted {
+                OnboardingView(appState: appState)
+                    .environmentObject(onboardingManager)
+                    .onReceive(onboardingManager.$isOnboardingCompleted) { completed in
+                        if completed {
+                            // Initialize the main app after onboarding
+                            appState.initializeMainApp()
+                            
+                            // Close the onboarding window
+                            NSApplication.shared.windows.first?.close()
+                        }
+                    }
+            } else {
+                // Show empty view since main app runs in status bar
+                EmptyView()
+                    .frame(width: 0, height: 0)
+                    .onAppear {
+                        appState.initializeMainApp()
+                        // Close the main window immediately when onboarding is done
+                        NSApplication.shared.windows.first?.close()
+                    }
+            }
+        }
+        .windowResizability(.contentSize)
+        
         Settings {
             EmptyView()
         }
@@ -29,8 +56,12 @@ public class APIKeyManager: ObservableObject {
     @Published public var keysUpdated = 0
     
     public init() {
-        // Create keychain with app-specific service identifier
-        keychain = Keychain(service: "com.vts.apikeys")
+        // Create keychain with bundle-specific service identifier
+        // This ensures debug and production builds use separate keychains
+        let bundleIdentifier = Bundle.main.bundleIdentifier ?? "com.vts.app"
+        let serviceIdentifier = "\(bundleIdentifier).apikeys"
+        
+        keychain = Keychain(service: serviceIdentifier)
             .accessibility(.whenUnlocked)
     }
     
@@ -139,6 +170,7 @@ class AppState: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     private var settingsWindowController: SettingsWindowController?
+    private var isMainAppInitialized = false
     
     // Keys for UserDefaults storage
     private let systemPromptKey = "systemPrompt"
@@ -197,6 +229,16 @@ class AppState: ObservableObject {
         loadSystemPrompt()
         setupTranscriptionService()
         setupObservableObjectBindings()
+        
+        // Only initialize main app if onboarding is completed
+        if OnboardingManager.shared.isOnboardingCompleted {
+            initializeMainApp()
+        }
+    }
+    
+    func initializeMainApp() {
+        guard !isMainAppInitialized else { return }
+        isMainAppInitialized = true
         
         // Defer UI setup until after app launch
         DispatchQueue.main.async {

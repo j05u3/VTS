@@ -156,6 +156,11 @@ Automated unit tests are planned for future releases.
 - **Why This Happens**: Each build gets a different signature, so macOS sees it as a different application
 - **Quick Fix**: Check the app list in Accessibility settings and remove any old/duplicate VTS entries
 
+#### Testing Onboarding Flow
+- **Reset App State**: To test the complete onboarding flow, change the `PRODUCT_BUNDLE_IDENTIFIER` in Xcode project settings
+- **Why This Works**: Changing the bundle identifier creates a "new" app from macOS perspective, resetting all permissions and app state
+- **Most Reliable Method**: This is more reliable than clearing UserDefaults and ensures a clean onboarding test including all system permissions
+
 ### Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS development.
