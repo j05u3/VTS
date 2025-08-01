@@ -3,7 +3,6 @@ import AVFoundation
 
 struct OnboardingMicrophoneStep: View {
     @ObservedObject var appState: AppState
-    @State private var permissionStatus: AVAuthorizationStatus = .notDetermined
     @State private var showingPermissionAlert = false
     @State private var animateIcon = false
     
@@ -41,14 +40,14 @@ struct OnboardingMicrophoneStep: View {
             // Status and explanation
             VStack(spacing: 20) {
                 MicrophonePermissionCard(
-                    status: permissionStatus,
+                    status: captureEngine.permissionStatus,
                     title: "Microphone Permission",
                     grantedMessage: "✅ Microphone access granted! VTS can now record audio for transcription.",
                     deniedMessage: "❌ Microphone access denied. VTS cannot function without microphone permission.",
                     notDeterminedMessage: "⏳ Microphone permission not yet requested."
                 )
                 
-                if permissionStatus != .authorized {
+                if captureEngine.permissionStatus != .authorized {
                     VStack(spacing: 16) {
                         Text("Why VTS needs microphone access:")
                             .font(.headline)
@@ -69,7 +68,7 @@ struct OnboardingMicrophoneStep: View {
                             )
                         }
                         
-                        if permissionStatus == .notDetermined {
+                        if captureEngine.permissionStatus == .notDetermined {
                             Button(action: requestMicrophonePermission) {
                                 Label("Grant Microphone Access", systemImage: "mic.fill")
                                     .font(.headline)
@@ -82,7 +81,7 @@ struct OnboardingMicrophoneStep: View {
                                     )
                             }
                             .buttonStyle(.plain)
-                        } else if permissionStatus == .denied {
+                        } else if captureEngine.permissionStatus == .denied {
                             Button(action: openSystemPreferences) {
                                 Label("Open System Settings", systemImage: "gear")
                                     .font(.headline)
@@ -109,8 +108,11 @@ struct OnboardingMicrophoneStep: View {
         .padding(.horizontal, 60)
         .padding(.vertical, 40)
         .onAppear {
-            updatePermissionStatus()
+            captureEngine.updatePermissionStatus()
             animateIcon = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            captureEngine.updatePermissionStatus()
         }
         .alert("Permission Required", isPresented: $showingPermissionAlert) {
             Button("Open Settings") { openSystemPreferences() }
@@ -121,7 +123,7 @@ struct OnboardingMicrophoneStep: View {
     }
     
     private var microphoneColor: Color {
-        switch permissionStatus {
+        switch captureEngine.permissionStatus {
         case .authorized:
             return .green
         case .denied, .restricted:
@@ -133,26 +135,16 @@ struct OnboardingMicrophoneStep: View {
         }
     }
     
-    private func updatePermissionStatus() {
-        permissionStatus = AVCaptureDevice.authorizationStatus(for: .audio)
-    }
-    
     private func requestMicrophonePermission() {
-        AVCaptureDevice.requestAccess(for: .audio) { granted in
-            Task { @MainActor in
-                updatePermissionStatus()
-                if !granted {
-                    showingPermissionAlert = true
-                }
+        captureEngine.requestMicrophonePermission { granted in
+            if !granted {
+                showingPermissionAlert = true
             }
         }
     }
     
     private func openSystemPreferences() {
-        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") else {
-            return
-        }
-        NSWorkspace.shared.open(url)
+        captureEngine.openMicrophoneSettings()
     }
 }
 
