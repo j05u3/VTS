@@ -7,10 +7,6 @@ import SwiftUI
 struct AutoScrollingTextEditor: View {
     @Binding var text: String
     
-    init(text: Binding<String>) {
-        self._text = text
-    }
-    
     var body: some View {
         TextEditor(text: $text)
             .font(.system(size: 13))

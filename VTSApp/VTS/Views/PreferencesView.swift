@@ -92,7 +92,6 @@ struct PreferencesView: View {
                                 
                                 // Auto-scrolling TextEditor that keeps cursor visible
                                 AutoScrollingTextEditor(text: $appState.systemPrompt)
-                                    .font(.system(size: 13))
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 6)
                                 
