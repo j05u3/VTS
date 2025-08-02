@@ -315,6 +315,10 @@ class AppState: ObservableObject {
         setupStatusBar()
         setupGlobalHotkey()
         setupNotifications()
+        
+        // Enable launch at login after completing onboarding and showing status bar
+        // This ensures the app is fully configured before auto-launching
+        launchAtLoginManager.enableAfterOnboarding()
     }
     
     private func setupStatusBar() {

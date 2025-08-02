@@ -12,10 +12,8 @@ public class LaunchAtLoginManager: ObservableObject {
     private let launchAtLoginKey = "launchAtLogin"
     
     private init() {
-        // Set default to enabled for new installations
-        if userDefaults.object(forKey: launchAtLoginKey) == nil {
-            userDefaults.set(true, forKey: launchAtLoginKey)
-        }
+        // Load existing state without setting default to true
+        // Launch at login will be enabled after onboarding completion
         loadLaunchAtLoginState()
     }
     
@@ -101,6 +99,16 @@ public class LaunchAtLoginManager: ObservableObject {
     /// Toggle the launch at login state
     public func toggle() {
         setEnabled(!isEnabled)
+    }
+    
+    /// Enable launch at login after onboarding completion
+    /// This is called when the status bar is shown for the first time
+    public func enableAfterOnboarding() {
+        // Only enable if not already configured by user
+        if userDefaults.object(forKey: launchAtLoginKey) == nil {
+            print("🚀 Enabling launch at login after onboarding completion")
+            setEnabled(true)
+        }
     }
     
     /// Check if launch at login is supported on this system
