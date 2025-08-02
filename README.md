@@ -1,4 +1,4 @@
-# 🔵 VTS - Voice-Type Studio
+# 🔵 VTS - Voice Typing Studio
 
 [![Build Status](https://github.com/j05u3/VTS/workflows/Build%20and%20Release%20macOS%20App/badge.svg)](https://github.com/j05u3/VTS/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
