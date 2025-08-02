@@ -35,6 +35,10 @@ https://github.com/user-attachments/assets/59563387-5d46-47eb-8f58-2607c4901135
 
 https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
 
+Onboarding:
+
+https://youtu.be/NTQmVCvkZQQ
+
 ## 📦 Installation
 
 **Ready to use VTS?** Head over to our [**Releases Page**](https://github.com/j05u3/VTS/releases/latest) for:
