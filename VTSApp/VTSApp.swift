@@ -167,6 +167,7 @@ class AppState: ObservableObject {
     private let apiKeyManager = APIKeyManager()
     private let hotkeyManager = SimpleHotkeyManager.shared
     private let notificationManager = NotificationManager.shared
+    private let launchAtLoginManager = LaunchAtLoginManager.shared
     private var cancellables = Set<AnyCancellable>()
     
     private var settingsWindowController: SettingsWindowController?
@@ -223,6 +224,10 @@ class AppState: ObservableObject {
     
     var hotkeyManagerService: SimpleHotkeyManager {
         return hotkeyManager
+    }
+    
+    var launchAtLoginManagerService: LaunchAtLoginManager {
+        return launchAtLoginManager
     }
     
     init() {
@@ -298,12 +303,22 @@ class AppState: ObservableObject {
                 self?.objectWillChange.send()
             }
             .store(in: &cancellables)
+        
+        launchAtLoginManager.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
     }
     
     private func initializeAfterLaunch() {
         setupStatusBar()
         setupGlobalHotkey()
         setupNotifications()
+        
+        // Enable launch at login after completing onboarding and showing status bar
+        // This ensures the app is fully configured before auto-launching
+        launchAtLoginManager.enableAfterOnboarding()
     }
     
     private func setupStatusBar() {

@@ -486,6 +486,33 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
+                GroupBox("Launch Settings") {
+                    VStack(alignment: .leading, spacing: 15) {
+                        HStack {
+                            Image(systemName: appState.launchAtLoginManagerService.isEnabled ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(appState.launchAtLoginManagerService.isEnabled ? .green : .secondary)
+                                .font(.title2)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Launch at Login")
+                                    .font(.headline)
+                                Text(appState.launchAtLoginManagerService.isEnabled ? "VTS will start automatically when you log in" : "Start VTS manually")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: Binding(
+                                get: { appState.launchAtLoginManagerService.isEnabled },
+                                set: { appState.launchAtLoginManagerService.setEnabled($0) }
+                            ))
+                            .toggleStyle(.switch)
+                        }
+                    }
+                    .padding()
+                }
+                
                 Spacer()
             }
             .padding()
