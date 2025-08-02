@@ -509,16 +509,6 @@ struct PreferencesView: View {
                             ))
                             .toggleStyle(.switch)
                         }
-                        
-                        if !appState.launchAtLoginManagerService.isSupported {
-                            HStack {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.orange)
-                                Text("Launch at login requires macOS 13 or later")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
                     }
                     .padding()
                 }

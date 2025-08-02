@@ -12,11 +12,11 @@ public class LaunchAtLoginManager: ObservableObject {
     private let launchAtLoginKey = "launchAtLogin"
     
     private init() {
-        loadLaunchAtLoginState()
         // Set default to enabled for new installations
         if userDefaults.object(forKey: launchAtLoginKey) == nil {
-            setEnabled(true)
+            userDefaults.set(true, forKey: launchAtLoginKey)
         }
+        loadLaunchAtLoginState()
     }
     
     private func loadLaunchAtLoginState() {
@@ -43,14 +43,9 @@ public class LaunchAtLoginManager: ObservableObject {
     
     private func registerLaunchAtLogin() {
         do {
-            if #available(macOS 13.0, *) {
-                // Use modern SMAppService for macOS 13+
-                try SMAppService.mainApp.register()
-                print("✅ Launch at login registered successfully")
-            } else {
-                // Fallback for older macOS versions
-                registerLaunchAtLoginLegacy()
-            }
+            // Use modern SMAppService for macOS 13+ (app requires macOS 14+)
+            try SMAppService.mainApp.register()
+            print("✅ Launch at login registered successfully")
         } catch {
             print("❌ Failed to register launch at login: \(error)")
             // Revert state on failure
@@ -61,46 +56,44 @@ public class LaunchAtLoginManager: ObservableObject {
     
     private func unregisterLaunchAtLogin() {
         do {
-            if #available(macOS 13.0, *) {
-                // Use modern SMAppService for macOS 13+
-                try SMAppService.mainApp.unregister()
-                print("✅ Launch at login unregistered successfully")
-            } else {
-                // Fallback for older macOS versions
-                unregisterLaunchAtLoginLegacy()
-            }
+            // Use modern SMAppService for macOS 13+ (app requires macOS 14+)
+            try SMAppService.mainApp.unregister()
+            print("✅ Launch at login unregistered successfully")
         } catch {
             print("❌ Failed to unregister launch at login: \(error)")
+            // Revert state on failure to keep UI consistent with system state
+            isEnabled = true
+            userDefaults.set(true, forKey: launchAtLoginKey)
         }
     }
     
     private func syncWithSystemState() {
-        if #available(macOS 13.0, *) {
-            // Check actual system state
-            let systemState = SMAppService.mainApp.status == .enabled
+        do {
+            let status = SMAppService.mainApp.status
+            let systemState: Bool
+            switch status {
+            case .enabled:
+                systemState = true
+            case .requiresApproval:
+                systemState = false
+                print("⚠️ Launch at login requires user approval in System Settings.")
+            case .notFound:
+                systemState = false
+                print("⚠️ Launch at login helper not found.")
+            @unknown default:
+                systemState = false
+                print("⚠️ Unknown launch at login status: \(status)")
+            }
+            
             if systemState != isEnabled {
                 // Sync local state with system state
                 isEnabled = systemState
                 userDefaults.set(systemState, forKey: launchAtLoginKey)
                 print("🔄 Synced launch at login state with system: \(systemState)")
             }
+        } catch {
+            print("❌ Failed to check launch at login system state: \(error)")
         }
-    }
-    
-    // MARK: - Legacy Support for macOS 12 and earlier
-    
-    @available(macOS, deprecated: 13.0, message: "Use SMAppService.mainApp instead")
-    private func registerLaunchAtLoginLegacy() {
-        // For older macOS versions, we would use LSSharedFileList APIs
-        // Since this app targets macOS 14+, this is primarily for completeness
-        print("⚠️ Legacy launch at login registration not implemented - requires macOS 13+")
-    }
-    
-    @available(macOS, deprecated: 13.0, message: "Use SMAppService.mainApp instead")
-    private func unregisterLaunchAtLoginLegacy() {
-        // For older macOS versions, we would use LSSharedFileList APIs
-        // Since this app targets macOS 14+, this is primarily for completeness
-        print("⚠️ Legacy launch at login unregistration not implemented - requires macOS 13+")
     }
     
     // MARK: - Public Interface
@@ -111,19 +104,13 @@ public class LaunchAtLoginManager: ObservableObject {
     }
     
     /// Check if launch at login is supported on this system
+    /// Since this app requires macOS 14+, this will always return true
     public var isSupported: Bool {
-        if #available(macOS 13.0, *) {
-            return true
-        } else {
-            return false
-        }
+        return true
     }
     
     /// Get a description of the current status
     public var statusDescription: String {
-        if !isSupported {
-            return "Not supported on this macOS version"
-        }
         return isEnabled ? "Enabled" : "Disabled"
     }
 }
