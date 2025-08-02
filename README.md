@@ -176,7 +176,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS d
 - [ ] **Auto-open at login**: Auto-open at login. (Maybe a checkbox in the preferences window?)
 - [ ] **Auto-update System**: Seamless updates via Sparkle framework
 
-### In a future or maybe pro version, to be decided/ordered by priority, your feedback is welcome!
+### In a future or maybe pro version, to be decided/ordered by priority, your feedback and contributions are welcome!
 
 - [ ] **More models/providers**: Support for more STT providers like Google, Azure, etc.
 - [ ] **Safe auto-cut**: Auto-cut to maximum time if the user forgets to end (or accidentally starts).
