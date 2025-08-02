@@ -41,6 +41,7 @@
 		CA98AADB2E262796004C23D7 /* TextInjectionTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AADA2E262796004C23D7 /* TextInjectionTestView.swift */; };
 		CA98AADD2E264E60004C23D7 /* SimpleHotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AADC2E264E60004C23D7 /* SimpleHotkeyManager.swift */; };
 		CA98AADF2E265823004C23D7 /* AudioLevelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AADE2E265823004C23D7 /* AudioLevelView.swift */; };
+		CADFFC2B2E3DFEFC00C29988 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,6 +80,7 @@
 		CA98AADA2E262796004C23D7 /* TextInjectionTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInjectionTestView.swift; sourceTree = "<group>"; };
 		CA98AADC2E264E60004C23D7 /* SimpleHotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleHotkeyManager.swift; sourceTree = "<group>"; };
 		CA98AADE2E265823004C23D7 /* AudioLevelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioLevelView.swift; sourceTree = "<group>"; };
+		CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -157,6 +159,7 @@
 		1A8E3D501C8F4E1C00123467 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */,
 				CA5A14102E3CAD7500C01C44 /* OnboardingManager.swift */,
 				CA4830A62E2B85700085EEF7 /* NotificationManager.swift */,
 				1A8E3D3F1C8F4E1C00123457 /* CaptureEngine.swift */,
@@ -341,6 +344,7 @@
 				CA5A141C2E3CADD900C01C44 /* OnboardingNotificationsStep.swift in Sources */,
 				CA5A141D2E3CADD900C01C44 /* OnboardingCompletionStep.swift in Sources */,
 				CA5A141E2E3CADD900C01C44 /* OnboardingView.swift in Sources */,
+				CADFFC2B2E3DFEFC00C29988 /* LaunchAtLoginManager.swift in Sources */,
 				CA5A141F2E3CADD900C01C44 /* OnboardingMicrophoneStep.swift in Sources */,
 				CA5A14202E3CADD900C01C44 /* OnboardingAccessibilityStep.swift in Sources */,
 				CA5A14212E3CADD900C01C44 /* OnboardingTestStep.swift in Sources */,
@@ -492,7 +496,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.voicetypestudio.app.debug.17;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voicetypestudio.app.debug.18;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
