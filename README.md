@@ -189,6 +189,17 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS d
 - [ ] **Advanced Audio Processing**: Noise reduction and gain control, but also some STT providers can do this so maybe not needed?.
 - [ ] **Accessibility Features**: VoiceOver support and high contrast modes
 
+## 💬 Feedback
+
+Have feedback, suggestions, or issues? We'd love to hear from you! 
+
+**📧 [Send us your feedback](mailto:josueajc@gmail.com?subject=[VTS%20Feedback]%20Your%20thoughts%20on%20VTS)** - Quick and direct way to reach us
+
+You can also:
+- 🐛 [Report bugs or request features](https://github.com/j05u3/VTS/issues) on GitHub
+- 💡 Share your ideas for improvements
+- ⭐ Star the project if you find it useful!
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
