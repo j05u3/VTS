@@ -1,4 +1,4 @@
-# 🔵 VTS - Voice-Type Studio
+# VTS - Voice Typing Studio
 
 [![Build Status](https://github.com/j05u3/VTS/workflows/Build%20and%20Release%20macOS%20App/badge.svg)](https://github.com/j05u3/VTS/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -8,6 +8,29 @@
 **The open-source macOS dictation replacement you've been waiting for!** 🚀
 
 Transform your voice into text instantly with the power of **OpenAI** and **Groq** APIs. Say goodbye to macOS dictation limitations and hello to lightning-fast, accurate transcription with your own custom hotkeys! ⚡️
+
+## 📋 Table of Contents
+
+- [Demo](#-demo)
+- [Why Choose VTS?](#-why-choose-vts)
+- [Screenshots](#-screenshots)
+- [Getting Started](#-getting-started)
+  - [Installation](#-installation)
+  - [API Key Setup](#api-key-setup)
+- [Usage Guide](#-usage-guide)
+  - [Basic Transcription](#basic-transcription)
+  - [Advanced Features](#advanced-features)
+- [Privacy & Security](#-privacy--security)
+- [Troubleshooting](#-troubleshooting)
+- [Development](#-development)
+  - [Requirements](#development-requirements)
+  - [Building from Source](#building-from-source)
+  - [Architecture](#architecture)
+  - [Contributing](#contributing)
+- [Roadmap](#-roadmap)
+- [Feedback](#-feedback)
+- [License](#-license)
+- [Acknowledgements](#-acknowledgements)
 
 ## 🎬 Demo
 
@@ -39,7 +62,9 @@ Onboarding:
 
 https://youtu.be/NTQmVCvkZQQ
 
-## 📦 Installation
+## 🚀 Getting Started
+
+### 📦 Installation
 
 **Ready to use VTS?** Head over to our [**Releases Page**](https://github.com/j05u3/VTS/releases/latest) for:
 - 📥 **One-click downloads** for macOS (Apple Silicon & Intel)
@@ -47,7 +72,7 @@ https://youtu.be/NTQmVCvkZQQ
 - 🔍 **System requirements** and compatibility info
 - 📝 **Release notes** with latest features and fixes
 
-### Requirements for End Users
+#### Requirements for End Users
 - **macOS 14.0+** (Apple Silicon & Intel supported)
 - **API key** from OpenAI or Groq (see setup below)
 
@@ -60,7 +85,7 @@ After installing VTS, you'll need an API key from one of these providers:
 
 *Only one API key is required - choose the provider you prefer!*
 
-## Usage
+## 📖 Usage Guide
 
 ### Basic Transcription
 1. **Choose Provider**: Select OpenAI or Groq from the dropdown
@@ -85,14 +110,14 @@ After installing VTS, you'll need an API key from one of these providers:
 - Prompts help the AI better understand domain-specific language
 
 
-## Privacy & Security
+## 🔒 Privacy & Security
 
 - **No audio storage**: Audio is processed in real-time, never stored locally
 - **API keys are safe**: Keys are stored in Keychain
 - **TLS encryption**: All API communication uses HTTPS
 - **Microphone permission**: Explicit user consent required for audio access
 
-## 🔧 Troubleshooting
+## 🛠️ Troubleshooting
 
 ### Common Issues
 - **Microphone Permission Denied**: Check System Settings > Privacy & Security > Microphone
@@ -102,7 +127,7 @@ After installing VTS, you'll need an API key from one of these providers:
 
 ---
 
-## 🛠️ Development
+## 👩‍💻 Development
 
 *This section is for developers who want to build VTS from source or contribute to the project.*
 
@@ -129,7 +154,7 @@ open VTSApp.xcodeproj
    - Build and run with **⌘R**
    - Grant microphone permission when prompted
 
-### Command Line Building
+#### Command Line Building
 
 ```bash
 # Build via command line
@@ -171,9 +196,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS d
 
 ---
 
-## Roadmap
+## 🗺️ Roadmap
 
-- [ ] **Auto-open at login**: Auto-open at login. (Maybe a checkbox in the preferences window?)
+- [x] **Auto-open at login**: Auto-open at login with checkbox in the preferences window (✅ Implemented)
 - [ ] **Auto-update System**: Seamless updates via Sparkle framework
 
 ### In a future or maybe pro version, to be decided/ordered by priority, your feedback and contributions are welcome!
@@ -200,11 +225,11 @@ You can also:
 - 💡 Share your ideas for improvements
 - ⭐ Star the project if you find it useful!
 
-## License
+## 📄 License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## Acknowledgements
+## 🙏 Acknowledgements
 
 VTS wouldn't be possible without the incredible work of the open-source community. Special thanks to:
 
