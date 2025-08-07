@@ -199,7 +199,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS d
 ## 🗺️ Roadmap
 
 - [x] **Auto-open at login**: Auto-open at login with checkbox in the preferences window (✅ Implemented)
-- [ ] **Auto-update System**: Seamless updates via Sparkle framework
+- [x] **Modern Release Automation**: Automated releases with release-please and GitHub Actions (✅ Implemented)
+- [x] **Sparkle Auto-Updates**: Automatic app updates with GitHub Pages appcast hosting (✅ Implemented)
+- [ ] **Auto-update System**: Seamless updates via Sparkle framework (⚙️ In Progress - requires Sparkle integration)
 
 ### In a future or maybe pro version, to be decided/ordered by priority, your feedback and contributions are welcome!
 

@@ -1,0 +1,43 @@
+---
+layout: null
+---
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>VTS - Voice Typing Studio</title>
+        <link>https://github.com/{{ site.repository }}</link>
+        <description>Voice Typing Studio - Open-source macOS dictation replacement with AI-powered transcription</description>
+        <language>en</language>
+        <lastBuildDate>{{ site.time | date_to_rfc822 }}</lastBuildDate>
+        
+        {% assign releases = site.github.releases | where_exp: "release", "release.prerelease != true and release.draft != true" | sort: "published_at" | reverse %}
+        {% for release in releases limit:10 %}
+        {% assign version_number = release.tag_name | remove: 'v' %}
+        {% assign dmg_asset = release.assets | where_exp: "asset", "asset.name contains 'Universal.dmg' and asset.name != 'checksums.txt'" | first %}
+        {% if dmg_asset %}
+        <item>
+            <title>VTS {{ version_number }}</title>
+            <link>{{ release.html_url }}</link>
+            <description>
+                <![CDATA[
+                <h2>What's New in Version {{ version_number }}</h2>
+                {{ release.body | markdownify }}
+                <hr>
+                <p><strong>Download:</strong> <a href="{{ dmg_asset.browser_download_url }}">{{ dmg_asset.name }}</a></p>
+                <p><strong>Size:</strong> {{ dmg_asset.size | divided_by: 1048576.0 | round: 1 }} MB</p>
+                <p><strong>Release Date:</strong> {{ release.published_at | date: "%B %d, %Y" }}</p>
+                ]]>
+            </description>
+            <pubDate>{{ release.published_at | date_to_rfc822 }}</pubDate>
+            <enclosure url="{{ dmg_asset.browser_download_url }}"
+                       length="{{ dmg_asset.size }}"
+                       type="application/octet-stream"
+                       sparkle:version="{{ version_number }}"
+                       sparkle:shortVersionString="{{ version_number }}" />
+            <guid isPermaLink="false">{{ site.repository }}-{{ release.tag_name }}</guid>
+        </item>
+        {% endif %}
+        {% endfor %}
+        
+    </channel>
+</rss>

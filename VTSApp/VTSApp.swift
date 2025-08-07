@@ -168,6 +168,7 @@ class AppState: ObservableObject {
     private let hotkeyManager = SimpleHotkeyManager.shared
     private let notificationManager = NotificationManager.shared
     private let launchAtLoginManager = LaunchAtLoginManager.shared
+    private let sparkleUpdaterManager = SparkleUpdaterManager.shared
     private var cancellables = Set<AnyCancellable>()
     
     private var settingsWindowController: SettingsWindowController?
@@ -228,6 +229,10 @@ class AppState: ObservableObject {
     
     var launchAtLoginManagerService: LaunchAtLoginManager {
         return launchAtLoginManager
+    }
+    
+    var sparkleUpdaterManagerService: SparkleUpdaterManager {
+        return sparkleUpdaterManager
     }
     
     init() {
@@ -305,6 +310,12 @@ class AppState: ObservableObject {
             .store(in: &cancellables)
         
         launchAtLoginManager.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        sparkleUpdaterManager.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }
