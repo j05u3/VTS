@@ -13,7 +13,8 @@ layout: null
         {% assign releases = site.github.releases | where_exp: "release", "release.prerelease != true and release.draft != true" | sort: "published_at" | reverse %}
         {% for release in releases limit:10 %}
         {% assign version_number = release.tag_name | remove: 'v' %}
-        {% assign dmg_asset = release.assets | where_exp: "asset", "asset.name contains 'Universal.dmg' and asset.name != 'checksums.txt'" | first %}
+        {% assign dmg_asset = release.assets | where_exp: "asset", "asset.name contains 'Universal.dmg' and asset.name != 'checksums.txt' and asset.name != 'release-metadata.json'" | first %}
+        {% assign sig_asset = release.assets | where_exp: "asset", "asset.name contains '.dmg.sig'" | first %}
         {% if dmg_asset %}
         <item>
             <title>VTS {{ version_number }}</title>
@@ -26,6 +27,7 @@ layout: null
                 <p><strong>Download:</strong> <a href="{{ dmg_asset.browser_download_url }}">{{ dmg_asset.name }}</a></p>
                 <p><strong>Size:</strong> {{ dmg_asset.size | divided_by: 1048576.0 | round: 1 }} MB</p>
                 <p><strong>Release Date:</strong> {{ release.published_at | date: "%B %d, %Y" }}</p>
+                {% if sig_asset %}<p><strong>Sparkle Signature:</strong> Available</p>{% endif %}
                 ]]>
             </description>
             <pubDate>{{ release.published_at | date_to_rfc822 }}</pubDate>
@@ -33,7 +35,8 @@ layout: null
                        length="{{ dmg_asset.size }}"
                        type="application/octet-stream"
                        sparkle:version="{{ version_number }}"
-                       sparkle:shortVersionString="{{ version_number }}" />
+                       sparkle:shortVersionString="{{ version_number }}"{% if sig_asset %}
+                       sparkle:edSignature="[SIGNATURE_PLACEHOLDER]"{% endif %} />
             <guid isPermaLink="false">{{ site.repository }}-{{ release.tag_name }}</guid>
         </item>
         {% endif %}

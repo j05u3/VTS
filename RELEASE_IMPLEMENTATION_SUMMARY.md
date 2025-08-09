@@ -65,7 +65,7 @@ open VTSApp.xcodeproj
 ```
 
 ### 4. Configure GitHub
-- Add `SPARKLE_PRIVATE_KEY` to GitHub repository secrets
+- Add `SPARKLE_PRIVATE_KEY` to GitHub repository secrets (used for signing DMG files)
 - Enable GitHub Pages with "GitHub Actions" source
 - Verify Pages deployment at `https://j05u3.github.io/VTS/`
 

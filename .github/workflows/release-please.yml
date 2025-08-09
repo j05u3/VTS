@@ -69,13 +69,66 @@ jobs:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
         run: ./scripts/build-dmg.sh
 
+      - name: Download Sparkle Tools and Sign DMG
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          VERSION: ${{ needs.release-please.outputs.version }}
+          APP_NAME: ${{ env.APP_NAME }}
+        run: |          
+          echo "🔐 Signing DMG with Sparkle private key..."
+          
+          # Create temporary directory for Sparkle tools
+          TEMP_DIR=$(mktemp -d)
+          cd "$TEMP_DIR"
+          
+          # Download Sparkle tools
+          SPARKLE_VERSION="2.6.4"
+          SPARKLE_URL="https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+          curl -L -o sparkle.tar.xz "$SPARKLE_URL"
+          tar -xf sparkle.tar.xz
+          
+          # Create private key file
+          echo "$SPARKLE_PRIVATE_KEY" > private_key
+          
+          # Sign the DMG and generate signature
+          DMG_PATH="${GITHUB_WORKSPACE}/${APP_NAME}-${VERSION}-Universal.dmg"
+          if [[ -f "$DMG_PATH" ]]; then
+            # Generate signature
+            SIGNATURE=$(./bin/sign_update "$DMG_PATH" private_key)
+            echo "Generated signature: $SIGNATURE"
+            
+            # Save signature to file for the appcast
+            echo "$SIGNATURE" > "${GITHUB_WORKSPACE}/${APP_NAME}-${VERSION}-Universal.dmg.sig"
+            
+            # Also create a JSON file with release metadata for GitHub Pages
+            cat > "${GITHUB_WORKSPACE}/release-metadata.json" << EOF
+          {
+            "version": "${VERSION}",
+            "dmg_name": "${APP_NAME}-${VERSION}-Universal.dmg",
+            "sparkle_signature": "$SIGNATURE",
+            "release_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+            
+            echo "✅ Successfully signed DMG with Sparkle signature"
+          else
+            echo "❌ DMG file not found: $DMG_PATH"
+            exit 1
+          fi
+          
+          # Cleanup
+          cd "$GITHUB_WORKSPACE"
+          rm -rf "$TEMP_DIR"
+
       - name: Upload Release Artifacts
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.release-please.outputs.tag_name }}
           files: |
             ${{ env.APP_NAME }}-${{ needs.release-please.outputs.version }}-Universal.dmg
+            ${{ env.APP_NAME }}-${{ needs.release-please.outputs.version }}-Universal.dmg.sig
             checksums.txt
+            release-metadata.json
           token: ${{ secrets.GITHUB_TOKEN }}
         
       - name: Trigger GitHub Pages Update

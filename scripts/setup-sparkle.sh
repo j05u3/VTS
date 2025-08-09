@@ -24,26 +24,32 @@ cd "$TEMP_DIR"
 tar -xf sparkle.tar.xz
 
 echo "🔑 Generating EdDSA key pair for code signing updates..."
-./bin/generate_keys
 
-PRIVATE_KEY_FILE="sparkle_private_key"
-PUBLIC_KEY_FILE="sparkle_public_key"
+# Run generate_keys and capture its output
+KEY_OUTPUT=$(./bin/generate_keys 2>&1)
+echo "$KEY_OUTPUT"
 
-if [[ -f "$PRIVATE_KEY_FILE" && -f "$PUBLIC_KEY_FILE" ]]; then
-    PUBLIC_KEY=$(cat "$PUBLIC_KEY_FILE")
-    
+# Extract the public key from the output
+PUBLIC_KEY=$(echo "$KEY_OUTPUT" | grep -A 1 "SUPublicEDKey" | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+
+if [[ -n "$PUBLIC_KEY" ]]; then
+    echo ""
     echo "✅ Keys generated successfully!"
     echo ""
-    echo "🔐 IMPORTANT: Store this private key securely!"
-    echo "GitHub Secret Name: SPARKLE_PRIVATE_KEY"
-    echo "Private Key Content:"
-    echo "----"
-    cat "$PRIVATE_KEY_FILE"
-    echo ""
-    echo "----"
-    echo ""
-    echo "📝 Public key will be added to Info.plist automatically:"
+    echo "� Public key extracted from keychain:"
     echo "Public Key: $PUBLIC_KEY"
+    echo ""
+    echo "🔐 IMPORTANT: Private key is stored in your macOS keychain"
+    echo "To get the private key for GitHub Secrets:"
+    echo ""
+    echo "1. Open Keychain Access app"
+    echo "2. Search for 'Sparkle' or the key name"
+    echo "3. Double-click the private key entry"
+    echo "4. Check 'Show password' and enter your macOS password"
+    echo "5. Copy the private key value to use as SPARKLE_PRIVATE_KEY secret"
+    echo ""
+    echo "OR use this command to extract it:"
+    echo "security find-generic-password -s 'https://sparkle-project.org' -a 'ed25519' -w"
     
     # Update Info.plist with the public key
     cd - > /dev/null
@@ -62,21 +68,27 @@ if [[ -f "$PRIVATE_KEY_FILE" && -f "$PUBLIC_KEY_FILE" ]]; then
 # Sparkle Setup Instructions
 
 ## ✅ Completed
-1. Public key has been added to Info.plist
-2. Appcast feed configured at: https://j05u3.github.io/VTS/appcast.xml
+1. Public key has been added to Info.plist: $PUBLIC_KEY
+2. Private key stored in macOS keychain
+3. Appcast feed configured at: https://j05u3.github.io/VTS/appcast.xml
 
 ## 🔐 GitHub Secrets Required
 
 Add the following secret to your GitHub repository (Settings → Secrets and Variables → Actions):
 
 **Secret Name:** SPARKLE_PRIVATE_KEY
-**Secret Value:** (copy the private key displayed above)
 
-## 🚀 Next Steps
+**How to get the Private Key:**
+1. Open Keychain Access app
+2. Search for 'Sparkle Private Key'
+3. Double-click the private key entry
+4. Check 'Show password' and enter your macOS password
+5. Copy the private key value
 
-1. Add the SPARKLE_PRIVATE_KEY to GitHub repository secrets
-2. Set up SparkleHub (optional) or GitHub Pages for appcast hosting
-3. Commit and push the changes to trigger release-please workflow
+**OR use this terminal command:**
+\`\`\`bash
+security find-generic-password -s "https://sparkle-project.org" -a "ed25519" -w
+\`\`\`
 
 ## 📋 GitHub Pages Setup
 
@@ -86,9 +98,9 @@ Enable GitHub Pages for appcast hosting:
 3. The workflow will automatically deploy the appcast
 4. The appcast will be available at: https://j05u3.github.io/VTS/appcast.xml
 
-## � Next Steps
+## 🚀 Next Steps
 
-1. Add the SPARKLE_PRIVATE_KEY to GitHub repository secrets
+1. Extract the private key from keychain and add to GitHub Secrets as SPARKLE_PRIVATE_KEY
 2. Enable GitHub Pages with "GitHub Actions" as the source
 3. Commit and push the changes to trigger release-please workflow
 4. Create your first conventional commit PR to test the system
