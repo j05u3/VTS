@@ -5,9 +5,10 @@ on:
     branches:
       - main
 
+# Required permissions for release-please to create PRs and releases
 permissions:
-  contents: write
-  pull-requests: write
+  contents: write          # Create releases and tags
+  pull-requests: write     # Create and update pull requests
 
 jobs:
   release-please:
