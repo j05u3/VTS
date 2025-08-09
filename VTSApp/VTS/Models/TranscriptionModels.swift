@@ -31,6 +31,7 @@ public struct ProviderConfig {
 public enum STTProviderType: String, CaseIterable, Codable {
     case openai = "OpenAI"
     case groq = "Groq"
+    case deepgram = "Deepgram"
     
     public var defaultModels: [String] {
         switch self {
@@ -38,6 +39,8 @@ public enum STTProviderType: String, CaseIterable, Codable {
             return ["whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
         case .groq:
             return ["whisper-large-v3-turbo", "whisper-large-v3"]
+        case .deepgram:
+            return ["nova-2", "nova", "whisper", "enhanced", "base"]
         }
     }
 }
