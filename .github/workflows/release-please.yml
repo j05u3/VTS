@@ -1,0 +1,139 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+      pr: ${{ steps.release.outputs.pr }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # This job runs when release-please creates a new release
+  build-and-release:
+    needs: release-please
+    runs-on: macos-15
+    if: ${{ needs.release-please.outputs.release_created }}
+    
+    env:
+      APP_NAME: "VTS"
+      BUNDLE_ID: "com.voicetypestudio.app"
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+        
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.2'
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Make build script executable
+        run: chmod +x scripts/build-dmg.sh
+      
+      - name: Build, Sign, and Notarize DMG
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_NAME: ${{ env.APP_NAME }}
+          BUNDLE_ID: ${{ env.BUNDLE_ID }}
+          GITHUB_ACTIONS: true
+          GITHUB_REF: refs/tags/${{ needs.release-please.outputs.tag_name }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+        run: ./scripts/build-dmg.sh
+
+      - name: Download Sparkle Tools and Sign DMG
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          VERSION: ${{ needs.release-please.outputs.version }}
+          APP_NAME: ${{ env.APP_NAME }}
+        run: |          
+          echo "🔐 Signing DMG with Sparkle private key..."
+          
+          # Create temporary directory for Sparkle tools
+          TEMP_DIR=$(mktemp -d)
+          cd "$TEMP_DIR"
+          
+          # Download Sparkle tools
+          SPARKLE_VERSION="2.6.4"
+          SPARKLE_URL="https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+          curl -L -o sparkle.tar.xz "$SPARKLE_URL"
+          tar -xf sparkle.tar.xz
+          
+          # Create private key file
+          echo "$SPARKLE_PRIVATE_KEY" > private_key
+          
+          # Sign the DMG and generate signature
+          DMG_PATH="${GITHUB_WORKSPACE}/${APP_NAME}-${VERSION}-Universal.dmg"
+          if [[ -f "$DMG_PATH" ]]; then
+            # Generate signature
+            SIGNATURE=$(./bin/sign_update "$DMG_PATH" private_key)
+            echo "Generated signature: $SIGNATURE"
+            
+            # Save signature to file for the appcast
+            echo "$SIGNATURE" > "${GITHUB_WORKSPACE}/${APP_NAME}-${VERSION}-Universal.dmg.sig"
+            
+            # Also create a JSON file with release metadata for GitHub Pages
+            cat > "${GITHUB_WORKSPACE}/release-metadata.json" << EOF
+          {
+            "version": "${VERSION}",
+            "dmg_name": "${APP_NAME}-${VERSION}-Universal.dmg",
+            "sparkle_signature": "$SIGNATURE",
+            "release_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+            
+            echo "✅ Successfully signed DMG with Sparkle signature"
+          else
+            echo "❌ DMG file not found: $DMG_PATH"
+            exit 1
+          fi
+          
+          # Cleanup
+          cd "$GITHUB_WORKSPACE"
+          rm -rf "$TEMP_DIR"
+
+      - name: Upload Release Artifacts
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.release-please.outputs.tag_name }}
+          files: |
+            ${{ env.APP_NAME }}-${{ needs.release-please.outputs.version }}-Universal.dmg
+            ${{ env.APP_NAME }}-${{ needs.release-please.outputs.version }}-Universal.dmg.sig
+            checksums.txt
+            release-metadata.json
+          token: ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: Trigger GitHub Pages Update
+        if: success()
+        run: |
+          echo "🎉 Release ${{ needs.release-please.outputs.tag_name }} has been published!"
+          echo "📡 GitHub Pages will automatically update the appcast feed."
+          echo "🔗 Appcast URL: https://j05u3.github.io/VTS/appcast.xml"

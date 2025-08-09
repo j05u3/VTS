@@ -513,6 +513,98 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
+                GroupBox("Auto-Update Settings") {
+                    VStack(alignment: .leading, spacing: 15) {
+                        HStack {
+                            Image(systemName: "arrow.clockwise.circle.fill")
+                                .foregroundColor(.blue)
+                                .font(.title2)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Automatic Updates")
+                                    .font(.headline)
+                                Text("Keep VTS up to date with the latest features and security improvements")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack(spacing: 8) {
+                                Button(appState.sparkleUpdaterManagerService.isCheckingForUpdates ? "Checking..." : "Check Now") {
+                                    appState.sparkleUpdaterManagerService.checkForUpdates()
+                                }
+                                .buttonStyle(.bordered)
+                                .disabled(appState.sparkleUpdaterManagerService.isCheckingForUpdates)
+                                
+                                if appState.sparkleUpdaterManagerService.isCheckingForUpdates {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                }
+                            }
+                        }
+                        
+                        Divider()
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Update Behavior:")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                ForEach(UpdatePreference.allCases, id: \.self) { preference in
+                                    HStack {
+                                        Button(action: {
+                                            appState.sparkleUpdaterManagerService.updatePreference = preference
+                                        }) {
+                                            HStack {
+                                                Image(systemName: appState.sparkleUpdaterManagerService.updatePreference == preference ? "largecircle.fill.circle" : "circle")
+                                                    .foregroundColor(appState.sparkleUpdaterManagerService.updatePreference == preference ? .accentColor : .secondary)
+                                                
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(preference.title)
+                                                        .font(.body)
+                                                        .foregroundColor(.primary)
+                                                    Text(preference.description)
+                                                        .font(.caption)
+                                                        .foregroundColor(.secondary)
+                                                }
+                                                
+                                                Spacer()
+                                            }
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if !appState.sparkleUpdaterManagerService.canAutoUpdate {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.orange)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Auto-updates unavailable")
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                    Text("This app was installed from the Mac App Store or in a sandboxed environment")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                            }
+                        }
+                        
+                        HStack {
+                            Text("Current version: \(appState.sparkleUpdaterManagerService.currentVersion)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                        }
+                    }
+                    .padding()
+                }
+                
                 Spacer()
             }
             .padding()

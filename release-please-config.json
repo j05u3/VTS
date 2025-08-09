@@ -1,0 +1,27 @@
+{
+  "release-type": "simple",
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
+  "tag-separator": "@",
+  "separate-pull-requests": false,
+  "release-search-depth": 200,
+  "commit-search-depth": 500,
+  "packages": {
+    ".": {
+      "package-name": "VTS",
+      "changelog-sections": [
+        {"type": "feat", "section": "✨ Features"},
+        {"type": "fix", "section": "🐛 Bug Fixes"},
+        {"type": "perf", "section": "⚡ Performance Improvements"},
+        {"type": "docs", "section": "📚 Documentation"},
+        {"type": "deps", "section": "🔗 Dependencies", "hidden": false},
+        {"type": "refactor", "section": "♻️ Code Refactoring"},
+        {"type": "style", "section": "💎 Styles"},
+        {"type": "test", "section": "🧪 Tests"},
+        {"type": "build", "section": "🔨 Build System"},
+        {"type": "ci", "section": "⚙️ Continuous Integration"},
+        {"type": "chore", "section": "🧹 Miscellaneous", "hidden": false}
+      ]
+    }
+  }
+}
