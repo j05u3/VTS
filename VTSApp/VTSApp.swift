@@ -154,6 +154,8 @@ extension STTProviderType {
             return "brain.head.profile"
         case .groq:
             return "bolt.fill"
+        case .deepgram:
+            return "waveform.circle.fill"
         }
     }
 }
@@ -400,6 +402,8 @@ class AppState: ObservableObject {
             transcriptionService.setProvider(OpenAIProvider())
         case .groq:
             transcriptionService.setProvider(GroqProvider())
+        case .deepgram:
+            transcriptionService.setProvider(DeepgramProvider())
         }
     }
     
