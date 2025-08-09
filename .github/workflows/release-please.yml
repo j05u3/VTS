@@ -9,6 +9,7 @@ on:
 permissions:
   contents: write          # Create releases and tags
   pull-requests: write     # Create and update pull requests
+  issues: write            # Create and manage labels
 
 jobs:
   release-please:
