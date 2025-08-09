@@ -14,7 +14,7 @@ fi
 
 # Create a temporary directory for Sparkle tools
 TEMP_DIR=$(mktemp -d)
-SPARKLE_VERSION="2.6.4"
+SPARKLE_VERSION="2.7.1"
 SPARKLE_URL="https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
 
 echo "📥 Downloading Sparkle tools..."

@@ -84,10 +84,10 @@ class SparkleUpdaterManager: ObservableObject {
         
         updaterController.checkForUpdates(nil)
         
-        // Simulate check for now
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        // Reset the checking state after the update check completes
+        // Note: Sparkle handles the UI and completion internally
+        DispatchQueue.main.async {
             self.isCheckingForUpdates = false
-            print("Checked for updates (simulated)")
         }
     }
     
