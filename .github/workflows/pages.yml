@@ -48,7 +48,8 @@ jobs:
         
       - name: Build with Jekyll
         run: |
-          bundle exec jekyll build --source docs --destination _site --baseurl "${{ steps.pages.outputs.base_path }}"
+          bundle exec jekyll build --source . --destination ../_site --baseurl "${{ steps.pages.outputs.base_path }}"
+        working-directory: docs
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
