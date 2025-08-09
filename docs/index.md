@@ -16,7 +16,11 @@ https://j05u3.github.io/VTS/appcast.xml
 
 ### 🚀 Latest Releases
 
+{% if site.github.releases %}
 {% assign releases = site.github.releases | where_exp: "release", "release.prerelease != true and release.draft != true" | sort: "published_at" | reverse %}
+{% else %}
+{% assign releases = site.data.releases | default: empty %}
+{% endif %}
 
 {% for release in releases limit:5 %}
 #### [{{ release.tag_name }}]({{ release.html_url }}) - {{ release.published_at | date: "%B %d, %Y" }}
