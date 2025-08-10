@@ -722,7 +722,7 @@ struct PreferencesView: View {
                 Text("Advanced")
             }
         }
-        .frame(width: 600, height: 650)
+        .frame(width: 600, height: 750)
         .sheet(isPresented: $showingTestInjectionView) {
             TextInjectionTestView(isPresented: $showingTestInjectionView)
                 .environmentObject(appState)

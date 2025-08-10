@@ -58,13 +58,13 @@ public class DeepgramProvider: BaseSTTProvider {
         queryItems.append(URLQueryItem(name: "model", value: config.model))
         
         // Add language if provided
-        if let language = config.language {
-            queryItems.append(URLQueryItem(name: "language", value: language))
-        }
+        queryItems.append(URLQueryItem(name: "language", value: "multi"))
         
         // Deepgram-specific parameters
         queryItems.append(URLQueryItem(name: "punctuate", value: "true"))
         queryItems.append(URLQueryItem(name: "smart_format", value: "true"))
+        queryItems.append(URLQueryItem(name: "numerals", value: "true"))
+        queryItems.append(URLQueryItem(name: "paragraphs", value: "true"))
         
         urlComponents.queryItems = queryItems
         
@@ -116,6 +116,7 @@ public class DeepgramProvider: BaseSTTProvider {
         case 400:
             // Bad request - could be invalid model, malformed audio, etc.
             let errorDetails = parseErrorResponse(data)
+            print("Deepgram: Bad request error - \(errorDetails)")
             if errorDetails.contains("model") {
                 throw STTError.invalidModel
             } else if errorDetails.contains("audio") {
