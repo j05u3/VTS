@@ -68,6 +68,13 @@ public class DeepgramProvider: BaseSTTProvider {
         queryItems.append(URLQueryItem(name: "numerals", value: "true"))
         queryItems.append(URLQueryItem(name: "paragraphs", value: "true"))
         
+        // Add keywords if provided
+        if let keywords = config.keywords, !keywords.isEmpty {
+            // Join keywords with comma as per Deepgram API
+            let keywordString = keywords.joined(separator: ",")
+            queryItems.append(URLQueryItem(name: "keywords", value: keywordString))
+        }
+        
         urlComponents.queryItems = queryItems
         
         guard let url = urlComponents.url else {

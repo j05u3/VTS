@@ -18,13 +18,15 @@ public struct ProviderConfig {
     public let systemPrompt: String?
     public let language: String?
     public let temperature: Float?
+    public let keywords: [String]?
     
-    public init(apiKey: String, model: String, systemPrompt: String? = nil, language: String? = nil, temperature: Float? = nil) {
+    public init(apiKey: String, model: String, systemPrompt: String? = nil, language: String? = nil, temperature: Float? = nil, keywords: [String]? = nil) {
         self.apiKey = apiKey
         self.model = model
         self.systemPrompt = systemPrompt
         self.language = language
         self.temperature = temperature
+        self.keywords = keywords
     }
 }
 
@@ -40,7 +42,7 @@ public enum STTProviderType: String, CaseIterable, Codable {
         case .groq:
             return ["whisper-large-v3-turbo", "whisper-large-v3"]
         case .deepgram:
-            return ["nova-3"]
+            return ["nova-2", "nova", "whisper", "enhanced", "base"]
         }
     }
 }
