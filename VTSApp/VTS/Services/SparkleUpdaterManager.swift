@@ -18,22 +18,12 @@ class SparkleUpdaterManager: ObservableObject {
     /// Whether a check for updates is currently in progress
     @Published var isCheckingForUpdates = false
     
-    /// Current update information if available
-    // @Published var availableUpdate: SPUUpdateItem?
-    @Published var availableUpdate: String? // Placeholder until Sparkle is added
-    
     /// Keys for UserDefaults storage
     private let updatePreferenceKey = "updatePreference"
     
     private init() {
-        self.updaterController = SPUStandardUpdaterController(
-            startingUpdater: true,
-            updaterDelegate: nil,
-            userDriverDelegate: nil
-        )
-        
-        // Load saved preference
-        if let savedRawValue = UserDefaults.standard.object(forKey: updatePreferenceKey) as? Int,
+        // Initialize update preference first
+        if let savedRawValue = UserDefaults.standard.object(forKey: "updatePreference") as? Int,
            let savedPreference = UpdatePreference(rawValue: savedRawValue) {
             self.updatePreference = savedPreference
         } else {
@@ -41,11 +31,15 @@ class SparkleUpdaterManager: ObservableObject {
             self.updatePreference = .autoCheck
         }
         
+        // Initialize the updater controller
+        self.updaterController = SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: nil,
+            userDriverDelegate: nil
+        )
+        
         // Configure initial behavior
         configureUpdateBehavior()
-        
-        // Set up updater delegate to receive callbacks
-        setupUpdaterCallbacks()
     }
     
     /// Configure Sparkle's automatic update behavior based on user preference
@@ -67,26 +61,16 @@ class SparkleUpdaterManager: ObservableObject {
         print("Update preference set to: \(updatePreference.title)")
     }
     
-    /// Set up callbacks to monitor update status
-    private func setupUpdaterCallbacks() {
-      // Sparkle handles most UI automatically, but you can implement SPUUpdaterDelegate
-      // for custom behavior. For basic functionality, this can remain minimal.
-      
-      // Optional: Set up delegate for more control
-      // updaterController.updater.delegate = self
-    }
-    
     /// Manually check for updates
     func checkForUpdates() {
         guard !isCheckingForUpdates else { return }
         
         isCheckingForUpdates = true
-        
         updaterController.checkForUpdates(nil)
         
-        // Reset the checking state after the update check completes
-        // Note: Sparkle handles the UI and completion internally
-        DispatchQueue.main.async {
+        // Reset the checking state after a brief delay
+        // Sparkle handles the UI and completion internally
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             self.isCheckingForUpdates = false
         }
     }
