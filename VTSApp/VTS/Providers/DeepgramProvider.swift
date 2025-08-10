@@ -53,6 +53,8 @@ public class DeepgramProvider: BaseSTTProvider {
         // Build URL with query parameters
         var urlComponents = URLComponents(string: baseURL)!
         var queryItems: [URLQueryItem] = []
+
+        // Parameters guidance from: https://chatgpt.com/share/68992d16-5be8-8011-a20b-4f840721ac84
         
         // Add model parameter
         queryItems.append(URLQueryItem(name: "model", value: config.model))
