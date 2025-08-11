@@ -72,6 +72,9 @@ struct PreferencesView: View {
                         
                         // Custom Instructions / Keywords based on provider
                         if appState.selectedProvider == .deepgram {
+                            // Check if Nova3 is selected
+                            let isNova3Selected = appState.selectedModel == "nova-3"
+                            
                             // Deepgram Keywords Management
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
@@ -84,14 +87,22 @@ struct PreferencesView: View {
                                 }
                                 
                                 KeywordManagementView(keywords: $appState.deepgramKeywords)
+                                    .disabled(isNova3Selected)
+                                    .opacity(isNova3Selected ? 0.5 : 1.0)
                             }
                             
                             // Help text for keywords
-                            Text("Add keywords to boost recognition accuracy for specific terms, names, or domain-specific vocabulary.")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            if isNova3Selected {
+                                Text("Keywords are not supported by Nova-3. Nova-3 uses keyterm prompting which is only available for English, but VTS aims for multi-language support.")
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                            } else {
+                                Text("Add keywords to boost recognition accuracy for specific terms, names, or domain-specific vocabulary.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
                         } else {
-                            // System Prompt for OpenAI/Groq
+                            // System Prompt for OpenAI/Groq (Deepgram uses keywords)
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
                                     Text("Custom Instructions:")

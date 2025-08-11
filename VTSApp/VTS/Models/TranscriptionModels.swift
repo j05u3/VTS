@@ -42,7 +42,7 @@ public enum STTProviderType: String, CaseIterable, Codable {
         case .groq:
             return ["whisper-large-v3-turbo", "whisper-large-v3"]
         case .deepgram:
-            return ["nova-2", "nova", "whisper", "enhanced", "base"]
+            return ["nova-3", "nova-2"]
         }
     }
 }

@@ -453,7 +453,7 @@ class AppState: ObservableObject {
                 apiKey: apiKey,
                 model: selectedModel,
                 systemPrompt: selectedProvider == .deepgram ? nil : (systemPrompt.isEmpty ? nil : systemPrompt),
-                keywords: selectedProvider == .deepgram ? (deepgramKeywords.isEmpty ? nil : deepgramKeywords) : nil
+                keywords: selectedProvider == .deepgram && selectedModel != "nova-3" ? (deepgramKeywords.isEmpty ? nil : deepgramKeywords) : nil
             )
             
             print("Starting transcription with \(selectedProvider.rawValue) using model \(selectedModel)")

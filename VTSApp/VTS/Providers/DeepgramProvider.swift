@@ -68,11 +68,18 @@ public class DeepgramProvider: BaseSTTProvider {
         queryItems.append(URLQueryItem(name: "numerals", value: "true"))
         queryItems.append(URLQueryItem(name: "paragraphs", value: "true"))
         
-        // Add keywords if provided
-        if let keywords = config.keywords, !keywords.isEmpty {
-            // Join keywords with comma as per Deepgram API
-            let keywordString = keywords.joined(separator: ",")
-            queryItems.append(URLQueryItem(name: "keywords", value: keywordString))
+        // Add keywords if provided and not using nova-3 model
+        // Note: nova-3 doesn't use keywords, it uses keyterm prompting 
+        // but it's available only for English, we are aiming for multi-language
+        // in VTS.
+        // Source: https://developers.deepgram.com/docs/keyterm
+        if let keywords = config.keywords, !keywords.isEmpty, config.model != "nova-3" {
+            // Add each keyword as a separate query parameter as per Deepgram API
+            // Format: keywords=word1&keywords=word2 (not comma-separated)
+            // Source: https://developers.deepgram.com/docs/keywords#boost-multiple-keywords
+            for keyword in keywords {
+                queryItems.append(URLQueryItem(name: "keywords", value: keyword))
+            }
         }
         
         urlComponents.queryItems = queryItems
