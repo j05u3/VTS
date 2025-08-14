@@ -27,11 +27,69 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # This job runs when release-please creates a new release
+  # Check if this push is from a merged release PR
+  check-release-merge:
+    runs-on: ubuntu-latest
+    outputs:
+      is_release_merge: ${{ steps.check.outputs.is_release_merge }}
+      version: ${{ steps.check.outputs.version }}
+      tag_name: ${{ steps.check.outputs.tag_name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Check if this is a release merge
+        id: check
+        run: |
+          # Get the commit message of the current commit
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+          echo "Commit message: $COMMIT_MSG"
+          
+          # Check if this is a release commit (merged release PR)
+          if [[ "$COMMIT_MSG" =~ ^chore:\ release\ main\ \(\#[0-9]+\)$ ]]; then
+            echo "is_release_merge=true" >> $GITHUB_OUTPUT
+            
+            # Read version from manifest file
+            VERSION=$(cat .release-please-manifest.json | grep -o '"[^"]*"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4)
+            TAG_NAME="v$VERSION"
+            
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+            echo "Detected release merge for version: $VERSION"
+          else
+            echo "is_release_merge=false" >> $GITHUB_OUTPUT
+            echo "Not a release merge commit"
+          fi
+
+  # Create tag for merged release PR
+  create-release-tag:
+    needs: [check-release-merge]
+    runs-on: ubuntu-latest
+    if: ${{ needs.check-release-merge.outputs.is_release_merge == 'true' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          TAG_NAME="${{ needs.check-release-merge.outputs.tag_name }}"
+          echo "Creating tag: $TAG_NAME"
+          
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+          
+          echo "✅ Created and pushed tag: $TAG_NAME"
+
+  # This job runs when release-please creates a new release OR when a release PR is merged
   build-and-release:
-    needs: release-please
+    needs: [release-please, check-release-merge, create-release-tag]
     runs-on: macos-15
-    if: ${{ needs.release-please.outputs.release_created }}
+    if: ${{ always() && (needs.release-please.outputs.release_created == 'true' || needs.check-release-merge.outputs.is_release_merge == 'true') }}
     
     env:
       APP_NAME: "VTS"
@@ -43,6 +101,23 @@ jobs:
         with:
           fetch-depth: 0
         
+      - name: Set version variables
+        id: version
+        run: |
+          if [ "${{ needs.release-please.outputs.release_created }}" = "true" ]; then
+            # Use release-please outputs
+            VERSION="${{ needs.release-please.outputs.version }}"
+            TAG_NAME="${{ needs.release-please.outputs.tag_name }}"
+          else
+            # Use check-release-merge outputs  
+            VERSION="${{ needs.check-release-merge.outputs.version }}"
+            TAG_NAME="${{ needs.check-release-merge.outputs.tag_name }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+          echo "Tag: $TAG_NAME"
+          
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -67,14 +142,14 @@ jobs:
           APP_NAME: ${{ env.APP_NAME }}
           BUNDLE_ID: ${{ env.BUNDLE_ID }}
           GITHUB_ACTIONS: true
-          GITHUB_REF: refs/tags/${{ needs.release-please.outputs.tag_name }}
+          GITHUB_REF: refs/tags/${{ steps.version.outputs.tag_name }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
         run: ./scripts/build-dmg.sh
 
       - name: Download Sparkle Tools and Sign DMG
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
-          VERSION: ${{ needs.release-please.outputs.version }}
+          VERSION: ${{ steps.version.outputs.version }}
           APP_NAME: ${{ env.APP_NAME }}
         run: |          
           echo "🔐 Signing DMG with Sparkle private key..."
@@ -125,10 +200,10 @@ jobs:
       - name: Upload Release Artifacts
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ needs.release-please.outputs.tag_name }}
+          tag_name: ${{ steps.version.outputs.tag_name }}
           files: |
-            ${{ env.APP_NAME }}-${{ needs.release-please.outputs.version }}-Universal.dmg
-            ${{ env.APP_NAME }}-${{ needs.release-please.outputs.version }}-Universal.dmg.sig
+            ${{ env.APP_NAME }}-${{ steps.version.outputs.version }}-Universal.dmg
+            ${{ env.APP_NAME }}-${{ steps.version.outputs.version }}-Universal.dmg.sig
             checksums.txt
             release-metadata.json
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -136,6 +211,6 @@ jobs:
       - name: Trigger GitHub Pages Update
         if: success()
         run: |
-          echo "🎉 Release ${{ needs.release-please.outputs.tag_name }} has been published!"
+          echo "🎉 Release ${{ steps.version.outputs.tag_name }} has been published!"
           echo "📡 GitHub Pages will automatically update the appcast feed."
           echo "🔗 Appcast URL: https://j05u3.github.io/VTS/appcast.xml"
