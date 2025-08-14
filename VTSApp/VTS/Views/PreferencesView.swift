@@ -33,10 +33,11 @@ struct PreferencesView: View {
     var body: some View {
         TabView {
             // API Configuration Tab
-            VStack(spacing: 20) {
-                Text("Speech Recognition Settings")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Speech Recognition Settings")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                 
                 GroupBox("AI Provider Configuration") {
                     VStack(alignment: .leading, spacing: 15) {
@@ -242,19 +243,21 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
-                Spacer()
+                Spacer(minLength: 20)
             }
             .padding()
-            .tabItem {
-                Image(systemName: "waveform")
-                Text("Speech")
-            }
+        }
+        .tabItem {
+            Image(systemName: "waveform")
+            Text("Speech")
+        }
             
             // Microphone Tab (unchanged)
-            VStack(spacing: 20) {
-                Text("Microphone Settings")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Microphone Settings")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                 
                 GroupBox("Device Priority") {
                     VStack(alignment: .leading, spacing: 15) {
@@ -369,19 +372,21 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
-                Spacer()
+                Spacer(minLength: 20)
             }
             .padding()
-            .tabItem {
-                Image(systemName: "mic.fill")
-                Text("Microphones")
-            }
+        }
+        .tabItem {
+            Image(systemName: "mic.fill")
+            Text("Microphones")
+        }
             
             // Permissions Tab (unchanged)
-            VStack(spacing: 20) {
-                Text("Permissions")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Permissions")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                 
                 GroupBox("Required Permissions") {
                     VStack(alignment: .leading, spacing: 20) {
@@ -638,19 +643,21 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
-                Spacer()
+                Spacer(minLength: 20)
             }
             .padding()
-            .tabItem {
-                Image(systemName: "hand.raised.fill")
-                Text("Permissions")
-            }
+        }
+        .tabItem {
+            Image(systemName: "hand.raised.fill")
+            Text("Permissions")
+        }
             
             
-            VStack(spacing: 20) {
-                Text("Global Hotkeys")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Global Hotkeys")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                 
                 GroupBox("Recording Hotkey") {
                     VStack(alignment: .leading, spacing: 15) {
@@ -716,19 +723,21 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
-                Spacer()
+                Spacer(minLength: 20)
             }
             .padding()
-            .tabItem {
-                Image(systemName: "keyboard")
-                Text(hotkeysTabTitle)
-            }
+        }
+        .tabItem {
+            Image(systemName: "keyboard")
+            Text(hotkeysTabTitle)
+        }
             
             // Advanced Settings Tab
-            VStack(spacing: 20) {
-                Text("Advanced Settings")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Advanced Settings")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                 
                 GroupBox("Onboarding") {
                     VStack(alignment: .leading, spacing: 16) {
@@ -747,13 +756,14 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
-                Spacer()
+                Spacer(minLength: 20)
             }
             .padding()
-            .tabItem {
-                Image(systemName: "gearshape.2")
-                Text("Advanced")
-            }
+        }
+        .tabItem {
+            Image(systemName: "gearshape.2")
+            Text("Advanced")
+        }
         }
         .frame(width: 600, height: 750)
         .sheet(isPresented: $showingTestInjectionView) {
