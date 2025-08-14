@@ -48,7 +48,7 @@ jobs:
           echo "Commit message: $COMMIT_MSG"
           
           # Check if this is a release commit (merged release PR)
-          if [[ "$COMMIT_MSG" =~ ^chore:\ release\ main\ \(\#[0-9]+\)$ ]]; then
+          if [[ "$COMMIT_MSG" =~ ^chore:\ release\ main\ \(\#[0-9]+\)$ ]] || [[ "$COMMIT_MSG" == "chore: release main" ]]; then
             echo "is_release_merge=true" >> $GITHUB_OUTPUT
             
             # Read version from manifest file
