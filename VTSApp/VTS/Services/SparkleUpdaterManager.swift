@@ -1,11 +1,17 @@
 import Foundation
 import Sparkle
 
-/// Manager for handling automatic updates using Sparkle
-class SparkleUpdaterManager: ObservableObject {
+/// Manages automatic updates using Sparkle framework
+public class SparkleUpdaterManager: NSObject, ObservableObject {
     static let shared = SparkleUpdaterManager()
     
-    private let updaterController: SPUStandardUpdaterController
+    private lazy var updaterController: SPUStandardUpdaterController = {
+        return SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: self,
+            userDriverDelegate: nil
+        )
+    }()
     
     /// Update preferences stored in UserDefaults
     @Published var updatePreference: UpdatePreference {
@@ -18,34 +24,23 @@ class SparkleUpdaterManager: ObservableObject {
     /// Whether a check for updates is currently in progress
     @Published var isCheckingForUpdates = false
     
-    /// Current update information if available
-    // @Published var availableUpdate: SPUUpdateItem?
-    @Published var availableUpdate: String? // Placeholder until Sparkle is added
-    
     /// Keys for UserDefaults storage
     private let updatePreferenceKey = "updatePreference"
     
-    private init() {
-        self.updaterController = SPUStandardUpdaterController(
-            startingUpdater: true,
-            updaterDelegate: nil,
-            userDriverDelegate: nil
-        )
-        
-        // Load saved preference
-        if let savedRawValue = UserDefaults.standard.object(forKey: updatePreferenceKey) as? Int,
+    private override init() {
+        // Initialize update preference first
+        if let savedRawValue = UserDefaults.standard.object(forKey: "updatePreference") as? Int,
            let savedPreference = UpdatePreference(rawValue: savedRawValue) {
             self.updatePreference = savedPreference
         } else {
-            // Default to auto-check but manual install
-            self.updatePreference = .autoCheck
+            // Default to auto-install
+            self.updatePreference = .autoInstall
         }
         
-        // Configure initial behavior
-        configureUpdateBehavior()
+        super.init()
         
-        // Set up updater delegate to receive callbacks
-        setupUpdaterCallbacks()
+        // Configure initial behavior (lazy property will be initialized when first accessed)
+        configureUpdateBehavior()
     }
     
     /// Configure Sparkle's automatic update behavior based on user preference
@@ -67,28 +62,12 @@ class SparkleUpdaterManager: ObservableObject {
         print("Update preference set to: \(updatePreference.title)")
     }
     
-    /// Set up callbacks to monitor update status
-    private func setupUpdaterCallbacks() {
-      // Sparkle handles most UI automatically, but you can implement SPUUpdaterDelegate
-      // for custom behavior. For basic functionality, this can remain minimal.
-      
-      // Optional: Set up delegate for more control
-      // updaterController.updater.delegate = self
-    }
-    
     /// Manually check for updates
     func checkForUpdates() {
         guard !isCheckingForUpdates else { return }
         
         isCheckingForUpdates = true
-        
         updaterController.checkForUpdates(nil)
-        
-        // Reset the checking state after the update check completes
-        // Note: Sparkle handles the UI and completion internally
-        DispatchQueue.main.async {
-            self.isCheckingForUpdates = false
-        }
     }
     
     /// Save the update preference to UserDefaults
@@ -105,6 +84,29 @@ class SparkleUpdaterManager: ObservableObject {
     var canAutoUpdate: Bool {
         // Auto-updates work for apps distributed outside the Mac App Store
         return Bundle.main.appStoreReceiptURL?.lastPathComponent != "sandboxReceipt"
+    }
+}
+
+// MARK: - SPUUpdaterDelegate
+
+extension SparkleUpdaterManager: SPUUpdaterDelegate {
+    
+    public func updaterDidNotFindUpdate(_ updater: SPUUpdater) {
+        DispatchQueue.main.async {
+            self.isCheckingForUpdates = false
+        }
+    }
+    
+    public func updater(_ updater: SPUUpdater, didFindValidUpdate update: SUAppcastItem) {
+        DispatchQueue.main.async {
+            self.isCheckingForUpdates = false
+        }
+    }
+    
+    public func updater(_ updater: SPUUpdater, didAbortWithError error: Error) {
+        DispatchQueue.main.async {
+            self.isCheckingForUpdates = false
+        }
     }
 }
 

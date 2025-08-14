@@ -18,19 +18,22 @@ public struct ProviderConfig {
     public let systemPrompt: String?
     public let language: String?
     public let temperature: Float?
+    public let keywords: [String]?
     
-    public init(apiKey: String, model: String, systemPrompt: String? = nil, language: String? = nil, temperature: Float? = nil) {
+    public init(apiKey: String, model: String, systemPrompt: String? = nil, language: String? = nil, temperature: Float? = nil, keywords: [String]? = nil) {
         self.apiKey = apiKey
         self.model = model
         self.systemPrompt = systemPrompt
         self.language = language
         self.temperature = temperature
+        self.keywords = keywords
     }
 }
 
 public enum STTProviderType: String, CaseIterable, Codable {
     case openai = "OpenAI"
     case groq = "Groq"
+    case deepgram = "Deepgram"
     
     public var defaultModels: [String] {
         switch self {
@@ -38,6 +41,8 @@ public enum STTProviderType: String, CaseIterable, Codable {
             return ["whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
         case .groq:
             return ["whisper-large-v3-turbo", "whisper-large-v3"]
+        case .deepgram:
+            return ["nova-3", "nova-2"]
         }
     }
 }

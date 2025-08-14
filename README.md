@@ -7,7 +7,7 @@
 
 **The open-source macOS dictation replacement you've been waiting for!** 🚀
 
-Transform your voice into text instantly with the power of **OpenAI** and **Groq** APIs. Say goodbye to macOS dictation limitations and hello to lightning-fast, accurate transcription with your own custom hotkeys! ⚡️
+Transform your voice into text instantly with the power of **OpenAI**, **Groq**, and **Deepgram** APIs. Say goodbye to macOS dictation limitations and hello to lightning-fast, accurate transcription with your own custom hotkeys! ⚡️
 
 ## 📋 Table of Contents
 
@@ -41,7 +41,7 @@ https://github.com/user-attachments/assets/59563387-5d46-47eb-8f58-2607c4901135
 
 ## ✨ Why Choose VTS?
 
-- 🤖 **AI-Powered Accuracy**: Leverage OpenAI and Groq models for superior transcription
+- 🤖 **AI-Powered Accuracy**: Leverage OpenAI, Groq, and Deepgram models for superior transcription
 - 🔑 **Your Keys, Your Control**: Bring your own API keys - no subscriptions, no limits
 - 🔄 **Drop-in Replacement**: Works exactly like macOS dictation, but better!
 - ⌨️ **Your Shortcut, Your Rules**: Fully customizable global hotkeys (default: ⌘⇧;)
@@ -74,7 +74,7 @@ https://youtu.be/NTQmVCvkZQQ
 
 #### Requirements for End Users
 - **macOS 14.0+** (Apple Silicon & Intel supported)
-- **API key** from OpenAI or Groq (see setup below)
+- **API key** from OpenAI, Groq, or Deepgram (see setup below)
 
 ### API Key Setup
 
@@ -82,13 +82,14 @@ After installing VTS, you'll need an API key from one of these providers:
 
 - **OpenAI**: [Get your API key here](https://platform.openai.com/api-keys)
 - **Groq**: [Get your API key here](https://console.groq.com/keys)
+- **Deepgram**: [Get your API key here](https://console.deepgram.com/project/keys)
 
 *Only one API key is required - choose the provider you prefer!*
 
 ## 📖 Usage Guide
 
 ### Basic Transcription
-1. **Choose Provider**: Select OpenAI or Groq from the dropdown
+1. **Choose Provider**: Select OpenAI, Groq, or Deepgram from the dropdown
 2. **Select Model**: Pick whisper-1, whisper-large-v3, or other available models
 3. **Enter API Key**: Paste your API key in the secure field
 4. **Start Recording**: Press the global hotkey (default: ⌘⇧;) and speak
@@ -134,7 +135,7 @@ After installing VTS, you'll need an API key from one of these providers:
 ### Development Requirements
 - **macOS 14.0+** (Apple Silicon & Intel supported)
 - **Xcode 15+** for building
-- **API key** from OpenAI or Groq for testing
+- **API key** from OpenAI, Groq, or Deepgram for testing
 
 ### Building from Source
 

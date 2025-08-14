@@ -33,10 +33,11 @@ struct PreferencesView: View {
     var body: some View {
         TabView {
             // API Configuration Tab
-            VStack(spacing: 20) {
-                Text("Speech Recognition Settings")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Speech Recognition Settings")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                 
                 GroupBox("AI Provider Configuration") {
                     VStack(alignment: .leading, spacing: 15) {
@@ -70,47 +71,80 @@ struct PreferencesView: View {
                             .pickerStyle(.menu)
                         }
                         
-                        // System Prompt
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Custom Instructions:")
-                                    .frame(width: 240, alignment: .leading)
-                                Spacer()
-                                Text("\(appState.systemPrompt.count) characters")
+                        // Custom Instructions / Keywords based on provider
+                        if appState.selectedProvider == .deepgram {
+                            // Check if Nova3 is selected
+                            let isNova3Selected = appState.selectedModel == "nova-3"
+                            
+                            // Deepgram Keywords Management
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("Keywords:")
+                                        .frame(width: 240, alignment: .leading)
+                                    Spacer()
+                                    Text("\(appState.deepgramKeywords.count) keywords")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                KeywordManagementView(keywords: $appState.deepgramKeywords)
+                                    .disabled(isNova3Selected)
+                                    .opacity(isNova3Selected ? 0.5 : 1.0)
+                            }
+                            
+                            // Help text for keywords
+                            if isNova3Selected {
+                                Text("Keywords are not supported by Nova-3. Nova-3 uses keyterm prompting which is only available for English, but VTS aims for multi-language support.")
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                            } else {
+                                Text("Add keywords to boost recognition accuracy for specific terms, names, or domain-specific vocabulary.")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
-                            
-                            ZStack(alignment: .topLeading) {
-                                // Background with border similar to TextField
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color.primary.opacity(0.2), lineWidth: 1)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 6)
-                                            .fill(Color(NSColor.textBackgroundColor))
-                                    )
-                                
-                                // Auto-scrolling TextEditor that keeps cursor visible
-                                AutoScrollingTextEditor(text: $appState.systemPrompt)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 6)
-                                
-                                // Placeholder text when empty
-                                if appState.systemPrompt.isEmpty {
-                                    Text("Add custom instructions to improve transcription accuracy for specific domains, names, or technical terms")
-                                        .font(.system(size: 13))
+                        } else {
+                            // System Prompt for OpenAI/Groq (Deepgram uses keywords)
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("Custom Instructions:")
+                                        .frame(width: 240, alignment: .leading)
+                                    Spacer()
+                                    Text("\(appState.systemPrompt.count) characters")
+                                        .font(.caption)
                                         .foregroundColor(.secondary)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 10)
-                                        .allowsHitTesting(false)
+                                }
+                                
+                                ZStack(alignment: .topLeading) {
+                                    // Background with border similar to TextField
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .fill(Color(NSColor.textBackgroundColor))
+                                        )
+                                    
+                                    // Auto-scrolling TextEditor that keeps cursor visible
+                                    AutoScrollingTextEditor(text: $appState.systemPrompt)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 6)
+                                    
+                                    // Placeholder text when empty
+                                    if appState.systemPrompt.isEmpty {
+                                        Text("Add custom instructions to improve transcription accuracy for specific domains, names, or technical terms")
+                                            .font(.system(size: 13))
+                                            .foregroundColor(.secondary)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 10)
+                                            .allowsHitTesting(false)
+                                    }
                                 }
                             }
+                            
+                            // Help text for custom instructions
+                            Text("Custom instructions help the AI understand your specific context, vocabulary, or domain expertise for better transcription accuracy.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
-                        
-                        // Help text
-                        Text("Custom instructions help the AI understand your specific context, vocabulary, or domain expertise for better transcription accuracy.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
                     }
                     .padding()
                 }
@@ -128,7 +162,7 @@ struct PreferencesView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
                                     Image(systemName: provider.iconName)
-                                        .foregroundColor(provider == .openai ? .green : .orange)
+                                        .foregroundColor(provider.color)
                                         .frame(width: 20)
                                     
                                     Text(provider.displayName)
@@ -209,19 +243,21 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
-                Spacer()
+                Spacer(minLength: 20)
             }
             .padding()
-            .tabItem {
-                Image(systemName: "waveform")
-                Text("Speech")
-            }
+        }
+        .tabItem {
+            Image(systemName: "waveform")
+            Text("Speech")
+        }
             
             // Microphone Tab (unchanged)
-            VStack(spacing: 20) {
-                Text("Microphone Settings")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Microphone Settings")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                 
                 GroupBox("Device Priority") {
                     VStack(alignment: .leading, spacing: 15) {
@@ -336,19 +372,21 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
-                Spacer()
+                Spacer(minLength: 20)
             }
             .padding()
-            .tabItem {
-                Image(systemName: "mic.fill")
-                Text("Microphones")
-            }
+        }
+        .tabItem {
+            Image(systemName: "mic.fill")
+            Text("Microphones")
+        }
             
             // Permissions Tab (unchanged)
-            VStack(spacing: 20) {
-                Text("Permissions")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Permissions")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                 
                 GroupBox("Required Permissions") {
                     VStack(alignment: .leading, spacing: 20) {
@@ -605,19 +643,21 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
-                Spacer()
+                Spacer(minLength: 20)
             }
             .padding()
-            .tabItem {
-                Image(systemName: "hand.raised.fill")
-                Text("Permissions")
-            }
+        }
+        .tabItem {
+            Image(systemName: "hand.raised.fill")
+            Text("Permissions")
+        }
             
             
-            VStack(spacing: 20) {
-                Text("Global Hotkeys")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Global Hotkeys")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                 
                 GroupBox("Recording Hotkey") {
                     VStack(alignment: .leading, spacing: 15) {
@@ -683,19 +723,21 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
-                Spacer()
+                Spacer(minLength: 20)
             }
             .padding()
-            .tabItem {
-                Image(systemName: "keyboard")
-                Text(hotkeysTabTitle)
-            }
+        }
+        .tabItem {
+            Image(systemName: "keyboard")
+            Text(hotkeysTabTitle)
+        }
             
             // Advanced Settings Tab
-            VStack(spacing: 20) {
-                Text("Advanced Settings")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Advanced Settings")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                 
                 GroupBox("Onboarding") {
                     VStack(alignment: .leading, spacing: 16) {
@@ -714,15 +756,16 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
-                Spacer()
+                Spacer(minLength: 20)
             }
             .padding()
-            .tabItem {
-                Image(systemName: "gearshape.2")
-                Text("Advanced")
-            }
         }
-        .frame(width: 600, height: 650)
+        .tabItem {
+            Image(systemName: "gearshape.2")
+            Text("Advanced")
+        }
+        }
+        .frame(width: 600, height: 750)
         .sheet(isPresented: $showingTestInjectionView) {
             TextInjectionTestView(isPresented: $showingTestInjectionView)
                 .environmentObject(appState)
@@ -747,6 +790,99 @@ struct PreferencesView: View {
         } catch {
             print("Failed to delete API key: \(error)")
         }
+    }
+}
+
+// MARK: - Keyword Management View
+
+struct KeywordManagementView: View {
+    @Binding var keywords: [String]
+    @State private var newKeyword: String = ""
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Add new keyword section
+            HStack {
+                TextField("Enter keyword or phrase", text: $newKeyword)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit {
+                        addKeyword()
+                    }
+                
+                Button("Add") {
+                    addKeyword()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(newKeyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            
+            // Keywords list
+            if keywords.isEmpty {
+                HStack {
+                    Image(systemName: "text.magnifyingglass")
+                        .foregroundColor(.secondary)
+                    Text("No keywords added yet")
+                        .foregroundColor(.secondary)
+                        .italic()
+                    Spacer()
+                }
+                .padding(.vertical, 8)
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 6) {
+                        ForEach(Array(keywords.enumerated()), id: \.offset) { index, keyword in
+                            HStack {
+                                Text(keyword)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color.blue.opacity(0.1))
+                                            .overlay(
+                                                Capsule()
+                                                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                            )
+                                    )
+                                
+                                Spacer()
+                                
+                                Button(action: {
+                                    removeKeyword(at: index)
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.red.opacity(0.7))
+                                        .font(.caption)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                .frame(maxHeight: 120)
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color(NSColor.textBackgroundColor))
+                )
+        )
+    }
+    
+    private func addKeyword() {
+        let trimmedKeyword = newKeyword.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedKeyword.isEmpty, !keywords.contains(trimmedKeyword) else { return }
+        
+        keywords.append(trimmedKeyword)
+        newKeyword = ""
+    }
+    
+    private func removeKeyword(at index: Int) {
+        guard index < keywords.count else { return }
+        keywords.remove(at: index)
     }
 }
 

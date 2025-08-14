@@ -154,6 +154,8 @@ extension STTProviderType {
             return "brain.head.profile"
         case .groq:
             return "bolt.fill"
+        case .deepgram:
+            return "waveform.circle.fill"
         }
     }
 }
@@ -176,11 +178,17 @@ class AppState: ObservableObject {
     
     // Keys for UserDefaults storage
     private let systemPromptKey = "systemPrompt"
+    private let deepgramKeywordsKey = "deepgramKeywords"
     
     // Configuration state - now using APIKeyManager
     @Published var systemPrompt = "" {
         didSet {
             saveSystemPrompt()
+        }
+    }
+    @Published var deepgramKeywords: [String] = [] {
+        didSet {
+            saveDeepgramKeywords()
         }
     }
     @Published var isRecording = false
@@ -237,6 +245,7 @@ class AppState: ObservableObject {
     
     init() {
         loadSystemPrompt()
+        loadDeepgramKeywords()
         setupTranscriptionService()
         setupObservableObjectBindings()
         
@@ -400,6 +409,8 @@ class AppState: ObservableObject {
             transcriptionService.setProvider(OpenAIProvider())
         case .groq:
             transcriptionService.setProvider(GroqProvider())
+        case .deepgram:
+            transcriptionService.setProvider(DeepgramProvider())
         }
     }
     
@@ -438,10 +449,15 @@ class AppState: ObservableObject {
                 return
             }
             
+            // Configure provider-specific settings
+            let providerSystemPrompt = (selectedProvider != .deepgram && !systemPrompt.isEmpty) ? systemPrompt : nil
+            let providerKeywords = (selectedProvider == .deepgram && selectedModel != "nova-3" && !deepgramKeywords.isEmpty) ? deepgramKeywords : nil
+            
             let config = ProviderConfig(
                 apiKey: apiKey,
                 model: selectedModel,
-                systemPrompt: systemPrompt.isEmpty ? nil : systemPrompt
+                systemPrompt: providerSystemPrompt,
+                keywords: providerKeywords
             )
             
             print("Starting transcription with \(selectedProvider.rawValue) using model \(selectedModel)")
@@ -498,7 +514,7 @@ class AppState: ObservableObject {
         alert.runModal()
     }
     
-    // MARK: - System Prompt Persistence
+    // MARK: - Configuration Persistence
     
     private func saveSystemPrompt() {
         UserDefaults.standard.set(systemPrompt, forKey: systemPromptKey)
@@ -506,5 +522,19 @@ class AppState: ObservableObject {
     
     private func loadSystemPrompt() {
         systemPrompt = UserDefaults.standard.string(forKey: systemPromptKey) ?? ""
+    }
+    
+    private func saveDeepgramKeywords() {
+        let keywordData = try? JSONEncoder().encode(deepgramKeywords)
+        UserDefaults.standard.set(keywordData, forKey: deepgramKeywordsKey)
+    }
+    
+    private func loadDeepgramKeywords() {
+        guard let keywordData = UserDefaults.standard.data(forKey: deepgramKeywordsKey),
+              let keywords = try? JSONDecoder().decode([String].self, from: keywordData) else {
+            deepgramKeywords = []
+            return
+        }
+        deepgramKeywords = keywords
     }
 }

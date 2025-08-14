@@ -128,7 +128,7 @@ public class BaseSTTProvider: STTProvider {
         return false
     }
     
-    /// Common WAV data creation method for both providers
+    /// Common WAV data creation method for all providers
     internal func createWAVData(from pcmData: Data) -> Data {
         let sampleRate: UInt32 = 16000
         let channels: UInt16 = 1

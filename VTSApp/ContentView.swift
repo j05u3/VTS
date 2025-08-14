@@ -53,7 +53,7 @@ struct ContentView: View {
                     
                     HStack(spacing: 8) {
                         Image(systemName: appState.selectedProvider.iconName)
-                            .foregroundColor(appState.selectedProvider == .openai ? .green : .orange)
+                            .foregroundColor(appState.selectedProvider.color)
                         
                         if appState.apiKeyManagerService.hasAPIKey(for: appState.selectedProvider) {
                             Text("✓ Configured")
