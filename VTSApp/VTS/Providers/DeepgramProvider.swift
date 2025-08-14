@@ -59,8 +59,9 @@ public class DeepgramProvider: BaseSTTProvider {
         // Add model parameter
         queryItems.append(URLQueryItem(name: "model", value: config.model))
         
-        // Add language if provided
-        queryItems.append(URLQueryItem(name: "language", value: "multi"))
+        // Add language - use config.language if provided, otherwise default to "multi" for multi-language support
+        let language = config.language?.isEmpty == false ? config.language! : "multi"
+        queryItems.append(URLQueryItem(name: "language", value: language))
         
         // Deepgram-specific parameters
         queryItems.append(URLQueryItem(name: "punctuate", value: "true"))
@@ -116,17 +117,14 @@ public class DeepgramProvider: BaseSTTProvider {
             
         case 401:
             // Authentication failed - invalid API key
-            let errorDetails = parseErrorResponse(data)
             throw STTError.invalidAPIKey
             
         case 402:
             // Payment required - quota exceeded
-            let errorDetails = parseErrorResponse(data)
             throw STTError.transcriptionError("Account quota exceeded. Please check your billing and usage limits.")
             
         case 429:
             // Rate limit exceeded
-            let errorDetails = parseErrorResponse(data)
             throw STTError.transcriptionError("Rate limit exceeded. Please wait before trying again.")
             
         case 400:

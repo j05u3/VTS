@@ -449,11 +449,15 @@ class AppState: ObservableObject {
                 return
             }
             
+            // Configure provider-specific settings
+            let providerSystemPrompt = (selectedProvider != .deepgram && !systemPrompt.isEmpty) ? systemPrompt : nil
+            let providerKeywords = (selectedProvider == .deepgram && selectedModel != "nova-3" && !deepgramKeywords.isEmpty) ? deepgramKeywords : nil
+            
             let config = ProviderConfig(
                 apiKey: apiKey,
                 model: selectedModel,
-                systemPrompt: selectedProvider == .deepgram ? nil : (systemPrompt.isEmpty ? nil : systemPrompt),
-                keywords: selectedProvider == .deepgram && selectedModel != "nova-3" ? (deepgramKeywords.isEmpty ? nil : deepgramKeywords) : nil
+                systemPrompt: providerSystemPrompt,
+                keywords: providerKeywords
             )
             
             print("Starting transcription with \(selectedProvider.rawValue) using model \(selectedModel)")
