@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * added the issues permission to the release please workflow ([b12f918](https://github.com/j05u3/VTS/commit/b12f91858527f57851eaf5e410d3506f14e5298e))
 * **config:** fix build paths and update appcast logic for release handling ([#33](https://github.com/j05u3/VTS/issues/33)) ([36cdd99](https://github.com/j05u3/VTS/commit/36cdd9981f17b736a73660cc1a001372f26cfe9b))
 
-## [0.2.1] - 2025-08-02
+## [0.2.1](https://github.com/j05u3/VTS/tree/v0.2.1) (2025-08-02)
 
 ### ✨ Features
 - Initial release of VTS (Voice Typing Studio)

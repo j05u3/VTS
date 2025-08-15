@@ -97,21 +97,27 @@ jobs:
             CHANGELOG_CONTENT="Release $VERSION"
           fi
           
-          # Create GitHub release using REST API
-          curl -L \
+          # Create GitHub release using REST API with proper JSON escaping
+          jq -n \
+            --arg tag_name "$TAG_NAME" \
+            --arg target_commitish "${{ github.sha }}" \
+            --arg name "$TAG_NAME" \
+            --arg body "$CHANGELOG_CONTENT" \
+            '{
+              tag_name: $tag_name,
+              target_commitish: $target_commitish,
+              name: $name,
+              body: $body,
+              draft: false,
+              prerelease: false,
+              generate_release_notes: false
+            }' | curl -L \
             -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: application/json" \
             https://api.github.com/repos/${{ github.repository }}/releases \
-            -d "{
-              \"tag_name\":\"$TAG_NAME\",
-              \"target_commitish\":\"${{ github.sha }}\",
-              \"name\":\"$TAG_NAME\",
-              \"body\":\"$CHANGELOG_CONTENT\",
-              \"draft\":false,
-              \"prerelease\":false,
-              \"generate_release_notes\":false
-            }"
+            -d @-
           
           echo "✅ Created tag and GitHub release: $TAG_NAME"
