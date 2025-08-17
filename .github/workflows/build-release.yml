@@ -109,15 +109,15 @@ jobs:
           exit 1
         fi
         
-        if [[ ! -f "bin/sign-update" ]]; then
-          echo "❌ sign-update tool not found in bin directory"
+        if [[ ! -f "bin/sign_update" ]]; then
+          echo "❌ sign_update tool not found in bin directory"
           echo "📂 Contents of bin directory:"
           ls -la bin/
           exit 1
         fi
         
-        # Make sign-update executable
-        chmod +x bin/sign-update
+        # Make sign_update executable
+        chmod +x bin/sign_update
         
         # Create private key file
         echo "$SPARKLE_PRIVATE_KEY" > private_key
@@ -130,12 +130,12 @@ jobs:
           echo "✅ DMG file found, generating signature..."
           
           # Generate signature with error handling (using correct syntax)
-          if ! SIGNATURE=$(./bin/sign-update -p --ed-key-file private_key "$DMG_PATH"); then
+          if ! SIGNATURE=$(./bin/sign_update -p --ed-key-file private_key "$DMG_PATH"); then
             echo "❌ Failed to generate signature"
             echo "🔧 Debugging info:"
             file "$DMG_PATH"
             ls -la "$DMG_PATH"
-            ./bin/sign-update --help || echo "No help available"
+            ./bin/sign_update --help || echo "No help available"
             exit 1
           fi
           
