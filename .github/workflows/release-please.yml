@@ -10,6 +10,7 @@ permissions:
   contents: write          # Create releases and tags
   pull-requests: write     # Create and update pull requests
   issues: write            # Create and manage labels
+  repository-projects: read # Read repository projects (required for v4)
 
 jobs:
   release-please:
