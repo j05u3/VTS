@@ -27,12 +27,20 @@ jobs:
         run: |
           echo "🧹 Cleaning up merged PRs with stale autorelease: pending labels"
           # Remove autorelease: pending labels from merged PRs to prevent deadlock
-          gh pr list --repo ${{ github.repository }} --state merged --label "autorelease: pending" --json number --jq '.[] | .number' | while read pr; do
-            if [ ! -z "$pr" ]; then
+          pr_numbers=$(gh pr list --repo "${{ github.repository }}" --state merged --label "autorelease: pending" --json number --jq -r '.[] | .number')
+          
+          if [ -n "$pr_numbers" ]; then
+            for pr in $pr_numbers; do
               echo "Removing stale label from merged PR #$pr"
-              gh pr edit $pr --remove-label "autorelease: pending" || echo "Failed to remove label from PR #$pr"
-            fi
-          done
+              if gh api "repos/${{ github.repository }}/issues/$pr/labels/autorelease:%20pending" -X DELETE --silent; then
+                echo "✅ Successfully removed label from PR #$pr"
+              else
+                echo "❌ Failed to remove label from PR #$pr (may already be removed)"
+              fi
+            done
+          else
+            echo "✨ No merged PRs with stale autorelease: pending labels found"
+          fi
 
       - uses: googleapis/release-please-action@v4
         id: release
