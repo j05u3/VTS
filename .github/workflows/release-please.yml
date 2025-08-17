@@ -21,26 +21,68 @@ jobs:
       version: ${{ steps.release.outputs.version }}
       pr: ${{ steps.release.outputs.pr }}
     steps:
-      - name: Clean up stale release labels
+      - name: Validate permissions
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          echo "🔐 Validating GitHub token permissions..."
+          
+          # Test basic repository access
+          if gh repo view "${{ github.repository }}" > /dev/null 2>&1; then
+            echo "✅ Repository access: OK"
+          else
+            echo "❌ Repository access: FAILED"
+            exit 1
+          fi
+          
+          # Test PR list access
+          if gh pr list --repo "${{ github.repository }}" --limit 1 > /dev/null 2>&1; then
+            echo "✅ Pull request read access: OK"
+          else
+            echo "❌ Pull request read access: FAILED"
+            exit 1
+          fi
+          
+          echo "🔐 Permission validation completed"
+
+      - name: Clean up stale release labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_DEBUG: api
+        run: |
           echo "🧹 Cleaning up merged PRs with stale autorelease: pending labels"
+          echo "📊 Debug info: Using token with permissions for repository: ${{ github.repository }}"
+          
           # Remove autorelease: pending labels from merged PRs to prevent deadlock
+          echo "🔍 Searching for merged PRs with 'autorelease: pending' label..."
           pr_numbers=$(gh pr list --repo "${{ github.repository }}" --state merged --label "autorelease: pending" --json number | jq -r '.[] | .number')
           
           if [ -n "$pr_numbers" ]; then
+            echo "📋 Found PRs to clean: $pr_numbers"
             for pr in $pr_numbers; do
-              echo "Removing stale label from merged PR #$pr"
-              if gh pr edit "$pr" --remove-label "autorelease: pending" 2>/dev/null; then
+              echo "🏷️  Attempting to remove label from merged PR #$pr"
+              
+              # Try with verbose error output
+              if gh pr edit "$pr" --remove-label "autorelease: pending"; then
                 echo "✅ Successfully removed label from PR #$pr"
               else
-                echo "❌ Failed to remove label from PR #$pr (may already be removed)"
+                exit_code=$?
+                echo "❌ Failed to remove label from PR #$pr (exit code: $exit_code)"
+                echo "🔍 Checking current labels on PR #$pr:"
+                gh pr view "$pr" --json labels | jq -r '.labels[].name' || echo "Could not fetch labels"
+                echo "⚠️  This might be due to:"
+                echo "   - Label already removed by another process"
+                echo "   - Temporary API rate limiting"
+                echo "   - Network connectivity issues"
+                echo "   - PR may be in an unexpected state"
+                echo "🔄 Continuing with other PRs..."
               fi
             done
           else
             echo "✨ No merged PRs with stale autorelease: pending labels found"
           fi
+          
+          echo "🏁 Label cleanup completed"
 
       - uses: googleapis/release-please-action@v4
         id: release
