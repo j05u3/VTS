@@ -21,6 +21,19 @@ jobs:
       version: ${{ steps.release.outputs.version }}
       pr: ${{ steps.release.outputs.pr }}
     steps:
+      - name: Clean up stale release labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🧹 Cleaning up merged PRs with stale autorelease: pending labels"
+          # Remove autorelease: pending labels from merged PRs to prevent deadlock
+          gh pr list --repo ${{ github.repository }} --state merged --label "autorelease: pending" --json number --jq '.[] | .number' | while read pr; do
+            if [ ! -z "$pr" ]; then
+              echo "Removing stale label from merged PR #$pr"
+              gh pr edit $pr --remove-label "autorelease: pending" || echo "Failed to remove label from PR #$pr"
+            fi
+          done
+
       - uses: googleapis/release-please-action@v4
         id: release
         with:
