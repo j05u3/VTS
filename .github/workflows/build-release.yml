@@ -77,23 +77,75 @@ jobs:
         
         # Create temporary directory for Sparkle tools
         TEMP_DIR=$(mktemp -d)
+        echo "📁 Created temp directory: $TEMP_DIR"
         cd "$TEMP_DIR"
         
         # Download Sparkle tools
         SPARKLE_VERSION="2.6.4"
         SPARKLE_URL="https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
-        curl -L -o sparkle.tar.xz "$SPARKLE_URL"
-        tar -xf sparkle.tar.xz
+        echo "📥 Downloading Sparkle tools from: $SPARKLE_URL"
+        
+        if ! curl -L -o sparkle.tar.xz "$SPARKLE_URL"; then
+          echo "❌ Failed to download Sparkle tools"
+          exit 1
+        fi
+        
+        echo "📦 Extracting Sparkle tools..."
+        if ! tar -xf sparkle.tar.xz; then
+          echo "❌ Failed to extract Sparkle tools"
+          echo "📄 Archive contents:"
+          tar -tf sparkle.tar.xz || echo "Cannot list archive contents"
+          exit 1
+        fi
+        
+        echo "📂 Contents after extraction:"
+        ls -la
+        
+        # Check for bin directory and sign_update tool
+        if [[ ! -d "bin" ]]; then
+          echo "❌ bin directory not found after extraction"
+          echo "📂 Available directories:"
+          find . -type d -name "*" | head -10
+          exit 1
+        fi
+        
+        if [[ ! -f "bin/sign_update" ]]; then
+          echo "❌ sign_update tool not found in bin directory"
+          echo "📂 Contents of bin directory:"
+          ls -la bin/
+          exit 1
+        fi
+        
+        # Make sign_update executable
+        chmod +x bin/sign_update
         
         # Create private key file
         echo "$SPARKLE_PRIVATE_KEY" > private_key
         
         # Sign the DMG and generate signature
         DMG_PATH="${GITHUB_WORKSPACE}/${APP_NAME}-${VERSION_NUMBER}-Universal.dmg"
+        echo "🔍 Looking for DMG at: $DMG_PATH"
+        
         if [[ -f "$DMG_PATH" ]]; then
-          # Generate signature
-          SIGNATURE=$(./bin/sign_update "$DMG_PATH" private_key)
+          echo "✅ DMG file found, generating signature..."
+          
+          # Generate signature with error handling
+          if ! SIGNATURE=$(./bin/sign_update "$DMG_PATH" private_key); then
+            echo "❌ Failed to generate signature"
+            echo "🔧 Debugging info:"
+            file "$DMG_PATH"
+            ls -la "$DMG_PATH"
+            ./bin/sign_update --help || echo "No help available"
+            exit 1
+          fi
+          
           echo "Generated signature: $SIGNATURE"
+          
+          # Validate signature is not empty
+          if [[ -z "$SIGNATURE" ]]; then
+            echo "❌ Generated signature is empty"
+            exit 1
+          fi
           
           # Save signature to file for the appcast
           echo "$SIGNATURE" > "${GITHUB_WORKSPACE}/${APP_NAME}-${VERSION_NUMBER}-Universal.dmg.sig"
@@ -111,6 +163,8 @@ jobs:
           echo "✅ Successfully signed DMG with Sparkle signature"
         else
           echo "❌ DMG file not found: $DMG_PATH"
+          echo "📂 Available files in workspace:"
+          ls -la "$GITHUB_WORKSPACE"/*.dmg || echo "No DMG files found"
           exit 1
         fi
         
