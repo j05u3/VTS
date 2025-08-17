@@ -32,7 +32,7 @@ jobs:
           if [ -n "$pr_numbers" ]; then
             for pr in $pr_numbers; do
               echo "Removing stale label from merged PR #$pr"
-              if gh api "repos/${{ github.repository }}/issues/$pr/labels/autorelease:%20pending" -X DELETE --silent; then
+              if gh pr edit "$pr" --remove-label "autorelease: pending" 2>/dev/null; then
                 echo "✅ Successfully removed label from PR #$pr"
               else
                 echo "❌ Failed to remove label from PR #$pr (may already be removed)"
