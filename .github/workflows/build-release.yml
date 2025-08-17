@@ -202,7 +202,7 @@ jobs:
           release-metadata.json
         token: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Trigger GitHub Pages Update
+    - name: Success logs
       if: success()
       run: |
         echo "🎉 Release ${{ steps.get_version.outputs.version }} has been published!"
