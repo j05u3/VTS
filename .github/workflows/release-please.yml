@@ -27,7 +27,7 @@ jobs:
         run: |
           echo "🧹 Cleaning up merged PRs with stale autorelease: pending labels"
           # Remove autorelease: pending labels from merged PRs to prevent deadlock
-          pr_numbers=$(gh pr list --repo "${{ github.repository }}" --state merged --label "autorelease: pending" --json number --jq '.[] | .number')
+          pr_numbers=$(gh pr list --repo "${{ github.repository }}" --state merged --label "autorelease: pending" --json number | jq -r '.[] | .number')
           
           if [ -n "$pr_numbers" ]; then
             for pr in $pr_numbers; do
