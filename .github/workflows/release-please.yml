@@ -27,97 +27,23 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # Check if this push is from a merged release PR
-  check-release-merge:
+  # Additional actions to run when a release is created
+  post-release:
+    needs: [release-please]
     runs-on: ubuntu-latest
-    outputs:
-      is_release_merge: ${{ steps.check.outputs.is_release_merge }}
-      version: ${{ steps.check.outputs.version }}
-      tag_name: ${{ steps.check.outputs.tag_name }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-      
-      - name: Check if this is a release merge
-        id: check
-        run: |
-          # Get the commit message of the current commit
-          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
-          echo "Commit message: $COMMIT_MSG"
-          
-          # Check if this is a release commit (merged release PR)
-          if [[ "$COMMIT_MSG" =~ ^chore:\ release\ main\ \(\#[0-9]+\)$ ]] || [[ "$COMMIT_MSG" == "chore: release main" ]]; then
-            echo "is_release_merge=true" >> $GITHUB_OUTPUT
-            
-            # Read version from manifest file
-            VERSION=$(cat .release-please-manifest.json | grep -o '"[^"]*"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4)
-            TAG_NAME="v$VERSION"
-            
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-            echo "Detected release merge for version: $VERSION"
-          else
-            echo "is_release_merge=false" >> $GITHUB_OUTPUT
-            echo "Not a release merge commit"
-          fi
-
-  # Create tag and GitHub release for merged release PR
-  create-release-tag:
-    needs: [check-release-merge]
-    runs-on: ubuntu-latest
-    if: ${{ needs.check-release-merge.outputs.is_release_merge == 'true' }}
+    if: ${{ needs.release-please.outputs.release_created }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Create tag and GitHub release
+      - name: Post-release actions
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: ${{ needs.check-release-merge.outputs.tag_name }}
-          VERSION: ${{ needs.check-release-merge.outputs.version }}
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+          VERSION: ${{ needs.release-please.outputs.version }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          echo "Creating tag: $TAG_NAME"
-          git tag "$TAG_NAME"
-          git push origin "$TAG_NAME"
-          
-          # Extract changelog for this version from CHANGELOG.md
-          CHANGELOG_CONTENT=""
-          if [ -f "CHANGELOG.md" ]; then
-            # Extract the changelog section for this version
-            CHANGELOG_CONTENT=$(awk "/## \[$VERSION\]/{flag=1; next} /## \[/{flag=0} flag" CHANGELOG.md | sed '/^$/d')
-            if [ -z "$CHANGELOG_CONTENT" ]; then
-              CHANGELOG_CONTENT="Release $VERSION"
-            fi
-          else
-            CHANGELOG_CONTENT="Release $VERSION"
-          fi
-          
-          # Create GitHub release using REST API with proper JSON escaping
-          jq -n \
-            --arg tag_name "$TAG_NAME" \
-            --arg target_commitish "${{ github.sha }}" \
-            --arg name "$TAG_NAME" \
-            --arg body "$CHANGELOG_CONTENT" \
-            '{
-              tag_name: $tag_name,
-              target_commitish: $target_commitish,
-              name: $name,
-              body: $body,
-              draft: false,
-              prerelease: false,
-              generate_release_notes: false
-            }' | curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            -H "Content-Type: application/json" \
-            https://api.github.com/repos/${{ github.repository }}/releases \
-            -d @-
-          
-          echo "✅ Created tag and GitHub release: $TAG_NAME"
+          echo "🎉 Release $TAG_NAME was created successfully!"
+          echo "Version: $VERSION"
+          echo "You can add additional post-release actions here, such as:"
+          echo "- Building and uploading assets"
+          echo "- Sending notifications"
+          echo "- Updating documentation"
