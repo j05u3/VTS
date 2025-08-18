@@ -50,45 +50,8 @@ jobs:
           
           echo "🔐 Permission validation completed"
 
-      - name: Clean up stale release labels
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_DEBUG: api
-        run: |
-          echo "🧹 Cleaning up merged PRs with stale autorelease: pending labels"
-          echo "📊 Debug info: Using token with permissions for repository: ${{ github.repository }}"
-          
-          # Remove autorelease: pending labels from merged PRs to prevent deadlock
-          echo "🔍 Searching for merged PRs with 'autorelease: pending' label..."
-          pr_numbers=$(gh pr list --repo "${{ github.repository }}" --state merged --label "autorelease: pending" --json number | jq -r '.[] | .number')
-          
-          if [ -n "$pr_numbers" ]; then
-            echo "📋 Found PRs to clean: $pr_numbers"
-            for pr in $pr_numbers; do
-              echo "🏷️  Attempting to remove label from merged PR #$pr"
-              
-              # Try with verbose error output and explicit repository specification
-              if gh pr edit "$pr" --repo "${{ github.repository }}" --remove-label "autorelease: pending"; then
-                echo "✅ Successfully removed label from PR #$pr"
-              else
-                exit_code=$?
-                echo "❌ Failed to remove label from PR #$pr (exit code: $exit_code)"
-                echo "🔍 Checking current labels on PR #$pr:"
-                gh pr view "$pr" --repo "${{ github.repository }}" --json labels | jq -r '.labels[].name' || echo "Could not fetch labels"
-                echo "⚠️  This might be due to:"
-                echo "   - Label already removed by another process"
-                echo "   - Temporary API rate limiting"
-                echo "   - Network connectivity issues"
-                echo "   - PR may be in an unexpected state"
-                echo "   - Repository access issues"
-                echo "🔄 Continuing with other PRs..."
-              fi
-            done
-          else
-            echo "✨ No merged PRs with stale autorelease: pending labels found"
-          fi
-          
-          echo "🏁 Label cleanup completed"
+      # Note: Removed complex label cleanup as it may interfere with release-please's 
+      # ability to detect merged release PRs. Release-please should manage its own labels.
 
       - name: Validate release state
         env:
@@ -103,16 +66,25 @@ jobs:
           # Check if GitHub release exists for this version
           if gh release view "v$MANIFEST_VERSION" > /dev/null 2>&1; then
             echo "✅ GitHub release v$MANIFEST_VERSION exists"
+            
+            # Check if release was created by release-please (has the right tag format)
+            RELEASE_INFO=$(gh release view "v$MANIFEST_VERSION" --json tagName,name,createdAt)
+            echo "📋 Release info: $RELEASE_INFO"
           else
             echo "⚠️  GitHub release v$MANIFEST_VERSION not found"
+            
+            # Check if git tag exists for this version
+            if git rev-parse "v$MANIFEST_VERSION" > /dev/null 2>&1; then
+              echo "✅ Git tag v$MANIFEST_VERSION exists"
+              echo "🔧 Git tag exists but GitHub release is missing - this could be the issue"
+            else
+              echo "⚠️  Git tag v$MANIFEST_VERSION not found"
+            fi
           fi
           
-          # Check if git tag exists for this version
-          if git rev-parse "v$MANIFEST_VERSION" > /dev/null 2>&1; then
-            echo "✅ Git tag v$MANIFEST_VERSION exists"
-          else
-            echo "⚠️  Git tag v$MANIFEST_VERSION not found"
-          fi
+          # List recent releases for debugging
+          echo "📋 Recent GitHub releases:"
+          gh release list --limit 3 || echo "Could not fetch releases"
           
           echo "🔍 Release state validation completed"
 
@@ -122,6 +94,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          # Ensure release-please processes both PRs and releases
+          skip-github-release: false
+          skip-github-pull-request: false
 
   # Additional actions to run when a release is created
   post-release:
