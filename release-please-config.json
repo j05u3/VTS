@@ -6,6 +6,7 @@
   "separate-pull-requests": false,
   "release-search-depth": 200,
   "commit-search-depth": 500,
+  "bootstrap-sha": "1e51f27d3c157163b49102673712cf951d1d01b1",
   "packages": {
     ".": {
       "package-name": "VTS",

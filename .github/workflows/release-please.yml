@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history including tags
 
       - name: Validate permissions
         env:
@@ -87,6 +89,32 @@ jobs:
           fi
           
           echo "🏁 Label cleanup completed"
+
+      - name: Validate release state
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Validating release state consistency..."
+          
+          # Get the latest version from manifest
+          MANIFEST_VERSION=$(jq -r '.["." ]' .release-please-manifest.json)
+          echo "📋 Manifest version: $MANIFEST_VERSION"
+          
+          # Check if GitHub release exists for this version
+          if gh release view "v$MANIFEST_VERSION" > /dev/null 2>&1; then
+            echo "✅ GitHub release v$MANIFEST_VERSION exists"
+          else
+            echo "⚠️  GitHub release v$MANIFEST_VERSION not found"
+          fi
+          
+          # Check if git tag exists for this version
+          if git rev-parse "v$MANIFEST_VERSION" > /dev/null 2>&1; then
+            echo "✅ Git tag v$MANIFEST_VERSION exists"
+          else
+            echo "⚠️  Git tag v$MANIFEST_VERSION not found"
+          fi
+          
+          echo "🔍 Release state validation completed"
 
       - uses: googleapis/release-please-action@v4
         id: release
