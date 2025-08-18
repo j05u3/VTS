@@ -5,6 +5,22 @@ All notable changes to VTS - Voice Typing Studio will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2](https://github.com/j05u3/VTS/compare/v0.8.1...v0.8.2) (2025-08-18)
+
+
+### ⚙️ Continuous Integration
+
+* add release state validation and fetch all history in release workflow ([e5b5052](https://github.com/j05u3/VTS/commit/e5b5052983dc5fefd64ed8ae588f1841c100079d))
+* correct release-please synchronization with actual releases ([d71eadb](https://github.com/j05u3/VTS/commit/d71eadb92fcd0a0b5cbaa50a2e4f6f85fd71d35a))
+* fix synchronization of release-please state with repository ([9b389b1](https://github.com/j05u3/VTS/commit/9b389b1ac1492c3b9e7a9450e7e7f49e90a49ffe))
+
+
+### 🧹 Miscellaneous
+
+* release main ([#53](https://github.com/j05u3/VTS/issues/53)) ([c9077e0](https://github.com/j05u3/VTS/commit/c9077e090aff27625520279f027e1ac999fdca8e))
+* release main ([#54](https://github.com/j05u3/VTS/issues/54)) ([c6f51bb](https://github.com/j05u3/VTS/commit/c6f51bbd6ff1203eb571a3e873d66d08bb3d3519))
+* release main ([#55](https://github.com/j05u3/VTS/issues/55)) ([7c12b12](https://github.com/j05u3/VTS/commit/7c12b12b1cfd399ebc2e309f55898fc2a0d63e25))
+
 ## [0.8.1](https://github.com/j05u3/VTS/compare/v0.8.0...v0.8.1) (2025-08-18)
 
 
