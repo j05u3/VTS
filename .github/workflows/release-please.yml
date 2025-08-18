@@ -21,6 +21,9 @@ jobs:
       version: ${{ steps.release.outputs.version }}
       pr: ${{ steps.release.outputs.pr }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Validate permissions
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,19 +65,20 @@ jobs:
             for pr in $pr_numbers; do
               echo "🏷️  Attempting to remove label from merged PR #$pr"
               
-              # Try with verbose error output
-              if gh pr edit "$pr" --remove-label "autorelease: pending"; then
+              # Try with verbose error output and explicit repository specification
+              if gh pr edit "$pr" --repo "${{ github.repository }}" --remove-label "autorelease: pending"; then
                 echo "✅ Successfully removed label from PR #$pr"
               else
                 exit_code=$?
                 echo "❌ Failed to remove label from PR #$pr (exit code: $exit_code)"
                 echo "🔍 Checking current labels on PR #$pr:"
-                gh pr view "$pr" --json labels | jq -r '.labels[].name' || echo "Could not fetch labels"
+                gh pr view "$pr" --repo "${{ github.repository }}" --json labels | jq -r '.labels[].name' || echo "Could not fetch labels"
                 echo "⚠️  This might be due to:"
                 echo "   - Label already removed by another process"
                 echo "   - Temporary API rate limiting"
                 echo "   - Network connectivity issues"
                 echo "   - PR may be in an unexpected state"
+                echo "   - Repository access issues"
                 echo "🔄 Continuing with other PRs..."
               fi
             done
