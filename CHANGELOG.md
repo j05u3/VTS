@@ -5,6 +5,19 @@ All notable changes to VTS - Voice Typing Studio will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1](https://github.com/j05u3/VTS/compare/v0.9.0...v0.9.1) (2025-08-24)
+
+
+### 🐛 Bug Fixes
+
+* appcast system for future releases ([4627df7](https://github.com/j05u3/VTS/commit/4627df7f014e314d7ad9ac4de10e204a430e6e3d))
+* update bootstrap-sha and add debug logging to release-please ([eb8a6cc](https://github.com/j05u3/VTS/commit/eb8a6ccb826bdb8fe03fbc2731dbe2c395451090))
+
+
+### 📚 Documentation
+
+* add new agents for macOS audio/video, release engineering, QA, real-time STT, and UX onboarding ([e38cb2b](https://github.com/j05u3/VTS/commit/e38cb2b06dbadc50b6f24a610cb722fd5e9ee753))
+
 ## [0.9.0](https://github.com/j05u3/VTS/compare/v0.8.5...v0.9.0) (2025-08-24)
 
 
