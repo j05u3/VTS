@@ -33,9 +33,3 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
           
-      - name: Debug Release Outputs
-        run: |
-          echo "release_created: ${{ steps.release.outputs.release_created }}"
-          echo "tag_name: ${{ steps.release.outputs.tag_name }}"
-          echo "version: ${{ steps.release.outputs.version }}"
-          echo "pr: ${{ steps.release.outputs.pr }}"
