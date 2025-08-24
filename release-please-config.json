@@ -7,7 +7,6 @@
   "release-search-depth": 200,
   "commit-search-depth": 500,
   "bootstrap-sha": "7a595fa4efc9cfd84f6d1a138ef9cc937ad51442",
-  "last-release-sha": "7a595fa4efc9cfd84f6d1a138ef9cc937ad51442",
   "packages": {
     ".": {
       "package-name": "VTS",
