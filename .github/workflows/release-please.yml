@@ -26,68 +26,6 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history including tags
 
-      - name: Validate permissions
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "🔐 Validating GitHub token permissions..."
-          
-          # Test basic repository access
-          if gh repo view "${{ github.repository }}" > /dev/null 2>&1; then
-            echo "✅ Repository access: OK"
-          else
-            echo "❌ Repository access: FAILED"
-            exit 1
-          fi
-          
-          # Test PR list access
-          if gh pr list --repo "${{ github.repository }}" --limit 1 > /dev/null 2>&1; then
-            echo "✅ Pull request read access: OK"
-          else
-            echo "❌ Pull request read access: FAILED"
-            exit 1
-          fi
-          
-          echo "🔐 Permission validation completed"
-
-      # Note: Removed complex label cleanup as it may interfere with release-please's 
-      # ability to detect merged release PRs. Release-please should manage its own labels.
-
-      - name: Validate release state
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "🔍 Validating release state consistency..."
-          
-          # Get the latest version from manifest
-          MANIFEST_VERSION=$(jq -r '.["." ]' .release-please-manifest.json)
-          echo "📋 Manifest version: $MANIFEST_VERSION"
-          
-          # Check if GitHub release exists for this version
-          if gh release view "v$MANIFEST_VERSION" > /dev/null 2>&1; then
-            echo "✅ GitHub release v$MANIFEST_VERSION exists"
-            
-            # Check if release was created by release-please (has the right tag format)
-            RELEASE_INFO=$(gh release view "v$MANIFEST_VERSION" --json tagName,name,createdAt)
-            echo "📋 Release info: $RELEASE_INFO"
-          else
-            echo "⚠️  GitHub release v$MANIFEST_VERSION not found"
-            
-            # Check if git tag exists for this version
-            if git rev-parse "v$MANIFEST_VERSION" > /dev/null 2>&1; then
-              echo "✅ Git tag v$MANIFEST_VERSION exists"
-              echo "🔧 Git tag exists but GitHub release is missing - this could be the issue"
-            else
-              echo "⚠️  Git tag v$MANIFEST_VERSION not found"
-            fi
-          fi
-          
-          # List recent releases for debugging
-          echo "📋 Recent GitHub releases:"
-          gh release list --limit 3 || echo "Could not fetch releases"
-          
-          echo "🔍 Release state validation completed"
-
       - uses: googleapis/release-please-action@v4
         id: release
         with:
@@ -97,24 +35,3 @@ jobs:
           # Ensure release-please processes both PRs and releases
           skip-github-release: false
           skip-github-pull-request: false
-
-  # Additional actions to run when a release is created
-  post-release:
-    needs: [release-please]
-    runs-on: ubuntu-latest
-    if: ${{ needs.release-please.outputs.release_created }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Post-release actions
-        env:
-          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
-          VERSION: ${{ needs.release-please.outputs.version }}
-        run: |
-          echo "🎉 Release $TAG_NAME was created successfully!"
-          echo "Version: $VERSION"
-          echo "You can add additional post-release actions here, such as:"
-          echo "- Building and uploading assets"
-          echo "- Sending notifications"
-          echo "- Updating documentation"
