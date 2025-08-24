@@ -10,16 +10,10 @@ layout: null
         <language>en</language>
         <lastBuildDate>{{ site.time | date_to_rfc822 }}</lastBuildDate>
         
-        {% if site.github.releases %}
-        {% assign releases = site.github.releases | where_exp: "release", "release.prerelease != true and release.draft != true" | sort: "published_at" | reverse %}
-        {% else %}
         {% assign releases = site.data.releases | default: empty %}
-        {% endif %}
-        {% for release in releases limit:10 %}
-        {% assign version_number = release.tag_name | remove: 'v' %}
-        {% assign dmg_asset = release.assets | where_exp: "asset", "asset.name contains 'Universal.dmg' and asset.name != 'checksums.txt' and asset.name != 'release-metadata.json'" | first %}
-        {% assign sig_asset = release.assets | where_exp: "asset", "asset.name contains '.dmg.sig'" | first %}
-        {% if dmg_asset %}
+        {% for release in releases %}
+        {% assign version_number = release.version %}
+        {% if release.dmg_url and release.sparkle_signature %}
         <item>
             <title>VTS {{ version_number }}</title>
             <link>{{ release.html_url }}</link>
@@ -28,19 +22,19 @@ layout: null
                 <h2>What's New in Version {{ version_number }}</h2>
                 {{ release.body | markdownify }}
                 <hr>
-                <p><strong>Download:</strong> <a href="{{ dmg_asset.browser_download_url }}">{{ dmg_asset.name }}</a></p>
-                <p><strong>Size:</strong> {{ dmg_asset.size | divided_by: 1048576.0 | round: 1 }} MB</p>
+                <p><strong>Download:</strong> <a href="{{ release.dmg_url }}">VTS-{{ version_number }}-Universal.dmg</a></p>
+                <p><strong>Size:</strong> {{ release.dmg_size | divided_by: 1048576.0 | round: 1 }} MB</p>
                 <p><strong>Release Date:</strong> {{ release.published_at | date: "%B %d, %Y" }}</p>
-                {% if sig_asset %}<p><strong>Sparkle Signature:</strong> Available</p>{% endif %}
+                <p><strong>Sparkle Signature:</strong> Available</p>
                 ]]>
             </description>
             <pubDate>{{ release.published_at | date_to_rfc822 }}</pubDate>
-            <enclosure url="{{ dmg_asset.browser_download_url }}"
-                       length="{{ dmg_asset.size }}"
+            <enclosure url="{{ release.dmg_url }}"
+                       length="{{ release.dmg_size }}"
                        type="application/octet-stream"
                        sparkle:version="{{ version_number }}"
-                       sparkle:shortVersionString="{{ version_number }}"{% if sig_asset %}
-                       sparkle:edSignature="[SIGNATURE_PLACEHOLDER]"{% endif %} />
+                       sparkle:shortVersionString="{{ version_number }}"
+                       sparkle:edSignature="{{ release.sparkle_signature }}" />
             <guid isPermaLink="false">{{ site.repository }}-{{ release.tag_name }}</guid>
         </item>
         {% endif %}

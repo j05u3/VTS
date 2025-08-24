@@ -202,6 +202,100 @@ jobs:
           release-metadata.json
         token: ${{ secrets.GITHUB_TOKEN }}
         
+    - name: Update Appcast
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
+        VERSION: ${{ steps.get_version.outputs.version }}
+        APP_NAME: ${{ env.APP_NAME }}
+      run: |
+        echo "🔄 Updating appcast with new release..."
+        
+        # Read the Sparkle signature
+        SIGNATURE_FILE="${APP_NAME}-${VERSION_NUMBER}-Universal.dmg.sig"
+        if [[ -f "$SIGNATURE_FILE" ]]; then
+          SPARKLE_SIGNATURE=$(cat "$SIGNATURE_FILE")
+          echo "✅ Found Sparkle signature"
+        else
+          echo "❌ No Sparkle signature found"
+          exit 1
+        fi
+        
+        # Get DMG file size
+        DMG_FILE="${APP_NAME}-${VERSION_NUMBER}-Universal.dmg"
+        DMG_SIZE=$(stat -f%z "$DMG_FILE" 2>/dev/null || stat -c%s "$DMG_FILE")
+        DMG_SIZE_MB=$(echo "scale=1; $DMG_SIZE / 1048576" | bc)
+        
+        # Get release information from GitHub API
+        RELEASE_DATA=$(gh api repos/j05u3/VTS/releases/tags/${VERSION} --jq '{
+          html_url,
+          published_at,
+          body,
+          assets: [.assets[] | select(.name | endswith(".dmg") and (contains("Universal") or contains("universal"))) | {
+            name,
+            browser_download_url,
+            size
+          }]
+        }')
+        
+        RELEASE_URL=$(echo "$RELEASE_DATA" | jq -r '.html_url')
+        PUBLISHED_AT=$(echo "$RELEASE_DATA" | jq -r '.published_at')
+        RELEASE_BODY=$(echo "$RELEASE_DATA" | jq -r '.body')
+        DMG_DOWNLOAD_URL=$(echo "$RELEASE_DATA" | jq -r '.assets[0].browser_download_url')
+        
+        # Create/update releases data file
+        mkdir -p docs/_data
+        
+        # Create a new release entry
+        cat > "docs/_data/release_${VERSION_NUMBER}.json" << EOF
+        {
+          "version": "${VERSION_NUMBER}",
+          "tag_name": "${VERSION}",
+          "html_url": "${RELEASE_URL}",
+          "published_at": "${PUBLISHED_AT}",
+          "body": $(echo "$RELEASE_BODY" | jq -R -s .),
+          "dmg_url": "${DMG_DOWNLOAD_URL}",
+          "dmg_size": ${DMG_SIZE},
+          "sparkle_signature": "${SPARKLE_SIGNATURE}"
+        }
+        EOF
+        
+        # Update the main releases data file
+        if [[ ! -f "docs/_data/releases.json" ]]; then
+          echo "[]" > docs/_data/releases.json
+        fi
+        
+        # Add new release to the beginning of the array and keep only the latest 10
+        NEW_RELEASE=$(cat "docs/_data/release_${VERSION_NUMBER}.json")
+        jq ". = [$NEW_RELEASE] + . | .[0:10]" docs/_data/releases.json > docs/_data/releases_temp.json
+        mv docs/_data/releases_temp.json docs/_data/releases.json
+        
+        # Clean up individual release file
+        rm "docs/_data/release_${VERSION_NUMBER}.json"
+        
+        echo "✅ Updated releases data file"
+        
+    - name: Commit and Push Appcast Updates
+      env:
+        VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
+      run: |
+        echo "📝 Committing appcast updates..."
+        
+        # Configure git
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add and commit the updated releases data
+        git add docs/_data/releases.json
+        
+        if git diff --staged --quiet; then
+          echo "📝 No changes to commit"
+        else
+          git commit -m "Update appcast with release ${VERSION_NUMBER} [skip ci]"
+          git push origin main
+          echo "✅ Pushed appcast updates"
+        fi
+        
     - name: Success logs
       if: success()
       run: |
