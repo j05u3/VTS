@@ -179,22 +179,6 @@ jobs:
         name: ${{ env.APP_NAME }} ${{ steps.get_version.outputs.version_number }}
         draft: false
         prerelease: false
-        body: |
-          ### Download
-          - **Universal Binary (Intel + Apple Silicon)**: Download the DMG below
-          - **Minimum macOS Version**: 14.0 (Sonoma)
-          
-          ### Installation
-          1. Download the DMG file
-          2. Open the DMG
-          3. Drag ${{ env.APP_NAME }} to Applications folder
-          4. Launch from Applications
-          
-          ### Verification
-          This release is code-signed and notarized by Apple for security.
-          
-          ### Changes
-          See the [commit history](https://github.com/${{ github.repository }}/compare/${{ steps.get_version.outputs.previous_tag }}...${{ steps.get_version.outputs.version }}) for detailed changes.
         files: |
           ${{ env.APP_NAME }}-${{ steps.get_version.outputs.version_number }}-Universal.dmg
           ${{ env.APP_NAME }}-${{ steps.get_version.outputs.version_number }}-Universal.dmg.sig

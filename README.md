@@ -66,13 +66,21 @@ https://youtu.be/NTQmVCvkZQQ
 
 ### 📦 Installation
 
-**Ready to use VTS?** Head over to our [**Releases Page**](https://github.com/j05u3/VTS/releases/latest) for:
-- 📥 **One-click downloads** for macOS (Apple Silicon & Intel)
-- 📋 **Complete installation instructions**
-- 🔍 **System requirements** and compatibility info
-- 📝 **Release notes** with latest features and fixes
+**Ready to use VTS?** Head over to our [**Releases Page**](https://github.com/j05u3/VTS/releases/latest) to download the latest version.
 
-#### Requirements for End Users
+#### Download
+- **Universal Binary (Intel + Apple Silicon)**: Download the DMG from the releases page
+
+#### Installation Steps
+1. Download the DMG file from the [releases page](https://github.com/j05u3/VTS/releases/latest)
+2. Open the DMG
+3. Drag VTS to Applications folder
+4. Launch from Applications
+
+#### Verification
+All releases are code-signed and notarized by Apple for security.
+
+#### Requirements
 - **macOS 14.0+** (Apple Silicon & Intel supported)
 - **API key** from OpenAI, Groq, or Deepgram (see setup below)
 
