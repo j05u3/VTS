@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.1](https://github.com/j05u3/VTS/compare/v0.9.0...v0.9.1) (2025-08-24)
 
 
+### Bug Fixes
+
+* appcast system for future releases ([4627df7](https://github.com/j05u3/VTS/commit/4627df7f014e314d7ad9ac4de10e204a430e6e3d))
+* remove debug logging from release-please workflow ([e1c9757](https://github.com/j05u3/VTS/commit/e1c9757296f3002fbb6a02ba7b958f6ed4fc2658))
+* remove optional scopes configuration from semantic PR workflow ([f935d5d](https://github.com/j05u3/VTS/commit/f935d5d0c8d32b9691c1e1de26e9008f8187defe))
+* simplify release workflow by removing unused outputs and configuration files and hoping to fix the release-please workflow not automatically creating releases ([d28107c](https://github.com/j05u3/VTS/commit/d28107c3e8937e84dedbd2c89b30dbeb6dd01e43))
+* update bootstrap-sha and add debug logging to release-please ([eb8a6cc](https://github.com/j05u3/VTS/commit/eb8a6ccb826bdb8fe03fbc2731dbe2c395451090))
+
+## [0.9.1](https://github.com/j05u3/VTS/compare/v0.9.0...v0.9.1) (2025-08-24)
+
+
 ### 🐛 Bug Fixes
 
 * appcast system for future releases ([4627df7](https://github.com/j05u3/VTS/commit/4627df7f014e314d7ad9ac4de10e204a430e6e3d))
