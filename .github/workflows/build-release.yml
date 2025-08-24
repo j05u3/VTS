@@ -186,14 +186,14 @@ jobs:
           release-metadata.json
         token: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Update Appcast
+    - name: Update Appcast via GitHub API
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
         VERSION: ${{ steps.get_version.outputs.version }}
         APP_NAME: ${{ env.APP_NAME }}
       run: |
-        echo "🔄 Updating appcast with new release..."
+        echo "🔄 Updating appcast via GitHub API..."
         
         # Read the Sparkle signature
         SIGNATURE_FILE="${APP_NAME}-${VERSION_NUMBER}-Universal.dmg.sig"
@@ -207,78 +207,110 @@ jobs:
         
         # Get DMG file size
         DMG_FILE="${APP_NAME}-${VERSION_NUMBER}-Universal.dmg"
+        if [[ ! -f "$DMG_FILE" ]]; then
+          echo "❌ DMG file not found: $DMG_FILE"
+          exit 1
+        fi
+        
         DMG_SIZE=$(stat -f%z "$DMG_FILE" 2>/dev/null || stat -c%s "$DMG_FILE")
-        DMG_SIZE_MB=$(echo "scale=1; $DMG_SIZE / 1048576" | bc)
+        echo "📏 DMG size: $DMG_SIZE bytes"
         
-        # Get release information from GitHub API
-        RELEASE_DATA=$(gh api repos/j05u3/VTS/releases/tags/${VERSION} --jq '{
-          html_url,
-          published_at,
-          body,
-          assets: [.assets[] | select(.name | endswith(".dmg") and (contains("Universal") or contains("universal"))) | {
-            name,
-            browser_download_url,
-            size
-          }]
-        }')
+        # Wait for release to be processed
+        echo "⏳ Waiting for GitHub release to be processed..."
+        sleep 15
         
+        # Get release information with retry logic
+        RETRY_COUNT=0
+        MAX_RETRIES=6
+        while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
+          echo "📡 Fetching release data (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)..."
+          
+          if RELEASE_DATA=$(gh api repos/j05u3/VTS/releases/tags/${VERSION} 2>/dev/null); then
+            DMG_DOWNLOAD_URL=$(echo "$RELEASE_DATA" | jq -r '.assets[] | select(.name | endswith(".dmg") and contains("Universal")) | .browser_download_url // empty')
+            
+            if [[ -n "$DMG_DOWNLOAD_URL" && "$DMG_DOWNLOAD_URL" != "null" ]]; then
+              echo "✅ Found DMG download URL: $DMG_DOWNLOAD_URL"
+              break
+            fi
+          fi
+          
+          echo "⚠️ DMG not yet available, retrying in 20 seconds..."
+          sleep 20
+          RETRY_COUNT=$((RETRY_COUNT + 1))
+        done
+        
+        if [[ $RETRY_COUNT -eq $MAX_RETRIES ]]; then
+          echo "❌ Failed to get DMG download URL after $MAX_RETRIES attempts"
+          exit 1
+        fi
+        
+        # Extract other release data
         RELEASE_URL=$(echo "$RELEASE_DATA" | jq -r '.html_url')
         PUBLISHED_AT=$(echo "$RELEASE_DATA" | jq -r '.published_at')
-        RELEASE_BODY=$(echo "$RELEASE_DATA" | jq -r '.body')
-        DMG_DOWNLOAD_URL=$(echo "$RELEASE_DATA" | jq -r '.assets[0].browser_download_url')
+        RELEASE_BODY=$(echo "$RELEASE_DATA" | jq -r '.body // ""')
         
-        # Create/update releases data file
-        mkdir -p docs/_data
+        # Get current releases.json content from main branch
+        echo "📥 Fetching current releases.json..."
+        CURRENT_RELEASES=$(gh api repos/j05u3/VTS/contents/docs/_data/releases.json \
+          --jq '.content' 2>/dev/null | base64 -d 2>/dev/null || echo "[]")
         
-        # Create a new release entry
-        cat > "docs/_data/release_${VERSION_NUMBER}.json" << EOF
-        {
-          "version": "${VERSION_NUMBER}",
-          "tag_name": "${VERSION}",
-          "html_url": "${RELEASE_URL}",
-          "published_at": "${PUBLISHED_AT}",
-          "body": $(echo "$RELEASE_BODY" | jq -R -s .),
-          "dmg_url": "${DMG_DOWNLOAD_URL}",
-          "dmg_size": ${DMG_SIZE},
-          "sparkle_signature": "${SPARKLE_SIGNATURE}"
-        }
-        EOF
+        # Create new release entry
+        NEW_RELEASE=$(jq -n \
+          --arg version "$VERSION_NUMBER" \
+          --arg tag_name "$VERSION" \
+          --arg html_url "$RELEASE_URL" \
+          --arg published_at "$PUBLISHED_AT" \
+          --arg body "$RELEASE_BODY" \
+          --arg dmg_url "$DMG_DOWNLOAD_URL" \
+          --argjson dmg_size "$DMG_SIZE" \
+          --arg sparkle_signature "$SPARKLE_SIGNATURE" \
+          '{
+            version: $version,
+            tag_name: $tag_name,
+            html_url: $html_url,
+            published_at: $published_at,
+            body: $body,
+            dmg_url: $dmg_url,
+            dmg_size: $dmg_size,
+            sparkle_signature: $sparkle_signature
+          }')
         
-        # Update the main releases data file
-        if [[ ! -f "docs/_data/releases.json" ]]; then
-          echo "[]" > docs/_data/releases.json
-        fi
+        # Update releases array (add new release at beginning, keep only latest 10)
+        UPDATED_RELEASES=$(echo "$CURRENT_RELEASES" | jq ". = [$NEW_RELEASE] + . | .[0:10]")
         
-        # Add new release to the beginning of the array and keep only the latest 10
-        NEW_RELEASE=$(cat "docs/_data/release_${VERSION_NUMBER}.json")
-        jq ". = [$NEW_RELEASE] + . | .[0:10]" docs/_data/releases.json > docs/_data/releases_temp.json
-        mv docs/_data/releases_temp.json docs/_data/releases.json
+        # Get current file SHA for update
+        CURRENT_SHA=$(gh api repos/j05u3/VTS/contents/docs/_data/releases.json \
+          --jq '.sha' 2>/dev/null || echo "")
         
-        # Clean up individual release file
-        rm "docs/_data/release_${VERSION_NUMBER}.json"
+        # Prepare content for upload
+        CONTENT_B64=$(echo "$UPDATED_RELEASES" | base64 | tr -d '\n')
         
-        echo "✅ Updated releases data file"
-        
-    - name: Commit and Push Appcast Updates
-      env:
-        VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
-      run: |
-        echo "📝 Committing appcast updates..."
-        
-        # Configure git
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        # Add and commit the updated releases data
-        git add docs/_data/releases.json
-        
-        if git diff --staged --quiet; then
-          echo "📝 No changes to commit"
+        # Update file via GitHub API
+        if [[ -n "$CURRENT_SHA" ]]; then
+          # File exists, update it
+          echo "📝 Updating existing releases.json..."
+          gh api repos/j05u3/VTS/contents/docs/_data/releases.json \
+            --method PUT \
+            --field message="Update appcast with release ${VERSION_NUMBER} [skip ci]" \
+            --field content="$CONTENT_B64" \
+            --field sha="$CURRENT_SHA" \
+            --field branch="main"
         else
-          git commit -m "Update appcast with release ${VERSION_NUMBER} [skip ci]"
-          git push origin main
-          echo "✅ Pushed appcast updates"
+          # File doesn't exist, create it
+          echo "📝 Creating new releases.json..."
+          gh api repos/j05u3/VTS/contents/docs/_data/releases.json \
+            --method PUT \
+            --field message="Create appcast with release ${VERSION_NUMBER} [skip ci]" \
+            --field content="$CONTENT_B64" \
+            --field branch="main"
         fi
+        
+        echo "✅ Successfully updated appcast via GitHub API"
+        echo "📋 Release summary:"
+        echo "   Version: ${VERSION_NUMBER}"
+        echo "   DMG URL: ${DMG_DOWNLOAD_URL}"
+        echo "   Size: $(echo "scale=1; $DMG_SIZE / 1048576" | bc) MB"
+        echo "   Signature: ${SPARKLE_SIGNATURE:0:32}..."
         
     - name: Success logs
       if: success()

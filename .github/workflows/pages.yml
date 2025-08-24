@@ -7,6 +7,11 @@ on:
     branches: [ main ]
     paths: [ 'docs/**', '_config.yml' ]
   workflow_dispatch:
+  # Add workflow_run trigger to ensure it runs after successful releases
+  workflow_run:
+    workflows: ["Build and Release macOS App"]
+    types: [completed]
+    branches: [main]
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -24,6 +29,8 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
+    # Only run if the previous workflow succeeded (when triggered by workflow_run)
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
