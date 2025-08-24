@@ -5,6 +5,26 @@ All notable changes to VTS - Voice Typing Studio will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.5](https://github.com/j05u3/VTS/compare/v0.8.4...v0.8.5) (2025-08-24)
+
+
+### 🐛 Bug Fixes
+
+* remove last-release-sha to resolve untagged release PR issue ([5bcd325](https://github.com/j05u3/VTS/commit/5bcd32507aaa6907211e6ff4c21c30501f27b6fb))
+
+
+### ⚙️ Continuous Integration
+
+* remove permission validation and post-release actions from release workflow for simplification ([a277cba](https://github.com/j05u3/VTS/commit/a277cbab4559856894b6cc3747ace0554c53ad8e))
+* update release-please action to use fine-grained token ([44a5949](https://github.com/j05u3/VTS/commit/44a59493410a1ca25ca058a11865b376ad25c130))
+* update release-please config to reflect v0.8.2 baseline ([81cc00a](https://github.com/j05u3/VTS/commit/81cc00ab82a2d2fabcca4b2825be9317fe1af4fc))
+
+
+### 🧹 Miscellaneous
+
+* release main ([#58](https://github.com/j05u3/VTS/issues/58)) ([f64e733](https://github.com/j05u3/VTS/commit/f64e7330a5a271228be733a97181ce277146c3c4))
+* release main ([#59](https://github.com/j05u3/VTS/issues/59)) ([ce8fd4c](https://github.com/j05u3/VTS/commit/ce8fd4c6060b4bb7704c6b54aa3286dda496328f))
+
 ## [0.8.4](https://github.com/j05u3/VTS/compare/v0.8.3...v0.8.4) (2025-08-24)
 
 
