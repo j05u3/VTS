@@ -31,13 +31,6 @@ jobs:
             chore
             ci
             build
-          # Allow scopes (optional)
-          scopes: |
-            ui
-            core
-            api
-            deps
-            config
           # Require description after the type/scope
           requireScope: false
           # Disallow uppercase subject lines
