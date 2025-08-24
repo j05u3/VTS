@@ -252,5 +252,3 @@ VTS wouldn't be possible without the incredible work of the open-source communit
 ---
 
 **Made with ❤️ for the macOS community**
-Testing release workflow enhancement
-# Test end-to-end release flow

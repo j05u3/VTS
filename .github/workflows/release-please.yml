@@ -15,21 +15,10 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-      version: ${{ steps.release.outputs.version }}
-      pr: ${{ steps.release.outputs.pr }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history including tags
-
       - uses: googleapis/release-please-action@v4
         id: release
         with:
           token: ${{ secrets.FINE_GRAINED_RELEASE_PLEASE_PAT }}
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+          release-type: simple
           
