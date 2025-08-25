@@ -11,10 +11,10 @@ struct VTSApp: App {
         // Configure Firebase
         FirebaseApp.configure()
         
-        // Enable Firebase Analytics data collection
-        AnalyticsService.shared.setCollectionEnabled(enabled: true)
+        // Initialize analytics consent manager (handles setCollectionEnabled automatically)
+        _ = AnalyticsConsentManager.shared
         
-        // Track app launch
+        // Track app launch (will only fire if consent is granted)
         AnalyticsService.shared.trackAppLaunch()
     }
     @StateObject private var appState = AppState()

@@ -40,4 +40,20 @@ public class AnalyticsService: ObservableObject {
         ])
         print("📊 Analytics: Tracked app_launch event")
     }
+    
+    /// Track when user grants analytics consent
+    public func trackConsentGranted() {
+        Analytics.logEvent("analytics_consent_granted", parameters: [
+            "platform": "macos"
+        ])
+        print("📊 Analytics: Tracked analytics_consent_granted event")
+    }
+    
+    /// Track when user revokes analytics consent
+    public func trackConsentRevoked() {
+        Analytics.logEvent("analytics_consent_revoked", parameters: [
+            "platform": "macos"
+        ])
+        print("📊 Analytics: Tracked analytics_consent_revoked event")
+    }
 }

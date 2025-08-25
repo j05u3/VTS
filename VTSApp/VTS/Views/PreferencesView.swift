@@ -756,6 +756,62 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
+                GroupBox("Privacy & Analytics") {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Help improve VTS with anonymous usage data")
+                            .font(.headline)
+                        
+                        HStack {
+                            Image(systemName: "chart.bar.fill")
+                                .foregroundColor(.blue)
+                                .font(.title2)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Share Anonymous Usage Data")
+                                    .font(.headline)
+                                Text("Help us improve VTS by sharing anonymous usage patterns. No voice recordings or personal data is ever collected.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: Binding(
+                                get: { AnalyticsConsentManager.shared.hasConsent },
+                                set: { newValue in
+                                    if newValue {
+                                        AnalyticsConsentManager.shared.grantConsent()
+                                    } else {
+                                        AnalyticsConsentManager.shared.revokeConsent()
+                                    }
+                                }
+                            ))
+                            .toggleStyle(.switch)
+                        }
+                        
+                        if AnalyticsConsentManager.shared.hasConsent {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                    .font(.caption)
+                                Text("Analytics enabled - Thank you for helping improve VTS!")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        } else {
+                            HStack {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                                Text("Analytics disabled - VTS works exactly the same")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    .padding()
+                }
+                
                 Spacer(minLength: 20)
             }
             .padding()

@@ -47,6 +47,8 @@
 		CAA963142E5C2C5800FA11A0 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CAA963132E5C2C5800FA11A0 /* FirebaseAnalytics */; };
 		CAA963162E5C330B00FA11A0 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA963152E5C330B00FA11A0 /* AnalyticsService.swift */; };
 		CAA963182E5C34E600FA11A0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CAA963172E5C34E600FA11A0 /* GoogleService-Info.plist */; };
+		CAA9631A2E5C40BB00FA11A0 /* AnalyticsConsentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA963192E5C40BB00FA11A0 /* AnalyticsConsentManager.swift */; };
+		CAA9631C2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA9631B2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift */; };
 		CADFFC2B2E3DFEFC00C29988 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -90,6 +92,8 @@
 		CAA00FE82E48F0B50013793D /* DeepgramProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepgramProvider.swift; sourceTree = "<group>"; };
 		CAA963152E5C330B00FA11A0 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
 		CAA963172E5C34E600FA11A0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		CAA963192E5C40BB00FA11A0 /* AnalyticsConsentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsConsentManager.swift; sourceTree = "<group>"; };
+		CAA9631B2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAnalyticsStep.swift; sourceTree = "<group>"; };
 		CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -172,6 +176,7 @@
 		1A8E3D501C8F4E1C00123467 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				CAA963192E5C40BB00FA11A0 /* AnalyticsConsentManager.swift */,
 				CAA963152E5C330B00FA11A0 /* AnalyticsService.swift */,
 				CA886DB42E44795800256FE9 /* SparkleUpdaterManager.swift */,
 				CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */,
@@ -244,6 +249,7 @@
 		CA5A14192E3CADD900C01C44 /* OnboardingSteps */ = {
 			isa = PBXGroup;
 			children = (
+				CAA9631B2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift */,
 				CA5A14122E3CADD900C01C44 /* OnboardingAccessibilityStep.swift */,
 				CA5A14132E3CADD900C01C44 /* OnboardingAPIKeyStep.swift */,
 				CA5A14142E3CADD900C01C44 /* OnboardingCompletionStep.swift */,
@@ -372,7 +378,9 @@
 				CA5A141F2E3CADD900C01C44 /* OnboardingMicrophoneStep.swift in Sources */,
 				CA5A14202E3CADD900C01C44 /* OnboardingAccessibilityStep.swift in Sources */,
 				CA5A14212E3CADD900C01C44 /* OnboardingTestStep.swift in Sources */,
+				CAA9631C2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift in Sources */,
 				CA5A14222E3CADD900C01C44 /* OnboardingAPIKeyStep.swift in Sources */,
+				CAA9631A2E5C40BB00FA11A0 /* AnalyticsConsentManager.swift in Sources */,
 				CA4830AD2E2B859F0085EEF7 /* RetryContext.swift in Sources */,
 				1A8E3D471C8F4E1C00123464 /* AsyncExtensions.swift in Sources */,
 			);
@@ -520,7 +528,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.voicetypestudio.app.debug.21;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voicetypestudio.app.debug.23;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
