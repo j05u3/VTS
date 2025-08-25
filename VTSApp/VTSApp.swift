@@ -2,9 +2,21 @@ import SwiftUI
 import KeyboardShortcuts
 import KeychainAccess
 import Combine
+import FirebaseCore
 
 @main
 struct VTSApp: App {
+    
+    init() {
+        // Configure Firebase
+        FirebaseApp.configure()
+        
+        // Initialize analytics consent manager (handles setCollectionEnabled automatically)
+        _ = AnalyticsConsentManager.shared
+        
+        // Track app launch (will only fire if consent is granted)
+        AnalyticsService.shared.trackAppLaunch()
+    }
     @StateObject private var appState = AppState()
     @StateObject private var onboardingManager = OnboardingManager.shared
     
@@ -194,6 +206,11 @@ class AppState: ObservableObject {
     @Published var isRecording = false
     @Published var isProcessing = false
     @Published var audioLevel: Float = 0.0
+    
+    // Analytics tracking properties
+    private var processStartTime: Date?        // When user first presses record button
+    private var audioRecordingStartTime: Date? // When audio recording actually starts  
+    private var audioRecordingEndTime: Date?   // When audio recording stops
     
     // Computed properties that delegate to APIKeyManager with proper change notifications
     var selectedProvider: STTProviderType {
@@ -401,6 +418,17 @@ class AppState: ObservableObject {
     
     private func setupTranscriptionService() {
         updateProvider()
+        
+        // Set up analytics callback
+        transcriptionService.onTranscriptionCompleted = { [weak self] provider, model, success, audioDurationMs, processingTimeMs in
+            AnalyticsService.shared.trackTranscriptionCompleted(
+                provider: provider,
+                model: model,
+                success: success,
+                audioDurationMs: audioDurationMs,
+                processingTimeMs: processingTimeMs
+            )
+        }
     }
     
     private func updateProvider() {
@@ -438,8 +466,15 @@ class AppState: ObservableObject {
         
         updateProvider()
         
+        // Record process start time (when user pressed the hotkey)
+        processStartTime = Date()
+        
         do {
             print("Starting audio capture...")
+            
+            // Record when audio recording actually starts
+            audioRecordingStartTime = Date()
+            
             let audioStream = try captureEngine.start(deviceID: deviceManager.preferredDeviceID)
             
             // Get the API key securely from keychain
@@ -461,6 +496,14 @@ class AppState: ObservableObject {
             )
             
             print("Starting transcription with \(selectedProvider.rawValue) using model \(selectedModel)")
+            
+            // Pass timing data to transcription service for analytics
+            transcriptionService.setTimingData(
+                processStart: processStartTime,
+                audioStart: audioRecordingStartTime,
+                audioEnd: nil // Will be set in stopRecording
+            )
+            
             transcriptionService.startTranscription(
                 audioStream: audioStream,
                 config: config,
@@ -469,6 +512,10 @@ class AppState: ObservableObject {
             
             isRecording = true
             statusBarController.updateRecordingState(true)
+            
+            // Track analytics event for start recording
+            AnalyticsService.shared.trackStartRecording()
+            
             print("Voice recording started successfully")
         } catch {
             print("Failed to start recording: \(error)")
@@ -477,6 +524,16 @@ class AppState: ObservableObject {
     }
     
     private func stopRecording() {
+        // Record when audio recording stops
+        audioRecordingEndTime = Date()
+        
+        // Update timing data in transcription service
+        transcriptionService.setTimingData(
+            processStart: processStartTime,
+            audioStart: audioRecordingStartTime,
+            audioEnd: audioRecordingEndTime
+        )
+        
         captureEngine.stop()
         // Don't cancel transcription - let it finish processing the collected audio
         // transcriptionService.stopTranscription()  // Removed this line

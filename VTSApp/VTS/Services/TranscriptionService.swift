@@ -4,6 +4,29 @@ import Combine
 
 @MainActor
 public class TranscriptionService: ObservableObject {
+    // MARK: - Constants
+    
+    private enum LogMessages {
+        static let startingTranscription = "🎙️ TranscriptionService: Starting transcription with provider:"
+        static let configValidated = "🎙️ TranscriptionService: Provider config validated"
+        static let receivedResult = "🎙️ TranscriptionService: Received transcription result:"
+        static let finalTextTrimmed = "🎙️ TranscriptionService: Final text after trimming:"
+        static let injectingText = "🚀 TranscriptionService: Injecting final text..."
+        static let previousTextToReplace = "🎙️ TranscriptionService: Previous text to replace:"
+        static let textInjectedSuccess = "✅ TranscriptionService: Text injected successfully:"
+        static let noTextToInject = "⚠️ TranscriptionService: No text to inject (empty result)"
+        static let transcriptionCompleted = "🎙️ TranscriptionService: Transcription completed successfully"
+        static let transcriptionError = "🎙️ TranscriptionService: Error during transcription:"
+        static let callingProvider = "🎙️ TranscriptionService: Calling provider.transcribe()..."
+        static let retrySuccess = "✅ Retry transcription successful:"
+        static let retryEmpty = "⚠️ Retry transcription returned empty result"
+        static let retryFailed = "🔔 Retry transcription failed:"
+        static let retryStarting = "🔔 Starting retry transcription with"
+        static let cannotTrackAnalytics = "⚠️ Cannot track analytics: missing provider or config data"
+    }
+    
+    // MARK: - Published Properties
+    
     @Published public var currentText = ""
     @Published public var lastTranscription = ""
     @Published public var isTranscribing = false
@@ -22,6 +45,16 @@ public class TranscriptionService: ObservableObject {
     
     // Reference to notification manager
     private let notificationManager = NotificationManager.shared
+    
+    // Analytics completion callback
+    public var onTranscriptionCompleted: ((String, String, Bool, Int, Int) -> Void)?
+    
+    // Timing properties for analytics
+    private var processStartTime: Date?           // When user first presses record button
+    private var audioRecordingStartTime: Date?    // When audio recording actually starts
+    private var audioRecordingEndTime: Date?      // When audio recording stops
+    private var processingStartTime: Date?        // When processing starts (after audio recording ends)
+    private var processingEndTime: Date?          // When we receive final result
     
     public init() {
         setupTextInjectorObservation()
@@ -54,6 +87,17 @@ public class TranscriptionService: ObservableObject {
         self.provider = provider
     }
     
+    public func setTimingData(processStart: Date?, audioStart: Date?, audioEnd: Date?) {
+        processStartTime = processStart
+        audioRecordingStartTime = audioStart
+        audioRecordingEndTime = audioEnd
+        
+        // Start processing timing when audio recording ends
+        if let audioEnd = audioEnd {
+            processingStartTime = audioEnd
+        }
+    }
+    
     public func startTranscription(
         audioStream: AsyncThrowingStream<Data, Error>,
         config: ProviderConfig,
@@ -74,12 +118,15 @@ public class TranscriptionService: ObservableObject {
         currentConfig = config
         currentProviderType = provider.providerType
         
-        print("🎙️ TranscriptionService: Starting transcription with provider: \(provider.providerType)")
+        print("\(LogMessages.startingTranscription) \(provider.providerType)")
         
         transcriptionTask = Task { @MainActor in
             do {
                 try provider.validateConfig(config)
-                print("🎙️ TranscriptionService: Provider config validated")
+                print(LogMessages.configValidated)
+                
+                // Mark when we start the actual transcription process
+                startTranscriptionTiming()
                 
                 // Collect audio data while transcribing for potential retry
                 let (collectedData, transcriptionResult) = try await collectAudioAndTranscribe(
@@ -88,47 +135,40 @@ public class TranscriptionService: ObservableObject {
                     config: config
                 )
                 
+                // Mark when transcription is complete
+                endTranscriptionTiming()
+                
                 // Store audio data for potential retry
                 self.currentAudioData = collectedData
                 
-                print("🎙️ TranscriptionService: Received transcription result: '\(transcriptionResult)'")
+                print("\(LogMessages.receivedResult) '\(transcriptionResult)'")
                 
                 // Trim whitespace
                 let finalText = transcriptionResult.trimmingCharacters(in: .whitespaces)
-                print("🎙️ TranscriptionService: Final text after trimming: '\(finalText)'")
+                print("\(LogMessages.finalTextTrimmed) '\(finalText)'")
                 
-                // Update UI
-                currentText = finalText
+                // Update UI and inject text
+                handleSuccessfulTranscription(finalText)
                 
-                // Store as last transcription if we have content
-                if !finalText.isEmpty {
-                    lastTranscription = finalText
-                }
+                print(LogMessages.transcriptionCompleted)
                 
-                // Inject the text if we have any
-                if !finalText.isEmpty {
-                    print("🚀 TranscriptionService: Injecting final text...")
-                    
-                    // Replace previous text if any
-                    let replaceText = lastInjectedText.isEmpty ? nil : lastInjectedText
-                    print("🎙️ TranscriptionService: Previous text to replace: '\(lastInjectedText)'")
-                    
-                    textInjector.injectText(finalText, replaceLastText: replaceText)
-                    lastInjectedText = finalText
-                    
-                    print("✅ TranscriptionService: Text injected successfully: '\(finalText)'")
-                } else {
-                    print("⚠️ TranscriptionService: No text to inject (empty result)")
-                }
-                
-                print("🎙️ TranscriptionService: Transcription completed successfully")
+                // Track analytics
+                trackAnalytics(provider: provider, config: config, success: true)
                 
                 // Clear retry context on success
                 clearRetryContext()
                 
             } catch {
-                print("🎙️ TranscriptionService: Error during transcription: \(error)")
+                print("\(LogMessages.transcriptionError) \(error)")
+                
+                // Mark when transcription failed (for timing)
+                endTranscriptionTiming()
+                
                 let sttError = error as? STTError ?? STTError.transcriptionError(error.localizedDescription)
+                
+                // Track analytics
+                trackAnalytics(provider: provider, config: config, success: false)
+                
                 handleErrorWithNotification(sttError)
             }
             
@@ -145,6 +185,31 @@ public class TranscriptionService: ObservableObject {
     private func handleError(_ error: STTError) {
         self.error = error
         isTranscribing = false
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func handleSuccessfulTranscription(_ finalText: String) {
+        // Update UI
+        currentText = finalText
+        
+        // Store as last transcription if we have content
+        if !finalText.isEmpty {
+            lastTranscription = finalText
+            
+            print(LogMessages.injectingText)
+            
+            // Replace previous text if any
+            let replaceText = lastInjectedText.isEmpty ? nil : lastInjectedText
+            print("\(LogMessages.previousTextToReplace) '\(lastInjectedText)'")
+            
+            textInjector.injectText(finalText, replaceLastText: replaceText)
+            lastInjectedText = finalText
+            
+            print("\(LogMessages.textInjectedSuccess) '\(finalText)'")
+        } else {
+            print(LogMessages.noTextToInject)
+        }
     }
     
     // MARK: - Audio Collection and Transcription
@@ -169,7 +234,7 @@ public class TranscriptionService: ObservableObject {
         }
         
         // Perform transcription with the collecting stream
-        print("🎙️ TranscriptionService: Calling provider.transcribe()...")
+        print(LogMessages.callingProvider)
         let result = try await provider.transcribe(stream: collectingStream, config: config)
         
         // Wait for collection to complete
@@ -241,7 +306,7 @@ public class TranscriptionService: ObservableObject {
             return
         }
         
-        print("🔔 Starting retry transcription with \(providerType.rawValue)")
+        print("\(LogMessages.retryStarting) \(providerType.rawValue)")
         
         // Store context
         currentConfig = config
@@ -255,27 +320,41 @@ public class TranscriptionService: ObservableObject {
         transcriptionTask = Task { @MainActor in
             do {
                 try provider.validateConfig(config)
+                
+                // Mark when we start the retry transcription process
+                startTranscriptionTiming()
+                
                 let transcriptionResult = try await provider.transcribe(stream: audioStream, config: config)
                 
-                let finalText = transcriptionResult.trimmingCharacters(in: .whitespaces)
-                currentText = finalText
+                // Mark when retry transcription is complete
+                endTranscriptionTiming()
                 
-                if !finalText.isEmpty {
-                    lastTranscription = finalText
-                    
-                    let replaceText = lastInjectedText.isEmpty ? nil : lastInjectedText
-                    textInjector.injectText(finalText, replaceLastText: replaceText)
-                    lastInjectedText = finalText
-                    
-                    print("✅ Retry transcription successful: '\(finalText)'")
+                let finalText = transcriptionResult.trimmingCharacters(in: .whitespaces)
+                
+                // Handle the successful transcription
+                handleSuccessfulTranscription(finalText)
+                
+                let success = !finalText.isEmpty
+                if success {
+                    print("\(LogMessages.retrySuccess) '\(finalText)'")
                 } else {
-                    print("⚠️ Retry transcription returned empty result")
+                    print(LogMessages.retryEmpty)
                 }
+                
+                // Track analytics
+                trackAnalytics(provider: nil, config: config, success: success, providerType: providerType)
                 
                 clearRetryContext()
                 
             } catch {
-                print("🔔 Retry transcription failed: \(error)")
+                print("\(LogMessages.retryFailed) \(error)")
+                
+                // Mark when retry transcription failed (for timing)
+                endTranscriptionTiming()
+                
+                // Track analytics
+                trackAnalytics(provider: nil, config: config, success: false, providerType: providerType)
+                
                 let sttError = error as? STTError ?? STTError.transcriptionError(error.localizedDescription)
                 handleErrorWithNotification(sttError)
             }
@@ -295,6 +374,54 @@ public class TranscriptionService: ObservableObject {
         currentAudioData = nil
         currentConfig = nil
         currentProviderType = nil
+    }
+    
+    // MARK: - Analytics Helper Methods
+    
+    private func startTranscriptionTiming() {
+        // Processing timing is set when audio recording ends in setTimingData
+        // This method is kept for compatibility but doesn't override processingStartTime
+        if processingStartTime == nil {
+            processingStartTime = Date()
+        }
+    }
+    
+    private func endTranscriptionTiming() {
+        processingEndTime = Date()
+    }
+    
+    private func trackAnalytics(provider: STTProvider?, config: ProviderConfig?, success: Bool, providerType: STTProviderType? = nil) {
+        guard let onCompletion = onTranscriptionCompleted, let config = config else { return }
+
+        guard let providerName = provider?.providerType.rawValue ?? providerType?.rawValue else {
+            print(LogMessages.cannotTrackAnalytics)
+            return
+        }
+
+        let processingTimeMs = calculateProcessingTime()
+        let audioDurationMs = calculateAudioDuration()
+
+        onCompletion(
+            providerName,
+            config.model,
+            success,
+            audioDurationMs,
+            processingTimeMs
+        )
+    }
+    
+    private func calculateProcessingTime() -> Int {
+        guard let startTime = processingStartTime else { return 0 }
+        let endTime = processingEndTime ?? Date()
+        let timeInterval = endTime.timeIntervalSince(startTime)
+        return Int(timeInterval * 1000) // Convert to milliseconds
+    }
+    
+    private func calculateAudioDuration() -> Int {
+        guard let startTime = audioRecordingStartTime,
+              let endTime = audioRecordingEndTime else { return 0 }
+        let timeInterval = endTime.timeIntervalSince(startTime)
+        return Int(timeInterval * 1000) // Convert to milliseconds
     }
     
     public func copyLastTranscriptionToClipboard() -> Bool {

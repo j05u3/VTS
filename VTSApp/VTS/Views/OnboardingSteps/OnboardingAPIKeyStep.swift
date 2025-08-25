@@ -2,7 +2,7 @@ import SwiftUI
 
 struct OnboardingAPIKeyStep: View {
     @ObservedObject var appState: AppState
-    @State private var selectedProvider: STTProviderType = .groq
+    @State private var selectedProvider: STTProviderType = .openai // Initial value, overridden in onAppear with appState.selectedProvider
     @State private var apiKey: String = ""
     @State private var showingAPIKey = false
     @State private var isSaving = false
@@ -141,6 +141,8 @@ struct OnboardingAPIKeyStep: View {
             Text("API key saved successfully!")
         }
         .onAppear {
+            // Initialize selectedProvider from app state
+            selectedProvider = appState.selectedProvider
             loadExistingAPIKey()
         }
         .onChange(of: selectedProvider) { _, newProvider in

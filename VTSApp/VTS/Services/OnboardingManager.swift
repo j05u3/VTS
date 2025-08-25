@@ -47,8 +47,9 @@ public enum OnboardingStep: Int, CaseIterable {
     case apiKey = 2
     case accessibility = 3
     case notifications = 4
-    case test = 5
-    case completion = 6
+    case analytics = 5
+    case test = 6
+    case completion = 7
     
     public func next() -> OnboardingStep {
         let allCases = OnboardingStep.allCases
@@ -80,6 +81,8 @@ public enum OnboardingStep: Int, CaseIterable {
             return "Text Insertion Access"
         case .notifications:
             return "Notifications"
+        case .analytics:
+            return "Help Improve VTS"
         case .test:
             return "Test Your Setup"
         case .completion:
@@ -99,6 +102,8 @@ public enum OnboardingStep: Int, CaseIterable {
             return "Optional: Auto-insert text into apps"
         case .notifications:
             return "Stay informed about transcription status"
+        case .analytics:
+            return "Optional: Share anonymous usage data to help improve VTS"
         case .test:
             return "Let's test your voice transcription"
         case .completion:
@@ -108,7 +113,7 @@ public enum OnboardingStep: Int, CaseIterable {
     
     public var isOptional: Bool {
         switch self {
-        case .accessibility:
+        case .accessibility, .analytics:
             return true
         default:
             return false
