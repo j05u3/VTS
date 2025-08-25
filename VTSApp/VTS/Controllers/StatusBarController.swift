@@ -99,7 +99,7 @@ public class StatusBarController: ObservableObject {
 
         // Copy last transcription
         let copyItem = NSMenuItem(
-            title: "📋 Copy \(getTranscriptionPreview()) (\(hotkeyManager.currentCopyHotkeyString))",
+            title: "📋 Show \(getTranscriptionPreview()) (\(hotkeyManager.currentCopyHotkeyString))",
             action: #selector(copyLastTranscription),
             keyEquivalent: ""
         )
