@@ -5,6 +5,18 @@ All notable changes to VTS - Voice Typing Studio will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0](https://github.com/j05u3/VTS/compare/v0.9.2...v0.10.0) (2025-08-25)
+
+
+### Features
+
+* update default STT provider to OpenAI and reorder default models ([ed13e56](https://github.com/j05u3/VTS/commit/ed13e5666b576e080c4a48ae697a0ceec43ddb1d))
+
+
+### Bug Fixes
+
+* release automation fix to avoid having the appcast in the repo (which requires more permissions and pollutes the code) and instead generate it on every release ([d25d111](https://github.com/j05u3/VTS/commit/d25d111bc218dfcd11ddda5da876ff3955e990eb))
+
 ## [0.9.2](https://github.com/j05u3/VTS/compare/v0.9.1...v0.9.2) (2025-08-24)
 
 
