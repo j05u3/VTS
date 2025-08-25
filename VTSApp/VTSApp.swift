@@ -122,7 +122,7 @@ public class APIKeyManager: ObservableObject {
                let provider = STTProviderType(rawValue: rawValue) {
                 return provider
             }
-            return .groq // Default
+            return .openai // Default
         }
         set {
             userDefaults.set(newValue.rawValue, forKey: selectedProviderKey)

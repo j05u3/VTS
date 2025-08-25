@@ -38,7 +38,7 @@ public enum STTProviderType: String, CaseIterable, Codable {
     public var defaultModels: [String] {
         switch self {
         case .openai:
-            return ["whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
+            return ["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"]
         case .groq:
             return ["whisper-large-v3-turbo", "whisper-large-v3"]
         case .deepgram:
