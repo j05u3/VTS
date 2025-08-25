@@ -192,6 +192,7 @@ jobs:
         VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
         VERSION: ${{ steps.get_version.outputs.version }}
         APP_NAME: ${{ env.APP_NAME }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo "📋 Generating appcast XML from GitHub releases..."
         
