@@ -21,7 +21,7 @@
     
     <!-- Sparkle auto-update configuration -->
     <key>SUFeedURL</key>
-    <string>https://j05u3.github.io/VTS/appcast.xml</string>
+    <string>https://github.com/j05u3/VTS/releases/latest/download/appcast.xml</string>
     <key>SUPublicEDKey</key>
     <string>SPARKLE_PUBLIC_KEY_PLACEHOLDER</string>
     <key>SUEnableAutomaticChecks</key>

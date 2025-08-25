@@ -7,14 +7,14 @@
 - **Semantic PR validation**: Enforces Conventional Commits format
 - **GitHub Actions workflows**: Automated build, sign, notarize, and release
 - **Sparkle integration**: Auto-update framework (placeholder implementation)
-- **GitHub Pages**: Automatic appcast hosting with Jekyll
+- **GitHub Releases**: Automatic appcast hosting via release assets
 
 ### 📁 Files Created/Modified
 
 #### GitHub Workflows
 - ✅ `.github/workflows/semantic-pr.yml` - PR title validation
 - ✅ `.github/workflows/release-please.yml` - Automated releases
-- ✅ `.github/workflows/pages.yml` - GitHub Pages deployment
+- ✅ `.github/workflows/build-and-distribute.yml` - Release automation with appcast generation
 - 🔄 `.github/workflows/release.yml` - Updated to legacy/backup
 
 #### Configuration Files

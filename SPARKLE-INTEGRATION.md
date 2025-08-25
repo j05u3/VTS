@@ -46,11 +46,9 @@ After successfully adding Sparkle to Xcode:
 ./scripts/setup-sparkle.sh
 ```
 
-### 6. Set up GitHub Pages
-1. Go to repository Settings → Pages
-2. Set Source to "GitHub Actions"
-3. The Pages workflow will automatically deploy your appcast
-4. Verify at: `https://j05u3.github.io/VTS/appcast.xml`
+### 6. Verify Appcast Setup
+The appcast will be automatically generated and hosted at GitHub Releases:
+4. Verify at: `https://github.com/j05u3/VTS/releases/latest/download/appcast.xml`
 
 ### 7. Add GitHub Secrets
 Add `SPARKLE_PRIVATE_KEY` secret with the private key from step 5.
@@ -76,11 +74,10 @@ Add to `Podfile`:
 pod 'Sparkle', '~> 2.6'
 ```
 
-## 📡 GitHub Pages Appcast
+## 📡 GitHub Releases Appcast
 
 The appcast is automatically generated from GitHub Releases:
-- **Template**: `docs/appcast.xml` (Jekyll template)
-- **Generated URL**: `https://j05u3.github.io/VTS/appcast.xml`
+- **Generated URL**: `https://github.com/j05u3/VTS/releases/latest/download/appcast.xml`
 - **Updates**: Automatically when new releases are published
 - **Features**: 
   - Rich HTML descriptions with changelog
@@ -95,8 +92,7 @@ After adding Sparkle:
 - [ ] SparkleUpdaterManager compiles fully
 - [ ] Auto-update preferences visible in app
 - [ ] "Check Now" button functional
-- [ ] GitHub Pages site loads at `https://j05u3.github.io/VTS/`
-- [ ] Appcast XML is valid and accessible
+- [ ] Appcast XML is valid and accessible at GitHub Releases
 - [ ] No runtime crashes when accessing Sparkle features
 
 ## 🐛 Common Issues
@@ -106,11 +102,11 @@ After adding Sparkle:
 - Clean and rebuild the project (**⌘+Shift+K**, then **⌘+B**)
 - Check Package Dependencies tab shows Sparkle
 
-### GitHub Pages Not Working
-- Check that Pages is enabled in repository settings
-- Verify the Pages workflow ran successfully
-- Check `docs/_config.yml` configuration
-- Ensure repository is public (required for free GitHub Pages)
+### Appcast Generation Issues
+- Check that releases exist in the repository
+- Verify the Node.js appcast generator script
+- Check GitHub Actions workflow logs for errors
+- Ensure release assets are properly published
 
 ### Runtime Crashes
 - Verify Info.plist contains required Sparkle keys
@@ -118,7 +114,7 @@ After adding Sparkle:
 - Ensure public key is properly formatted and matches private key
 
 ### Updates Not Working
-- Test appcast URL in browser: `https://j05u3.github.io/VTS/appcast.xml`
+- Test appcast URL in browser: `https://github.com/j05u3/VTS/releases/latest/download/appcast.xml`
 - Verify code signing matches private key in GitHub Secrets
 - Check app console for Sparkle error messages
 - Ensure release workflow completed successfully
@@ -132,7 +128,7 @@ Once everything is set up, the workflow is:
 3. **Merge PR** → release-please analyzes commits
 4. **Review release PR** with auto-generated changelog
 5. **Merge release PR** → triggers build, sign, notarize, publish
-6. **GitHub Pages updates** appcast automatically
+6. **GitHub Releases** automatically updated with new appcast
 7. **Users receive update notification** via Sparkle
 
 ## 🔒 Security Notes

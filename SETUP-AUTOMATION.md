@@ -7,7 +7,7 @@ This guide explains how to set up the modern release automation stack for VTS, i
 The new release system includes:
 - **release-please**: Automated changelog and version management based on Conventional Commits
 - **Sparkle**: Automatic updates for macOS app
-- **GitHub Pages**: Free appcast hosting with Jekyll
+- **GitHub Releases**: Direct appcast hosting for reliability
 - **Semantic PR validation**: Enforces Conventional Commits format for PRs
 
 ## 🚀 Quick Setup
@@ -28,15 +28,8 @@ Go to your repository → Settings → Secrets and variables → Actions → New
 - Generate signature files (.dmg.sig) uploaded with releases
 - Ensure secure update delivery to users
 
-### 3. Enable GitHub Pages
-1. Go to repository → Settings → Pages
-2. Set Source to "GitHub Actions"
-3. The GitHub Actions workflow will automatically deploy the pages
-4. Your appcast will be at: `https://j05u3.github.io/VTS/appcast.xml`
-
-### 4. Verify Setup
-- Check that GitHub Pages site is live at `https://j05u3.github.io/VTS/`
-- Verify appcast.xml loads correctly
+### 3. Verify Setup
+- Verify appcast.xml will be generated at GitHub Releases
 - Test the release workflow by creating a conventional commit PR
 
 ## 🔧 How It Works
@@ -47,7 +40,7 @@ Go to your repository → Settings → Secrets and variables → Actions → New
 3. **PR gets merged** to main branch
 4. **release-please** analyzes conventional commits and creates a release PR
 5. **Maintainer reviews** the auto-generated release PR with changelog
-6. **Merge release PR** → triggers automatic build, sign, notarize, and publish
+6. **Merge release PR** → triggers automatic build, sign, notarize, publish, and appcast generation
 
 ### Conventional Commit Types
 - `feat:` - New features (minor version bump)
@@ -61,7 +54,7 @@ Go to your repository → Settings → Secrets and variables → Actions → New
 2. **CHANGELOG.md** automatically updated
 3. **version.txt** updated with new version
 4. **Release created** with DMG artifacts
-5. **GitHub Pages** automatically updated with new appcast
+5. **GitHub Releases** automatically updated with new appcast
 6. **Users notified** of updates via Sparkle
 
 ## 📱 User Experience
@@ -128,10 +121,10 @@ If you need to reset version tracking:
 2. Update `version.txt`
 3. Commit both files
 
-### Manual GitHub Pages Deployment
-To manually trigger pages deployment:
+### Manual Release Trigger
+To manually trigger a release (for testing):
 ```bash
-gh workflow run pages.yml
+gh workflow run build-and-distribute.yml --ref main
 ```
 
 ## 📈 Benefits

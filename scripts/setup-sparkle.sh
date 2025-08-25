@@ -70,7 +70,7 @@ if [[ -n "$PUBLIC_KEY" ]]; then
 ## ✅ Completed
 1. Public key has been added to Info.plist: $PUBLIC_KEY
 2. Private key stored in macOS keychain
-3. Appcast feed configured at: https://j05u3.github.io/VTS/appcast.xml
+3. Appcast feed configured at: https://github.com/j05u3/VTS/releases/latest/download/appcast.xml
 
 ## 🔐 GitHub Secrets Required
 
@@ -90,19 +90,13 @@ Add the following secret to your GitHub repository (Settings → Secrets and Var
 security find-generic-password -s "https://sparkle-project.org" -a "ed25519" -w
 \`\`\`
 
-## 📋 GitHub Pages Setup
-
-Enable GitHub Pages for appcast hosting:
-1. Go to repository Settings → Pages
-2. Set Source to "GitHub Actions"
-3. The workflow will automatically deploy the appcast
-4. The appcast will be available at: https://j05u3.github.io/VTS/appcast.xml
-
 ## 🚀 Next Steps
 
 1. Extract the private key from keychain and add to GitHub Secrets as SPARKLE_PRIVATE_KEY
-2. Enable GitHub Pages with "GitHub Actions" as the source
-3. Commit and push the changes to trigger release-please workflow
+2. Commit and push the changes to trigger the release workflow
+3. The appcast will be automatically generated and uploaded to GitHub Releases
+
+The appcast is now hosted directly on GitHub Releases for better reliability and performance!
 4. Create your first conventional commit PR to test the system
 
 EOF
