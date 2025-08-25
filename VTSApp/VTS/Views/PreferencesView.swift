@@ -691,13 +691,13 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
-                GroupBox("Copy Last Transcription Hotkey") {
+                GroupBox("Show Last Transcription Hotkey") {
                     VStack(alignment: .leading, spacing: 15) {
-                        Text("Configure the global keyboard shortcut to copy the last completed transcription.")
+                        Text("Configure the global keyboard shortcut to view the last completed transcription.")
                             .foregroundColor(.secondary)
                         
                         HStack {
-                            Text("Copy Last Transcription:")
+                            Text("Show Last Transcription:")
                                 .frame(width: 140, alignment: .leading)
                             
                             KeyboardShortcuts.Recorder(for: .copyLastTranscription)
@@ -713,9 +713,10 @@ struct PreferencesView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("• Copies the last completed transcription to the clipboard")
+                            Text("• Shows the last completed transcription in a dialog")
                             Text("• Current shortcut: \(appState.hotkeyManagerService.currentCopyHotkeyString)")
                             Text("• Works system-wide after completing at least one transcription")
+                            Text("• Note: VTS now focuses on direct text injection during transcription")
                         }
                         .font(.caption)
                         .foregroundColor(.secondary)
