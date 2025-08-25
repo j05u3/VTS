@@ -23,7 +23,7 @@
     <key>SUFeedURL</key>
     <string>https://github.com/j05u3/VTS/releases/latest/download/appcast.xml</string>
     <key>SUPublicEDKey</key>
-    <string>SPARKLE_PUBLIC_KEY_PLACEHOLDER</string>
+    <string>vq5IXVNkVwTxk5nrvS2cKjRLA2Kx75zYOeU16NR7ZnQ=</string>
     <key>SUEnableAutomaticChecks</key>
     <true/>
     <key>SUScheduledCheckInterval</key>
