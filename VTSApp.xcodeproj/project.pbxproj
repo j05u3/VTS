@@ -44,6 +44,9 @@
 		CA98AADD2E264E60004C23D7 /* SimpleHotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AADC2E264E60004C23D7 /* SimpleHotkeyManager.swift */; };
 		CA98AADF2E265823004C23D7 /* AudioLevelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AADE2E265823004C23D7 /* AudioLevelView.swift */; };
 		CAA00FE92E48F0B50013793D /* DeepgramProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA00FE82E48F0B50013793D /* DeepgramProvider.swift */; };
+		CAA963142E5C2C5800FA11A0 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CAA963132E5C2C5800FA11A0 /* FirebaseAnalytics */; };
+		CAA963162E5C330B00FA11A0 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA963152E5C330B00FA11A0 /* AnalyticsService.swift */; };
+		CAA963182E5C34E600FA11A0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CAA963172E5C34E600FA11A0 /* GoogleService-Info.plist */; };
 		CADFFC2B2E3DFEFC00C29988 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -85,6 +88,8 @@
 		CA98AADC2E264E60004C23D7 /* SimpleHotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleHotkeyManager.swift; sourceTree = "<group>"; };
 		CA98AADE2E265823004C23D7 /* AudioLevelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioLevelView.swift; sourceTree = "<group>"; };
 		CAA00FE82E48F0B50013793D /* DeepgramProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepgramProvider.swift; sourceTree = "<group>"; };
+		CAA963152E5C330B00FA11A0 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
+		CAA963172E5C34E600FA11A0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -99,6 +104,7 @@
 			files = (
 				CA886DB82E447A1A00256FE9 /* Sparkle in Frameworks */,
 				1A8E3D481C8F4E1C00123465 /* KeychainAccess in Frameworks */,
+				CAA963142E5C2C5800FA11A0 /* FirebaseAnalytics in Frameworks */,
 				1A8E3D491C8F4E1C00123466 /* KeyboardShortcuts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -125,6 +131,7 @@
 		1A8E3D282C8F4E1B00123456 /* VTSApp */ = {
 			isa = PBXGroup;
 			children = (
+				CAA963172E5C34E600FA11A0 /* GoogleService-Info.plist */,
 				CA98AADE2E265823004C23D7 /* AudioLevelView.swift */,
 				CA98AADC2E264E60004C23D7 /* SimpleHotkeyManager.swift */,
 				CA98AAD82E261723004C23D7 /* SettingsWindowController.swift */,
@@ -165,6 +172,7 @@
 		1A8E3D501C8F4E1C00123467 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				CAA963152E5C330B00FA11A0 /* AnalyticsService.swift */,
 				CA886DB42E44795800256FE9 /* SparkleUpdaterManager.swift */,
 				CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */,
 				CA5A14102E3CAD7500C01C44 /* OnboardingManager.swift */,
@@ -270,6 +278,7 @@
 				1A8E3D471C8F4E1C00123465 /* KeychainAccess */,
 				1A8E3D481C8F4E1C00123466 /* KeyboardShortcuts */,
 				CA886DB72E447A1A00256FE9 /* Sparkle */,
+				CAA963132E5C2C5800FA11A0 /* FirebaseAnalytics */,
 			);
 			productName = VTSApp;
 			productReference = 1A8E3D262C8F4E1B00123456 /* VTSApp.app */;
@@ -303,6 +312,7 @@
 				1A8E3D341C8F4E1C00123464 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 				1A8E3D361C8F4E1C00123465 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 				CA886DB62E447A1A00256FE9 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				CAA963122E5C2C5800FA11A0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 1A8E3D272C8F4E1B00123456 /* Products */;
 			projectDirPath = "";
@@ -320,6 +330,7 @@
 			files = (
 				1A8E3D312C8F4E1C00123456 /* Preview Assets.xcassets in Resources */,
 				1A8E3D2E2C8F4E1C00123456 /* Assets.xcassets in Resources */,
+				CAA963182E5C34E600FA11A0 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -355,6 +366,7 @@
 				CA886DB52E44795800256FE9 /* SparkleUpdaterManager.swift in Sources */,
 				CA5A141C2E3CADD900C01C44 /* OnboardingNotificationsStep.swift in Sources */,
 				CA5A141D2E3CADD900C01C44 /* OnboardingCompletionStep.swift in Sources */,
+				CAA963162E5C330B00FA11A0 /* AnalyticsService.swift in Sources */,
 				CA5A141E2E3CADD900C01C44 /* OnboardingView.swift in Sources */,
 				CADFFC2B2E3DFEFC00C29988 /* LaunchAtLoginManager.swift in Sources */,
 				CA5A141F2E3CADD900C01C44 /* OnboardingMicrophoneStep.swift in Sources */,
@@ -592,6 +604,14 @@
 				minimumVersion = 2.7.1;
 			};
 		};
+		CAA963122E5C2C5800FA11A0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -609,6 +629,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CA886DB62E447A1A00256FE9 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		CAA963132E5C2C5800FA11A0 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CAA963122E5C2C5800FA11A0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

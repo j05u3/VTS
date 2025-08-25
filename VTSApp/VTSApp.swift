@@ -2,9 +2,21 @@ import SwiftUI
 import KeyboardShortcuts
 import KeychainAccess
 import Combine
+import FirebaseCore
 
 @main
 struct VTSApp: App {
+    
+    init() {
+        // Configure Firebase
+        FirebaseApp.configure()
+        
+        // Enable Firebase Analytics data collection
+        AnalyticsService.shared.setCollectionEnabled(enabled: true)
+        
+        // Track app launch
+        AnalyticsService.shared.trackAppLaunch()
+    }
     @StateObject private var appState = AppState()
     @StateObject private var onboardingManager = OnboardingManager.shared
     
@@ -469,6 +481,10 @@ class AppState: ObservableObject {
             
             isRecording = true
             statusBarController.updateRecordingState(true)
+            
+            // Track analytics event for start recording
+            AnalyticsService.shared.trackStartRecording()
+            
             print("Voice recording started successfully")
         } catch {
             print("Failed to start recording: \(error)")
