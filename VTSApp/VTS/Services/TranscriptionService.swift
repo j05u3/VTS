@@ -391,28 +391,19 @@ public class TranscriptionService: ObservableObject {
     }
     
     private func trackAnalytics(provider: STTProvider?, config: ProviderConfig?, success: Bool, providerType: STTProviderType? = nil) {
-        guard let onCompletion = onTranscriptionCompleted else { return }
-        
-        let processingTimeMs = calculateProcessingTime()
-        let audioDurationMs = calculateAudioDuration()
-        
-        let providerName: String
-        let modelName: String
-        
-        if let provider = provider, let config = config {
-            providerName = provider.providerType.rawValue
-            modelName = config.model
-        } else if let providerType = providerType, let config = config {
-            providerName = providerType.rawValue
-            modelName = config.model
-        } else {
+        guard let onCompletion = onTranscriptionCompleted, let config = config else { return }
+
+        guard let providerName = provider?.providerType.rawValue ?? providerType?.rawValue else {
             print(LogMessages.cannotTrackAnalytics)
             return
         }
-        
+
+        let processingTimeMs = calculateProcessingTime()
+        let audioDurationMs = calculateAudioDuration()
+
         onCompletion(
             providerName,
-            modelName,
+            config.model,
             success,
             audioDurationMs,
             processingTimeMs
