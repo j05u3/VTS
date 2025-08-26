@@ -423,7 +423,7 @@ public class TranscriptionService: ObservableObject {
         let timeInterval = endTime.timeIntervalSince(startTime)
         return Int(timeInterval * 1000) // Convert to milliseconds
     }
-    
+
     public func copyLastTranscriptionToClipboard() -> Bool {
         guard !lastTranscription.isEmpty else {
             return false

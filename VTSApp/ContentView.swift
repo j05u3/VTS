@@ -123,8 +123,8 @@ struct ContentView: View {
             
             // Quick Actions
             HStack {                
-                Button("Copy \(getTranscriptionPreview()) (\(appState.hotkeyManagerService.currentCopyHotkeyString == SimpleHotkeyManager.NO_HOTKEY_SET ? "No shortcut" : appState.hotkeyManagerService.currentCopyHotkeyString))") {
-                    appState.copyLastTranscription()
+                Button("Show \(getTranscriptionPreview())") {
+                    appState.showLastTranscription()
                 }
                 .buttonStyle(.bordered)
                 .disabled(appState.transcriptionServiceInstance.lastTranscription.isEmpty)

@@ -374,8 +374,8 @@ class AppState: ObservableObject {
             self?.toggleRecording()
         }
         
-        statusBarController.onCopyLastTranscription = { [weak self] in
-            self?.copyLastTranscription()
+        statusBarController.onShowLastTranscription = { [weak self] in
+            self?.showLastTranscription()
         }
         
         statusBarController.onShowPreferences = { [weak self] in
@@ -554,6 +554,16 @@ class AppState: ObservableObject {
         settingsWindowController = nil
     }
     
+    func showLastTranscription() {
+        if !transcriptionService.lastTranscription.isEmpty {
+            print("Last transcription: '\(transcriptionService.lastTranscription)'")
+            showTranscriptionAlert(transcriptionService.lastTranscription)
+        } else {
+            print("No transcription available")
+            showAlert("No Text Available", "There is no completed transcription available. Please record some speech first.")
+        }
+    }
+
     func copyLastTranscription() {
         if transcriptionService.copyLastTranscriptionToClipboard() {
             print("Transcribed text copied to clipboard: '\(transcriptionService.lastTranscription)'")
@@ -569,6 +579,40 @@ class AppState: ObservableObject {
         alert.informativeText = message
         alert.alertStyle = .warning
         alert.runModal()
+    }
+    
+    private func showTranscriptionAlert(_ transcription: String) {
+        let alert = NSAlert()
+        alert.messageText = "Last Transcription"
+        
+        // Create the informative text with hotkey information
+        let hotkeyInfo = hotkeyManager.currentCopyHotkeyString == SimpleHotkeyManager.NO_HOTKEY_SET 
+            ? "No shortcut set" 
+            : hotkeyManager.currentCopyHotkeyString
+        
+        alert.informativeText = "\"\(transcription)\"\n\nTip: You can also copy transcriptions using the hotkey: \(hotkeyInfo)"
+        alert.alertStyle = .informational
+        
+        // Add Copy button
+        alert.addButton(withTitle: "Copy")
+        
+        // Add OK button
+        alert.addButton(withTitle: "OK")
+        
+        let response = alert.runModal()
+        
+        // Handle the response
+        switch response {
+        case .alertFirstButtonReturn: // Copy button
+            if transcriptionService.copyLastTranscriptionToClipboard() {
+                print("Transcribed text copied to clipboard via dialog: '\(transcription)'")
+            }
+        case .alertSecondButtonReturn: // OK button
+            // Do nothing, just close the dialog
+            break
+        default:
+            break
+        }
     }
     
     // MARK: - Configuration Persistence

@@ -695,11 +695,11 @@ struct PreferencesView: View {
                     VStack(alignment: .leading, spacing: 15) {
                         Text("Configure the global keyboard shortcut to copy the last completed transcription.")
                             .foregroundColor(.secondary)
-                        
+
                         HStack {
                             Text("Copy Last Transcription:")
                                 .frame(width: 140, alignment: .leading)
-                            
+
                             KeyboardShortcuts.Recorder(for: .copyLastTranscription)
                             
                             Spacer()
@@ -711,7 +711,7 @@ struct PreferencesView: View {
                             .buttonStyle(.bordered)
                             .controlSize(.small)
                         }
-                        
+
                         VStack(alignment: .leading, spacing: 4) {
                             Text("• Copies the last completed transcription to the clipboard")
                             Text("• Current shortcut: \(appState.hotkeyManagerService.currentCopyHotkeyString)")
