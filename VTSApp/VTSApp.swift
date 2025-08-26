@@ -374,8 +374,8 @@ class AppState: ObservableObject {
             self?.toggleRecording()
         }
         
-        statusBarController.onCopyLastTranscription = { [weak self] in
-            self?.copyLastTranscription()
+        statusBarController.onShowLastTranscription = { [weak self] in
+            self?.showLastTranscription()
         }
         
         statusBarController.onShowPreferences = { [weak self] in
@@ -554,13 +554,22 @@ class AppState: ObservableObject {
         settingsWindowController = nil
     }
     
-    func copyLastTranscription() {
+    func showLastTranscription() {
         if !transcriptionService.lastTranscription.isEmpty {
             print("Last transcription: '\(transcriptionService.lastTranscription)'")
-            showAlert("Last Transcription", "Last transcription: \"\(transcriptionService.lastTranscription)\"\n\nNote: VTS now focuses on direct text injection. The text was automatically inserted when transcription completed.")
+            showAlert("Last Transcription", "Last transcription: \"\(transcriptionService.lastTranscription)\"")
         } else {
             print("No transcription available")
             showAlert("No Text Available", "There is no completed transcription available. Please record some speech first.")
+        }
+    }
+
+    func copyLastTranscription() {
+        if transcriptionService.copyLastTranscriptionToClipboard() {
+            print("Transcribed text copied to clipboard: '\(transcriptionService.lastTranscription)'")
+        } else {
+            print("No transcription available to copy")
+            showAlert("No Text Available", "There is no completed transcription to copy. Please record some speech first.")
         }
     }
     

@@ -12,7 +12,7 @@ public class StatusBarController: ObservableObject {
     @Published public var isProcessing = false
 
     public var onToggleRecording: (() -> Void)?
-    public var onCopyLastTranscription: (() -> Void)?
+    public var onShowLastTranscription: (() -> Void)?
     public var onShowPreferences: (() -> Void)?
     public var onQuit: (() -> Void)?
 
@@ -99,8 +99,8 @@ public class StatusBarController: ObservableObject {
 
         // Copy last transcription
         let copyItem = NSMenuItem(
-            title: "📋 Show \(getTranscriptionPreview()) (\(hotkeyManager.currentCopyHotkeyString))",
-            action: #selector(copyLastTranscription),
+            title: "📋 Show \(getTranscriptionPreview())",
+            action: #selector(showLastTranscription),
             keyEquivalent: ""
         )
         copyItem.target = self
@@ -158,8 +158,8 @@ public class StatusBarController: ObservableObject {
         onToggleRecording?()
     }
 
-    @objc private func copyLastTranscription() {
-        onCopyLastTranscription?()
+    @objc private func showLastTranscription() {
+        onShowLastTranscription?()
     }
 
     @objc private func showPreferences() {

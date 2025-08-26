@@ -691,32 +691,22 @@ struct PreferencesView: View {
                     .padding()
                 }
                 
-                GroupBox("Show Last Transcription Hotkey") {
+                GroupBox("Copy Last Transcription Hotkey") {
                     VStack(alignment: .leading, spacing: 15) {
-                        Text("Configure the global keyboard shortcut to view the last completed transcription.")
+                        Text("Configure the global keyboard shortcut to copy the last completed transcription.")
                             .foregroundColor(.secondary)
-                        
+
                         HStack {
-                            Text("Show Last Transcription:")
+                            Text("Copy Last Transcription:")
                                 .frame(width: 140, alignment: .leading)
-                            
+
                             KeyboardShortcuts.Recorder(for: .copyLastTranscription)
-                            
-                            Spacer()
-                            
-                            Button("Reset to Default") {
-                                KeyboardShortcuts.reset(.copyLastTranscription)
-                                // The hotkey string will update automatically
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
                         }
-                        
+
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("• Shows the last completed transcription in a dialog")
+                            Text("• Copies the last completed transcription to the clipboard")
                             Text("• Current shortcut: \(appState.hotkeyManagerService.currentCopyHotkeyString)")
                             Text("• Works system-wide after completing at least one transcription")
-                            Text("• Note: VTS now focuses on direct text injection during transcription")
                         }
                         .font(.caption)
                         .foregroundColor(.secondary)
