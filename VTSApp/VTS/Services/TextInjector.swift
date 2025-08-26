@@ -556,6 +556,9 @@ public class TextInjector: ObservableObject {
             }
         }
         
+        print("❌ TextInjector: All accessibility insertion methods failed or were ignored")
+        return false
+    }
     
     private func simulateModernUnicodeTyping(_ text: String) -> Bool {
         print("🌐 TextInjector: Starting modern Unicode-aware typing simulation...")
