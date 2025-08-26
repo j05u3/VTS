@@ -703,18 +703,19 @@ public class TextInjector: ObservableObject {
 
 extension String {
     func chunked(maxSize: Int) -> [String] {
+        if isEmpty { return [] }
         guard maxSize > 0 else { return [self] }
         
         var chunks: [String] = []
         var currentIndex = startIndex
         
         while currentIndex < endIndex {
-            let endIndex = self.index(currentIndex, offsetBy: maxSize, limitedBy: self.endIndex) ?? self.endIndex
-            let chunk = String(self[currentIndex..<endIndex])
+            let chunkEndIndex = self.index(currentIndex, offsetBy: maxSize, limitedBy: self.endIndex) ?? self.endIndex
+            let chunk = String(self[currentIndex..<chunkEndIndex])
             chunks.append(chunk)
-            currentIndex = endIndex
+            currentIndex = chunkEndIndex
         }
         
-        return chunks.isEmpty ? [self] : chunks
+        return chunks
     }
 }

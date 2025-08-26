@@ -701,6 +701,15 @@ struct PreferencesView: View {
                                 .frame(width: 140, alignment: .leading)
 
                             KeyboardShortcuts.Recorder(for: .copyLastTranscription)
+                            
+                            Spacer()
+                            
+                            Button("Reset to Default") {
+                                KeyboardShortcuts.reset(.copyLastTranscription)
+                                // The hotkey string will update automatically
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
                         }
 
                         VStack(alignment: .leading, spacing: 4) {
