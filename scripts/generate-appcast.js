@@ -72,7 +72,7 @@ function formatFileSize(bytes) {
   return Math.round(bytes / (1024 * 1024) * 10) / 10; // MB with 1 decimal
 }
 
-function generateAppcastXML(releases) {
+async function generateAppcastXMLWithSignatures(releases, downloadHistoricalSignatures = false) {
   const xml = new XMLBuilder();
   const lines = [];
   
@@ -113,18 +113,120 @@ function generateAppcastXML(releases) {
     .slice(0, 100); // Keep latest 100 releases
 
   // Generate items
-  for (const release of validReleases) {
+  for (let i = 0; i < validReleases.length; i++) {
+    const release = validReleases[i];
+    const isLatest = i === 0;
+    
     const dmgAsset = release.assets.find(asset => 
       asset.name.includes('.dmg') && asset.name.includes('Universal')
-    );
-    const sigAsset = release.assets.find(asset => 
-      asset.name.includes('.dmg.sig')
     );
 
     // Extract version number (remove 'v' prefix)
     const version = release.tag_name.replace(/^v/, '');
     
-    // For now, we'll use a placeholder signature that will be updated in the workflow
+    // Get the appropriate signature
+    let signature;
+    if (downloadHistoricalSignatures) {
+      signature = await getSignatureForRelease(release, isLatest);
+    } else {
+      // Use placeholder for all releases - workflow will handle current release
+      signature = 'SIGNATURE_PLACEHOLDER';
+    }
+
+    lines.push(xml.startElement('item'));
+    lines.push(xml.element('title', `VTS ${version}`));
+    lines.push(xml.element('link', release.html_url));
+    
+    // Description with CDATA
+    if (release.body) {
+      lines.push(xml.startElement('description'));
+      xml.indentLevel++;
+      lines.push(xml.cdata(`
+        <h2>What's New in Version ${version}</h2>
+        <pre>${release.body}</pre>
+        <hr>
+        <p><strong>Size:</strong> ${formatFileSize(dmgAsset.size)} MB</p>
+        <p><strong>Release Date:</strong> ${new Date(release.published_at).toLocaleDateString()}</p>
+      `));
+      xml.indentLevel--;
+      lines.push(xml.endElement('description'));
+    }
+    
+    lines.push(xml.element('pubDate', formatDate(release.published_at)));
+    
+    // Enclosure element with Sparkle attributes
+    lines.push(xml.element('enclosure', '', {
+      url: dmgAsset.browser_download_url,
+      length: dmgAsset.size,
+      type: 'application/octet-stream',
+      'sparkle:version': version,
+      'sparkle:shortVersionString': version,
+      'sparkle:edSignature': signature
+    }));
+    
+    lines.push(xml.element('guid', `VTS-${release.tag_name}`, { isPermaLink: 'false' }));
+    lines.push(xml.endElement('item'));
+    lines.push('');
+  }
+
+  // Close channel and rss
+  lines.push(xml.endElement('channel'));
+  lines.push(xml.endElement('rss'));
+  
+  return lines.join('\n');
+}
+
+// Legacy function for backward compatibility  
+function generateAppcastXML(releases) {
+  const xml = new XMLBuilder();
+  const lines = [];
+  
+  // XML declaration
+  lines.push('<?xml version="1.0" encoding="utf-8"?>');
+  
+  // RSS root element
+  lines.push(xml.startElement('rss', {
+    version: '2.0',
+    'xmlns:sparkle': 'http://www.andymatuschak.org/xml-namespaces/sparkle',
+    'xmlns:dc': 'http://purl.org/dc/elements/1.1/'
+  }));
+  
+  // Channel start
+  lines.push(xml.startElement('channel'));
+  
+  // Channel metadata
+  lines.push(xml.element('title', 'VTS - Voice Typing Studio'));
+  lines.push(xml.element('link', 'https://github.com/j05u3/VTS'));
+  lines.push(xml.element('description', 'Voice Typing Studio - Open-source macOS dictation replacement with AI-powered transcription'));
+  lines.push(xml.element('language', 'en'));
+  lines.push(xml.element('lastBuildDate', formatDate(new Date().toISOString())));
+  lines.push('');
+
+  // Filter and process releases
+  const validReleases = releases
+    .filter(release => !release.draft && !release.prerelease)
+    .filter(release => {
+      // Find DMG asset and signature
+      const dmgAsset = release.assets.find(asset => 
+        asset.name.includes('.dmg') && asset.name.includes('Universal')
+      );
+      const sigAsset = release.assets.find(asset => 
+        asset.name.includes('.dmg.sig')
+      );
+      return dmgAsset && sigAsset;
+    })
+    .slice(0, 100); // Keep latest 100 releases
+
+  // Generate items  
+  for (const release of validReleases) {
+    const dmgAsset = release.assets.find(asset => 
+      asset.name.includes('.dmg') && asset.name.includes('Universal')
+    );
+
+    // Extract version number (remove 'v' prefix)
+    const version = release.tag_name.replace(/^v/, '');
+    
+    // Use placeholder signature that will be updated in the workflow
     const signature = 'SIGNATURE_PLACEHOLDER';
 
     lines.push(xml.startElement('item'));
@@ -171,39 +273,73 @@ function generateAppcastXML(releases) {
 }
 
 /**
- * Replace signature placeholders with actual signatures from release assets
+ * Download signature for a release
  */
-function injectSignatures(xmlContent, releases) {
-  const validReleases = releases
-    .filter(release => !release.draft && !release.prerelease)
-    .filter(release => {
-      const dmgAsset = release.assets.find(asset => 
-        asset.name.includes('.dmg') && asset.name.includes('Universal')
-      );
-      const sigAsset = release.assets.find(asset => 
-        asset.name.includes('.dmg.sig')
-      );
-      return dmgAsset && sigAsset;
-    })
-    .slice(0, 10);
-
-  let result = xmlContent;
+async function downloadSignature(sigAsset) {
+  const https = require('https');
+  const { URL } = require('url');
   
-  for (const release of validReleases) {
-    const version = release.tag_name.replace(/^v/, '');
-    const sigAsset = release.assets.find(asset => 
-      asset.name.includes('.dmg.sig')
-    );
+  return new Promise((resolve, reject) => {
+    const download = (url, maxRedirects = 5) => {
+      if (maxRedirects <= 0) {
+        reject(new Error('Too many redirects'));
+        return;
+      }
+      
+      const options = new URL(url);
+      
+      https.get(options, (res) => {
+        // Handle redirects
+        if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307 || res.statusCode === 308) {
+          const location = res.headers.location;
+          if (location) {
+            download(location, maxRedirects - 1);
+            return;
+          }
+        }
+        
+        if (res.statusCode !== 200) {
+          reject(new Error(`Failed to download signature: ${res.statusCode}`));
+          return;
+        }
+        
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => resolve(data.trim()));
+      }).on('error', reject);
+    };
     
-    if (sigAsset) {
-      // Note: In a real implementation, we would fetch the signature content
-      // For now, we'll keep the placeholder and let the workflow handle it
-      console.error(`⚠️  Found signature asset for ${version}: ${sigAsset.browser_download_url}`);
-      console.error(`⚠️  Signature will need to be injected by the workflow`);
-    }
+    download(sigAsset.browser_download_url);
+  });
+}
+
+/**
+ * Get signature for a release (download if historical, placeholder if current)
+ */
+async function getSignatureForRelease(release, isLatest) {
+  if (isLatest) {
+    // For the latest release, use placeholder that will be replaced by workflow
+    return 'SIGNATURE_PLACEHOLDER';
   }
   
-  return result;
+  // For historical releases, try to download the actual signature
+  const sigAsset = release.assets.find(asset => 
+    asset.name.includes('.dmg.sig')
+  );
+  
+  if (!sigAsset) {
+    console.error(`⚠️  No signature asset found for ${release.tag_name}`);
+    return 'SIGNATURE_MISSING';
+  }
+  
+  try {
+    const signature = await downloadSignature(sigAsset);
+    console.error(`✅ Downloaded signature for ${release.tag_name}`);
+    return signature;
+  } catch (error) {
+    console.error(`⚠️  Failed to download signature for ${release.tag_name}: ${error.message}`);
+    return 'SIGNATURE_DOWNLOAD_FAILED';
+  }
 }
 
 // Main execution
@@ -214,63 +350,74 @@ if (require.main === module) {
     console.error('Usage: node generate-appcast.js releases.json [--inject-signatures]');
     console.error('');
     console.error('Options:');
-    console.error('  --inject-signatures  Attempt to download and inject actual signatures');
+    console.error('  --inject-signatures  Download and inject actual signatures for historical releases');
     console.error('');
     console.error('Example:');
     console.error('  gh api repos/j05u3/VTS/releases > releases.json');
     console.error('  node generate-appcast.js releases.json > appcast.xml');
+    console.error('  node generate-appcast.js releases.json --inject-signatures > appcast.xml');
     process.exit(1);
   }
 
   const releasesFile = args[0];
   const injectSigs = args.includes('--inject-signatures');
   
-  try {
-    const releasesData = fs.readFileSync(releasesFile, 'utf8');
-    const releases = JSON.parse(releasesData);
-    
-    if (!Array.isArray(releases)) {
-      throw new Error('Invalid releases data: expected an array');
-    }
-    
-    if (releases.length === 0) {
-      console.error('⚠️  No releases found in the provided data');
-    }
-    
-    let appcastXML = generateAppcastXML(releases);
-    
-    if (injectSigs) {
-      appcastXML = injectSignatures(appcastXML, releases);
-    }
-    
-    console.log(appcastXML);
-    
-    // Log some useful info to stderr
-    const validReleases = releases
-      .filter(release => !release.draft && !release.prerelease)
-      .filter(release => {
-        const dmgAsset = release.assets.find(asset => 
-          asset.name.includes('.dmg') && asset.name.includes('Universal')
-        );
-        const sigAsset = release.assets.find(asset => 
-          asset.name.includes('.dmg.sig')
-        );
-        return dmgAsset && sigAsset;
-      });
+  (async () => {
+    try {
+      const releasesData = fs.readFileSync(releasesFile, 'utf8');
+      const releases = JSON.parse(releasesData);
       
-    console.error(`✅ Generated appcast with ${validReleases.length} releases`);
-    if (validReleases.length > 0) {
-      const latest = validReleases[0];
-      console.error(`📦 Latest release: ${latest.tag_name} (${new Date(latest.published_at).toLocaleDateString()})`);
+      if (!Array.isArray(releases)) {
+        throw new Error('Invalid releases data: expected an array');
+      }
+      
+      if (releases.length === 0) {
+        console.error('⚠️  No releases found in the provided data');
+      }
+      
+      let appcastXML;
+      if (injectSigs) {
+        console.error('🔐 Downloading historical signatures...');
+        appcastXML = await generateAppcastXMLWithSignatures(releases, true);
+      } else {
+        appcastXML = generateAppcastXML(releases);
+      }
+      
+      console.log(appcastXML);
+      
+      // Log some useful info to stderr
+      const validReleases = releases
+        .filter(release => !release.draft && !release.prerelease)
+        .filter(release => {
+          const dmgAsset = release.assets.find(asset => 
+            asset.name.includes('.dmg') && asset.name.includes('Universal')
+          );
+          const sigAsset = release.assets.find(asset => 
+            asset.name.includes('.dmg.sig')
+          );
+          return dmgAsset && sigAsset;
+        });
+        
+      console.error(`✅ Generated appcast with ${validReleases.length} releases`);
+      if (validReleases.length > 0) {
+        const latest = validReleases[0];
+        console.error(`📦 Latest release: ${latest.tag_name} (${new Date(latest.published_at).toLocaleDateString()})`);
+      }
+      
+      if (injectSigs) {
+        console.error('💡 Historical signatures downloaded. Current release signature will be injected by workflow.');
+      } else {
+        console.error('💡 Using placeholders for all signatures. Current release signature will be injected by workflow.');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error generating appcast:', error.message);
+      if (process.env.DEBUG) {
+        console.error(error.stack);
+      }
+      process.exit(1);
     }
-    
-  } catch (error) {
-    console.error('❌ Error generating appcast:', error.message);
-    if (process.env.DEBUG) {
-      console.error(error.stack);
-    }
-    process.exit(1);
-  }
+  })();
 }
 
-module.exports = { generateAppcastXML, XMLBuilder };
+module.exports = { generateAppcastXML, generateAppcastXMLWithSignatures, XMLBuilder };

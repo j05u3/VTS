@@ -218,11 +218,14 @@ jobs:
         
         # Generate the appcast XML
         echo "🏗️  Generating appcast XML..."
-        node scripts/generate-appcast.js releases.json > appcast-template.xml
+        node scripts/generate-appcast.js releases.json --inject-signatures > appcast-template.xml
         
         # Replace the signature placeholder with the actual signature
         echo "🔐 Injecting Sparkle signature..."
-        sed "s/SIGNATURE_PLACEHOLDER/${SPARKLE_SIGNATURE}/g" appcast-template.xml > appcast.xml
+        # Use printf to safely handle special characters in the signature
+        printf '%s\n' "s|SIGNATURE_PLACEHOLDER|${SPARKLE_SIGNATURE}|g" > temp_sed_script.sed
+        sed -f temp_sed_script.sed appcast-template.xml > appcast.xml
+        rm temp_sed_script.sed
         
         # Validate the generated XML
         echo "✅ Validating generated appcast XML..."
