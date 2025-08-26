@@ -1,9 +1,3 @@
-# NOTE: Do not rename this file as I think it will reset the `GITHUB_RUN_NUMBER` which 
-# provokes resetting the `CFBundleVersion`, or if you need to then shift it so
-# the final values of `CFBundleVersion` (see `build-dmg.sh`) keep increasing 
-# from where we left.
-# See last (possible) reset time: 
-# https://github.com/j05u3/VTS/commit/fb79c175bafad2e7359d88e8a1bd29eba12528b0
 name: Build and Release macOS App
 
 on:
@@ -52,7 +46,6 @@ jobs:
         BUNDLE_ID: ${{ env.BUNDLE_ID }}
         GITHUB_ACTIONS: true
         GITHUB_REF: ${{ github.ref }}
-        GITHUB_RUN_NUMBER: ${{ github.run_number }}
       run: ./scripts/build-dmg.sh
 
     - name: Extract version info

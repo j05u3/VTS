@@ -136,9 +136,9 @@ handle_version() {
         VERSION=${VERSION_WITH_V#v}  # Remove 'v' prefix
         
         # Update Info.plist with CI version
-        log_info "Updating version in Info.plist to $VERSION (build $GITHUB_RUN_NUMBER)"
+        log_info "Updating version in Info.plist to $VERSION"
         /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" VTSApp/Info.plist
-        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $GITHUB_RUN_NUMBER" VTSApp/Info.plist
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" VTSApp/Info.plist
         
         # Set GitHub output
         set_github_output "version" "$VERSION_WITH_V"
