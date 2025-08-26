@@ -72,6 +72,59 @@ function formatFileSize(bytes) {
   return Math.round(bytes / (1024 * 1024) * 10) / 10; // MB with 1 decimal
 }
 
+/**
+ * Convert basic markdown to HTML
+ */
+function markdownToHtml(markdown) {
+  if (!markdown) return '';
+  
+  let html = markdown
+    // Convert headers
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    
+    // Convert lists
+    .replace(/^\* (.*$)/gim, '<li>$1</li>')
+    .replace(/^- (.*$)/gim, '<li>$1</li>')
+    
+    // Convert bold and italic
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    
+    // Convert code blocks (simple approach)
+    .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+    .replace(/`(.*?)`/g, '<code>$1</code>')
+    
+    // Convert links
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+    
+    // Convert line breaks to paragraphs
+    .split('\n\n')
+    .map(paragraph => {
+      paragraph = paragraph.trim();
+      if (!paragraph) return '';
+      
+      // Check if it's a list
+      if (paragraph.includes('<li>')) {
+        // Wrap list items in ul tags
+        return '<ul>\n' + paragraph.replace(/\n/g, '\n') + '\n</ul>';
+      }
+      
+      // Check if it's already a heading or has HTML tags
+      if (paragraph.match(/^<h[1-6]>/) || paragraph.match(/^<[^>]+>/)) {
+        return paragraph;
+      }
+      
+      // Regular paragraph
+      return '<p>' + paragraph.replace(/\n/g, '<br>') + '</p>';
+    })
+    .filter(p => p.length > 0)
+    .join('\n');
+    
+  return html;
+}
+
 async function generateAppcastXMLWithSignatures(releases, downloadHistoricalSignatures = false) {
   const xml = new XMLBuilder();
   const lines = [];
@@ -139,11 +192,12 @@ async function generateAppcastXMLWithSignatures(releases, downloadHistoricalSign
     
     // Description with CDATA
     if (release.body) {
+      const htmlBody = markdownToHtml(release.body);
       lines.push(xml.startElement('description'));
       xml.indentLevel++;
       lines.push(xml.cdata(`
         <h2>What's New in Version ${version}</h2>
-        <pre>${release.body}</pre>
+        ${htmlBody}
         <hr>
         <p><strong>Size:</strong> ${formatFileSize(dmgAsset.size)} MB</p>
         <p><strong>Release Date:</strong> ${new Date(release.published_at).toLocaleDateString()}</p>
@@ -235,11 +289,12 @@ function generateAppcastXML(releases) {
     
     // Description with CDATA
     if (release.body) {
+      const htmlBody = markdownToHtml(release.body);
       lines.push(xml.startElement('description'));
       xml.indentLevel++;
       lines.push(xml.cdata(`
         <h2>What's New in Version ${version}</h2>
-        <pre>${release.body}</pre>
+        ${htmlBody}
         <hr>
         <p><strong>Size:</strong> ${formatFileSize(dmgAsset.size)} MB</p>
         <p><strong>Release Date:</strong> ${new Date(release.published_at).toLocaleDateString()}</p>
