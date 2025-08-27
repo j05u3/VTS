@@ -125,6 +125,7 @@ After installing VTS, you'll need an API key from one of these providers:
 - **API keys are safe**: Keys are stored in Keychain
 - **TLS encryption**: All API communication uses HTTPS
 - **Microphone permission**: Explicit user consent required for audio access
+- **Basic telemetry**: We collect minimal usage analytics in compliance with GDPR regulations
 
 ## 🛠️ Troubleshooting
 
@@ -246,6 +247,7 @@ VTS wouldn't be possible without the incredible work of the open-source communit
 ### Tools & Scripts
 - [ios-icon-generator](https://github.com/smallmuou/ios-icon-generator) by @smallmuou - for the awesome icon generation script that made creating our app icons effortless
 - [create-dmg](https://github.com/sindresorhus/create-dmg) by @sindresorhus - for the excellent DMG creation script that streamlines our distribution process
+- [Sparkle](https://github.com/sparkle-project/Sparkle) by the Sparkle Project - for providing the robust auto-update framework that keeps VTS current and secure
 
 **Note**: This project builds upon the work of many developers and projects. If I've missed crediting someone or something I sincerely apologize! Please feel free to open an issue or PR to help me give proper recognition where it's due.
 
