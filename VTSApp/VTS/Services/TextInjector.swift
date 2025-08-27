@@ -499,12 +499,29 @@ public class TextInjector: ObservableObject {
                     print("📍 TextInjector: Found cursor position: \(cursorPosition)")
                     
                     let insertionIndex = min(cursorPosition, initialValue.count)
-                    let beforeCursor = String(initialValue.prefix(insertionIndex))
-                    let afterCursor = String(initialValue.dropFirst(insertionIndex))
-                    let newText = beforeCursor + text + afterCursor
                     
-                    print("📝 TextInjector: Inserting text at position \(insertionIndex)")
-                    print("📝 TextInjector: Before: '\(beforeCursor)' | Insert: '\(text)' | After: '\(afterCursor)'")
+                    // Check if we're dealing with placeholder text that should be replaced
+                    let shouldReplacePlaceholder = isPlaceholderText(initialValue, cursorPosition: cursorPosition, element: element)
+                    
+                    // Enable detailed logging for placeholder detection if needed
+                    if cursorPosition == 0 && !initialValue.isEmpty {
+                        logPlaceholderDetection(element, text: initialValue, cursorPosition: cursorPosition)
+                    }
+                    
+                    let newText: String
+                    if shouldReplacePlaceholder {
+                        // Replace the entire placeholder text
+                        newText = text
+                        print("🔄 TextInjector: Detected placeholder text - replacing entire content")
+                        print("📝 TextInjector: Replacing placeholder: '\(initialValue)' with: '\(text)'")
+                    } else {
+                        // Normal insertion at cursor position
+                        let beforeCursor = String(initialValue.prefix(insertionIndex))
+                        let afterCursor = String(initialValue.dropFirst(insertionIndex))
+                        newText = beforeCursor + text + afterCursor
+                        print("📝 TextInjector: Inserting text at position \(insertionIndex)")
+                        print("📝 TextInjector: Before: '\(beforeCursor)' | Insert: '\(text)' | After: '\(afterCursor)'")
+                    }
                     
                     // Ensure proper UTF-8 encoding for the new text
                     let textValue = newText as CFString
@@ -513,7 +530,7 @@ public class TextInjector: ObservableObject {
                         print("✅ TextInjector: Cursor position insertion reported success")
                         
                         // Set cursor after inserted text
-                        let newCursorPosition = insertionIndex + text.count
+                        let newCursorPosition = shouldReplacePlaceholder ? text.count : insertionIndex + text.count
                         if setCursorPosition(element: element, position: newCursorPosition) {
                             print("✅ TextInjector: Cursor repositioned to \(newCursorPosition)")
                         }
@@ -641,6 +658,139 @@ public class TextInjector: ObservableObject {
         }
     }
     
+    // MARK: - Placeholder Text Detection
+    
+    private func isPlaceholderText(_ text: String, cursorPosition: Int, element: AXUIElement) -> Bool {
+        // Only check for placeholder replacement if cursor is at the beginning
+        guard cursorPosition == 0 else {
+            return false
+        }
+        
+        // Primary method: Check accessibility API for placeholder value
+        if let placeholderValue = getAccessibilityPlaceholder(from: element) {
+            let normalizedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            let normalizedPlaceholder = placeholderValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            if normalizedText.caseInsensitiveCompare(normalizedPlaceholder) == .orderedSame {
+                print("🔍 TextInjector: Detected placeholder via AX API: '\(placeholderValue)'")
+                return true
+            }
+        }
+        
+        // Fallback method: Pattern-based detection for apps that don't properly expose placeholder
+        return isPlaceholderTextByPattern(text, cursorPosition: cursorPosition)
+    }
+    
+    private func getAccessibilityPlaceholder(from element: AXUIElement) -> String? {
+        // Try to get the placeholder value using the accessibility API
+        var placeholderValue: CFTypeRef?
+        let result = AXUIElementCopyAttributeValue(element, "AXPlaceholderValue" as CFString, &placeholderValue)
+        
+        if result == .success, let placeholder = placeholderValue as? String, !placeholder.isEmpty {
+            return placeholder
+        }
+        
+        // Some applications might use different attribute names or expose placeholder differently
+        // Try alternative approaches if the standard attribute is not available
+        return nil
+    }
+    
+    private func isPlaceholderTextByPattern(_ text: String, cursorPosition: Int) -> Bool {
+        // Only check for placeholder replacement if cursor is at the beginning
+        guard cursorPosition == 0 else {
+            return false
+        }
+        
+        // Common placeholder text patterns (case-insensitive)
+        let commonPlaceholders = [
+            "ask anything",
+            "type a message",
+            "enter text",
+            "start typing",
+            "write something",
+            "type here",
+            "enter your message",
+            "what can i help you with",
+            "how can i help you",
+            "search",
+            "type your question",
+            "message chatgpt",
+            "send a message"
+        ]
+        
+        let lowercaseText = text.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Check for exact matches with common placeholders
+        if commonPlaceholders.contains(lowercaseText) {
+            print("🔍 TextInjector: Detected known placeholder text: '\(text)'")
+            return true
+        }
+        
+        // Check for patterns that suggest placeholder text
+        let placeholderPatterns = [
+            "ask ",
+            "type ",
+            "enter ",
+            "write ",
+            "search ",
+            "message "
+        ]
+        
+        for pattern in placeholderPatterns {
+            if lowercaseText.hasPrefix(pattern) && lowercaseText.count < 50 {
+                print("🔍 TextInjector: Detected placeholder pattern: '\(text)' (starts with '\(pattern)')")
+                return true
+            }
+        }
+        
+        // Additional heuristics for placeholder detection
+        // - Short text (< 50 chars) at cursor position 0 in text fields is often placeholder
+        // - Text that contains invitation words like "ask", "type", "enter" etc.
+        if lowercaseText.count < 50 && cursorPosition == 0 {
+            let invitationWords = ["ask", "type", "enter", "write", "search", "message", "help", "what", "how"]
+            let containsInvitation = invitationWords.contains { lowercaseText.contains($0) }
+            
+            if containsInvitation {
+                print("🔍 TextInjector: Detected likely placeholder text (invitation word): '\(text)'")
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    private func logPlaceholderDetection(_ element: AXUIElement, text: String, cursorPosition: Int) {
+        let placeholder = getAccessibilityPlaceholder(from: element)
+        let role = getElementRole(element)
+        let supportsPlaceholder = supportsPlaceholderAttribute(element)
+        
+        print("📊 TextInjector: Placeholder Detection Analysis:")
+        print("   Current text: '\(text)'")
+        print("   Cursor position: \(cursorPosition)")
+        print("   Element role: \(role ?? "unknown")")
+        print("   Supports placeholder attribute: \(supportsPlaceholder)")
+        print("   AX Placeholder value: '\(placeholder ?? "none")'")
+    }
+    
+    private func getElementRole(_ element: AXUIElement) -> String? {
+        var roleRef: CFTypeRef?
+        if AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &roleRef) == .success,
+           let role = roleRef as? String {
+            return role
+        }
+        return nil
+    }
+    
+    private func supportsPlaceholderAttribute(_ element: AXUIElement) -> Bool {
+        var attributes: CFArray?
+        let result = AXUIElementCopyAttributeNames(element, &attributes)
+        
+        if result == .success, let attributeNames = attributes as? [String] {
+            return attributeNames.contains("AXPlaceholderValue")
+        }
+        return false
+    }
+
     // MARK: - Cursor Position Helper Methods
     
     private func extractCursorPosition(from range: CFTypeRef) -> Int? {
