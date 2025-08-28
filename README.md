@@ -5,6 +5,10 @@
 [![Latest Release](https://img.shields.io/github/v/release/j05u3/VTS)](https://github.com/j05u3/VTS/releases/latest)
 [![Platform](https://img.shields.io/badge/platform-macOS%2014.0%2B-blue)](https://developer.apple.com/macos/)
 
+> **🔊 Turn on your sound!** This demo includes audio to showcase the real-time transcription experience.
+
+https://github.com/user-attachments/assets/bc77c14b-863c-418f-8564-175d6300ce2b
+
 **The open-source macOS dictation replacement you've been waiting for!** 🚀
 
 Transform your voice into text instantly with the power of **OpenAI**, **Groq**, and **Deepgram** APIs. Say goodbye to macOS dictation limitations and hello to lightning-fast, accurate transcription with your own custom hotkeys! ⚡️
@@ -31,13 +35,6 @@ Transform your voice into text instantly with the power of **OpenAI**, **Groq**,
 - [Feedback](#-feedback)
 - [License](#-license)
 - [Acknowledgements](#-acknowledgements)
-
-## 🎬 Demo
-
-> **🔊 Turn on your sound!** This demo includes audio to showcase the real-time transcription experience.
-
-https://github.com/user-attachments/assets/59563387-5d46-47eb-8f58-2607c4901135
-
 
 ## ✨ Why Choose VTS?
 
