@@ -72,27 +72,20 @@ struct TextInjectionTestView: View {
                                 .font(.headline)
                             
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("VTS may use multiple text insertion methods for maximum app compatibility:")
+                                Text("VTS uses Unicode typing simulation for reliable text insertion across all applications:")
                                     .font(.body)
                                 
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Label("Direct Text Insertion", systemImage: "1.circle.fill")
+                                    Label("Unicode Typing Simulation", systemImage: "keyboard.fill")
                                         .font(.caption)
-                                    Text("Primary method using macOS Accessibility API to directly insert text. Most reliable for standard applications.")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .padding(.leading, 20)
-                                    
-                                    Label("Keyboard Input Simulation", systemImage: "2.circle.fill")
-                                        .font(.caption)
-                                    Text("Fallback method that simulates typing. Supports international characters and works with specialized applications.")
+                                    Text("Primary method that simulates keyboard input with Unicode support. Works reliably with all applications, supports international characters, emojis, and complex text.")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                         .padding(.leading, 20)
                                     
-                                    Label("Basic Key Events", systemImage: "3.circle.fill")
+                                    Label("Legacy Accessibility Methods", systemImage: "wrench.and.screwdriver.fill")
                                         .font(.caption)
-                                    Text("Final fallback using simple key simulation for maximum compatibility when other methods fail.")
+                                    Text("Available for testing and debugging purposes. These methods may not work consistently across all applications.")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                         .padding(.leading, 20)
@@ -186,7 +179,7 @@ struct TextInjectionTestView: View {
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                 
-                                Text("Use these tests to isolate which injection method works in different applications, BOTH require accessibility permission. NOTE: Log messages here, even if they say success, can be wrong, you need to make sure the text actually shows up where you want it to.")
+                                Text("Use these tests to diagnose and compare different injection methods. BOTH require accessibility permission. NOTE: Log messages here, even if they say success, can be wrong - you need to verify the text actually appears where expected.")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 

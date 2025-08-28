@@ -265,6 +265,7 @@ public class TextInjector: ObservableObject {
     public func injectText(_ text: String, replaceLastText: String? = nil) {
         guard hasAccessibilityPermission else {
             print("❌ TextInjector: No accessibility permission - cannot inject text")
+            print("📋 TextInjector: VTS requires accessibility permission for text injection functionality")
             print("📋 TextInjector: Please grant accessibility permission in System Settings > Privacy & Security > Accessibility")
             return
         }
@@ -281,20 +282,11 @@ public class TextInjector: ObservableObject {
             deleteText(count: lastText.count)
         }
         
-        // Get app info for method selection
+        // Get app info for logging
         let appInfo = getCurrentAppInfo()
-        
         print("📱 TextInjector: Target app: \(appInfo.name)")
         
-        // Try modern Accessibility API first (best for most apps)
-        if tryModernAccessibilityInsertion(text) {
-            print("✅ TextInjector: Successfully injected via modern Accessibility API")
-            return
-        }
-        
-        print("⚠️ TextInjector: Accessibility method failed, trying Unicode typing simulation...")
-        
-        // Fallback to improved Unicode typing simulation
+        // Use Unicode typing simulation as the primary method
         if simulateModernUnicodeTyping(text) {
             print("✅ TextInjector: Successfully injected via Unicode typing")
             return
@@ -340,6 +332,23 @@ public class TextInjector: ObservableObject {
         return AppInfo(name: appName, bundleIdentifier: bundleId)
     }
     
+    private func deleteTextViaKeyboard(count: Int) {
+        guard count > 0 else { return }
+        
+        print("🗑️ TextInjector: Deleting \(count) characters via keyboard simulation...")
+        
+        for _ in 0..<count {
+            let deleteEvent = CGEvent(keyboardEventSource: nil, virtualKey: 51, keyDown: true)
+            deleteEvent?.post(tap: .cghidEventTap)
+            let deleteUpEvent = CGEvent(keyboardEventSource: nil, virtualKey: 51, keyDown: false)
+            deleteUpEvent?.post(tap: .cghidEventTap)
+            Thread.sleep(forTimeInterval: 0.01)
+        }
+        print("✅ TextInjector: Deletion completed via keyboard simulation")
+    }
+    
+    // MARK: - Legacy Accessibility Methods (kept for testing and future use)
+    
     private func deleteText(count: Int) {
         guard count > 0 else { return }
         
@@ -354,14 +363,7 @@ public class TextInjector: ObservableObject {
         
         // Fallback to keyboard simulation
         print("⚠️ TextInjector: Accessibility deletion failed, using keyboard simulation...")
-        for _ in 0..<count {
-            let deleteEvent = CGEvent(keyboardEventSource: nil, virtualKey: 51, keyDown: true)
-            deleteEvent?.post(tap: .cghidEventTap)
-            let deleteUpEvent = CGEvent(keyboardEventSource: nil, virtualKey: 51, keyDown: false)
-            deleteUpEvent?.post(tap: .cghidEventTap)
-            Thread.sleep(forTimeInterval: 0.01)
-        }
-        print("✅ TextInjector: Deletion completed via keyboard simulation")
+        deleteTextViaKeyboard(count: count)
     }
     
     private func tryAccessibilityDeletion(count: Int) -> Bool {
