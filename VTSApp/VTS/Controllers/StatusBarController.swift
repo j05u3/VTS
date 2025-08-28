@@ -207,13 +207,13 @@ public class StatusBarController: ObservableObject {
         // Priority: Recording > Processing > Idle
         if isRecording {
             button.title = "🔴"
-            button.toolTip = "VTS is recording audio - Click to stop (\(hotkey))"
+            button.toolTip = "VTS is recording audio - Press \(hotkey) to stop"
         } else if isProcessing {
             button.title = "🔵"
-            button.toolTip = "VTS is processing audio - Click to view progress (\(hotkey))"
+            button.toolTip = "VTS is processing audio"
         } else {
             button.title = "⚪️"
-            button.toolTip = "VTS is ready - Click to start recording (\(hotkey))"
+            button.toolTip = "VTS is ready - Press \(hotkey) to start recording"
         }
     }
 
