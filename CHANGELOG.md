@@ -5,6 +5,13 @@ All notable changes to VTS - Voice Typing Studio will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0](https://github.com/j05u3/VTS/compare/v0.12.0...v0.13.0) (2025-08-28)
+
+
+### Features
+
+* improve text injection in general by using Unicode typing simulation ([#76](https://github.com/j05u3/VTS/issues/76)) ([f931827](https://github.com/j05u3/VTS/commit/f931827f6ae6ae919720cdaf0b6fc966ff7a5d39))
+
 ## [0.12.0](https://github.com/j05u3/VTS/compare/v0.11.4...v0.12.0) (2025-08-26)
 
 
