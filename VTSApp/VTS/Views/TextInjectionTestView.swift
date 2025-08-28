@@ -217,6 +217,40 @@ struct TextInjectionTestView: View {
                                     )
                                 }
                             }
+                            
+                            // Diagnostic Tests
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Method-Specific Diagnostic Tests")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                
+                                Text("Use these tests to isolate which injection method works in different applications, BOTH require accessibility permission. NOTE: Log messages here, even if they say success, can be wrong, you need to make sure the text actually shows up where you want it to.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                LazyVGrid(columns: [
+                                    GridItem(.flexible()),
+                                    GridItem(.flexible())
+                                ], spacing: 8) {
+                                    TestButton(
+                                        title: "🔬 Accessibility API Only",
+                                        description: "Test ONLY Accessibility API (no typing fallback)",
+                                        action: {
+                                            logMessages.add("🔬 Testing ONLY Accessibility API...")
+                                            textInjector.testAccessibilityOnlyInjection()
+                                        }
+                                    )
+                                    
+                                    TestButton(
+                                        title: "⌨️ Unicode Typing Only",
+                                        description: "Test ONLY typing simulation (no Accessibility API)",
+                                        action: {
+                                            logMessages.add("⌨️ Testing ONLY Unicode typing simulation...")
+                                            textInjector.testUnicodeTypingOnlyInjection()
+                                        }
+                                    )
+                                }
+                            }
                         }
                         .padding()
                     }
@@ -281,6 +315,11 @@ struct TextInjectionTestView: View {
                                 .font(.headline)
                             
                             VStack(alignment: .leading, spacing: 8) {
+                                TroubleshootingItem(
+                                    issue: "VS Code Terminal: Text injection appears successful but text doesn't appear",
+                                    solution: "VS Code terminal has broken Accessibility API support. Use the diagnostic tests above to confirm - Accessibility API will report success but typing simulation works. This is an Electron/VS Code bug."
+                                )
+                                
                                 TroubleshootingItem(
                                     issue: "Text not appearing in target application",
                                     solution: "Ensure the target application has focus with an active text field. Verify accessibility permission is enabled."

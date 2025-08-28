@@ -191,6 +191,56 @@ public class TextInjector: ObservableObject {
         }
     }
     
+    public func testAccessibilityOnlyInjection() {
+        log("🧪 TextInjector: Starting ACCESSIBILITY API ONLY test...")
+        log("🔬 TextInjector: This test will ONLY use the Accessibility API, no fallback to typing simulation")
+        checkPermissionStatus()
+        
+        if hasAccessibilityPermission {
+            log("🧪 TextInjector: Accessibility-only test will begin in 3 seconds...")
+            log("🧪 TextInjector: Please focus on a text field now!")
+            log("🔬 TextInjector: This test helps diagnose if Accessibility API works in specific apps")
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                let testText = "ACCESSIBILITY-ONLY: Hello from VTS!"
+                self.log("🔬 TextInjector: Testing ONLY Accessibility API with: '\(testText)'")
+                
+                if self.tryModernAccessibilityInsertion(testText) {
+                    self.log("✅ TextInjector: Accessibility API test SUCCEEDED")
+                } else {
+                    self.log("❌ TextInjector: Accessibility API test FAILED - this app may have broken accessibility support")
+                }
+            }
+        } else {
+            log("🧪 TextInjector: Cannot test - accessibility permission required")
+        }
+    }
+    
+    public func testUnicodeTypingOnlyInjection() {
+        log("🧪 TextInjector: Starting UNICODE TYPING ONLY test...")
+        log("🔬 TextInjector: This test will ONLY use Unicode typing simulation, no Accessibility API")
+        checkPermissionStatus()
+        
+        if hasAccessibilityPermission {
+            log("🧪 TextInjector: Unicode typing-only test will begin in 3 seconds...")
+            log("🧪 TextInjector: Please focus on a text field now!")
+            log("🔬 TextInjector: This test helps verify if typing simulation works when Accessibility API fails")
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                let testText = "TYPING-ONLY: Hello from VTS!"
+                self.log("🔬 TextInjector: Testing ONLY Unicode typing simulation with: '\(testText)'")
+                
+                if self.simulateModernUnicodeTyping(testText) {
+                    self.log("✅ TextInjector: Unicode typing test SUCCEEDED")
+                } else {
+                    self.log("❌ TextInjector: Unicode typing test FAILED")
+                }
+            }
+        } else {
+            log("🧪 TextInjector: Cannot test - accessibility permission required")
+        }
+    }
+    
     public func requestAccessibilityPermission() {
         print("Requesting accessibility permission for text insertion...")
         
