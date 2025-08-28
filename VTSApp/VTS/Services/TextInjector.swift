@@ -108,35 +108,18 @@ public class TextInjector: ObservableObject {
         }
     }
     
-    public func testCursorInjection() {
-        log("🧪 Starting code editor compatibility test...")
+    public func testEmojiCharacters() {
+        log("🧪 Starting emoji injection test...")
         checkPermissionStatus()
         
         if hasAccessibilityPermission {
-            log("🧪 Code editor test will begin in 3 seconds...")
-            log("🧪 Please focus on a text field in your code editor!")
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                // Test with mixed case and international characters
-                self.injectText("Hello World! Testing VTS in code editor. Mixed CaSe TeXt: 123 ABC def. Español: ñáéíóú")
-            }
-        } else {
-            log("🧪 Cannot test - accessibility permission required")
-        }
-    }
-    
-    public func testSpanishCharacters() {
-        log("🧪 Starting international character test...")
-        checkPermissionStatus()
-        
-        if hasAccessibilityPermission {
-            log("🧪 International character test will begin in 3 seconds...")
+            log("🧪 Emoji injection test will begin in 3 seconds...")
             log("🧪 Please focus on any text input field!")
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                let spanishText = "Hola, ¿cómo estás? Me gusta el español: ñáéíóúüÑÁÉÍÓÚÜ"
-                self.log("🧪 Testing international text: '\(spanishText)'")
-                self.injectText(spanishText)
+                let emojiText = "Hello! 😀😃😄😁😆😅😂🤣😊😇🙂👹👺🤡💩👽👾🤖🎃🙀😿😾"
+                self.log("🧪 Testing emoji text: '\(emojiText)'")
+                self.injectText(emojiText)
             }
         } else {
             log("🧪 Cannot test - accessibility permission required")
@@ -167,27 +150,53 @@ public class TextInjector: ObservableObject {
         }
     }
     
-    public func testCursorPositionInsertion() {
-        log("🧪 TextInjector: Starting cursor position insertion test...")
+    public func testAccessibilityOnlyInjection() {
+        log("🧪 TextInjector: Starting ACCESSIBILITY API ONLY test...")
+        log("🔬 TextInjector: This test will ONLY use the Accessibility API, no fallback to typing simulation")
         checkPermissionStatus()
         
         if hasAccessibilityPermission {
-            log("🧪 TextInjector: This test will help verify cursor position insertion works correctly.")
-            log("🧪 TextInjector: Instructions:")
-            log("   1. Focus on a text field")
-            log("   2. Type some text: 'Hello World'")
-            log("   3. Position cursor between 'Hello' and 'World' (middle of the text)")
-            log("   4. Wait for injection in 5 seconds...")
-            log("🧪 TextInjector: Expected result: Text should be inserted AT the cursor, not at the end!")
+            log("🧪 TextInjector: Accessibility-only test will begin in 3 seconds...")
+            log("🧪 TextInjector: Please focus on a text field now!")
+            log("🔬 TextInjector: This test helps diagnose if Accessibility API works in specific apps")
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                let insertText = " INSERTED "
-                self.log("🧪 TextInjector: Inserting '\(insertText)' at cursor position...")
-                self.injectText(insertText)
-                self.log("🧪 TextInjector: If working correctly, text should become: 'Hello INSERTED World'")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                let testText = "ACCESSIBILITY-ONLY: Hello from VTS!"
+                self.log("🔬 TextInjector: Testing ONLY Accessibility API with: '\(testText)'")
+                
+                if self.tryModernAccessibilityInsertion(testText) {
+                    self.log("✅ TextInjector: Accessibility API test SUCCEEDED")
+                } else {
+                    self.log("❌ TextInjector: Accessibility API test FAILED - this app may have broken accessibility support")
+                }
             }
         } else {
-            log("🧪 TextInjector: Cannot test - no accessibility permission")
+            log("🧪 TextInjector: Cannot test - accessibility permission required")
+        }
+    }
+    
+    public func testUnicodeTypingOnlyInjection() {
+        log("🧪 TextInjector: Starting UNICODE TYPING ONLY test...")
+        log("🔬 TextInjector: This test will ONLY use Unicode typing simulation, no Accessibility API")
+        checkPermissionStatus()
+        
+        if hasAccessibilityPermission {
+            log("🧪 TextInjector: Unicode typing-only test will begin in 3 seconds...")
+            log("🧪 TextInjector: Please focus on a text field now!")
+            log("🔬 TextInjector: This test helps verify if typing simulation works when Accessibility API fails")
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                let testText = "TYPING-ONLY: Hello from VTS!"
+                self.log("🔬 TextInjector: Testing ONLY Unicode typing simulation with: '\(testText)'")
+                
+                if self.simulateModernUnicodeTyping(testText) {
+                    self.log("✅ TextInjector: Unicode typing test SUCCEEDED")
+                } else {
+                    self.log("❌ TextInjector: Unicode typing test FAILED")
+                }
+            }
+        } else {
+            log("🧪 TextInjector: Cannot test - accessibility permission required")
         }
     }
     
@@ -256,6 +265,7 @@ public class TextInjector: ObservableObject {
     public func injectText(_ text: String, replaceLastText: String? = nil) {
         guard hasAccessibilityPermission else {
             print("❌ TextInjector: No accessibility permission - cannot inject text")
+            print("📋 TextInjector: VTS requires accessibility permission for text injection functionality")
             print("📋 TextInjector: Please grant accessibility permission in System Settings > Privacy & Security > Accessibility")
             return
         }
@@ -272,20 +282,11 @@ public class TextInjector: ObservableObject {
             deleteText(count: lastText.count)
         }
         
-        // Get app info for method selection
+        // Get app info for logging
         let appInfo = getCurrentAppInfo()
-        
         print("📱 TextInjector: Target app: \(appInfo.name)")
         
-        // Try modern Accessibility API first (best for most apps)
-        if tryModernAccessibilityInsertion(text) {
-            print("✅ TextInjector: Successfully injected via modern Accessibility API")
-            return
-        }
-        
-        print("⚠️ TextInjector: Accessibility method failed, trying Unicode typing simulation...")
-        
-        // Fallback to improved Unicode typing simulation
+        // Use Unicode typing simulation as the primary method
         if simulateModernUnicodeTyping(text) {
             print("✅ TextInjector: Successfully injected via Unicode typing")
             return
@@ -331,6 +332,23 @@ public class TextInjector: ObservableObject {
         return AppInfo(name: appName, bundleIdentifier: bundleId)
     }
     
+    private func deleteTextViaKeyboard(count: Int) {
+        guard count > 0 else { return }
+        
+        print("🗑️ TextInjector: Deleting \(count) characters via keyboard simulation...")
+        
+        for _ in 0..<count {
+            let deleteEvent = CGEvent(keyboardEventSource: nil, virtualKey: 51, keyDown: true)
+            deleteEvent?.post(tap: .cghidEventTap)
+            let deleteUpEvent = CGEvent(keyboardEventSource: nil, virtualKey: 51, keyDown: false)
+            deleteUpEvent?.post(tap: .cghidEventTap)
+            Thread.sleep(forTimeInterval: 0.01)
+        }
+        print("✅ TextInjector: Deletion completed via keyboard simulation")
+    }
+    
+    // MARK: - Legacy Accessibility Methods (kept for testing and future use)
+    
     private func deleteText(count: Int) {
         guard count > 0 else { return }
         
@@ -345,14 +363,7 @@ public class TextInjector: ObservableObject {
         
         // Fallback to keyboard simulation
         print("⚠️ TextInjector: Accessibility deletion failed, using keyboard simulation...")
-        for _ in 0..<count {
-            let deleteEvent = CGEvent(keyboardEventSource: nil, virtualKey: 51, keyDown: true)
-            deleteEvent?.post(tap: .cghidEventTap)
-            let deleteUpEvent = CGEvent(keyboardEventSource: nil, virtualKey: 51, keyDown: false)
-            deleteUpEvent?.post(tap: .cghidEventTap)
-            Thread.sleep(forTimeInterval: 0.01)
-        }
-        print("✅ TextInjector: Deletion completed via keyboard simulation")
+        deleteTextViaKeyboard(count: count)
     }
     
     private func tryAccessibilityDeletion(count: Int) -> Bool {

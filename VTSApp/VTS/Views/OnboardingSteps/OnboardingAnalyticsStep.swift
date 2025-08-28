@@ -3,7 +3,10 @@ import SwiftUI
 struct OnboardingAnalyticsStep: View {
     @ObservedObject var appState: AppState
     @State private var animateContent = false
-    @StateObject private var consentManager = AnalyticsConsentManager.shared
+    
+    private var consentManager: AnalyticsConsentManager {
+        appState.analyticsConsentManagerService
+    }
     
     var body: some View {
         VStack(spacing: 40) {

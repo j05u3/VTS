@@ -72,41 +72,25 @@ struct TextInjectionTestView: View {
                                 .font(.headline)
                             
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("VTS uses multiple text insertion methods for maximum app compatibility:")
+                                Text("VTS uses Unicode typing simulation for reliable text insertion across all applications:")
                                     .font(.body)
                                 
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Label("Direct Text Insertion", systemImage: "1.circle.fill")
+                                    Label("Unicode Typing Simulation", systemImage: "keyboard.fill")
                                         .font(.caption)
-                                    Text("Primary method using macOS Accessibility API to directly insert text. Most reliable for standard applications.")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .padding(.leading, 20)
-                                    
-                                    Label("Keyboard Input Simulation", systemImage: "2.circle.fill")
-                                        .font(.caption)
-                                    Text("Fallback method that simulates typing. Supports international characters and works with specialized applications.")
+                                    Text("Primary method that simulates keyboard input with Unicode support. Works reliably with all applications, supports international characters, emojis, and complex text.")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                         .padding(.leading, 20)
                                     
-                                    Label("Basic Key Events", systemImage: "3.circle.fill")
+                                    Label("Legacy Accessibility Methods", systemImage: "wrench.and.screwdriver.fill")
                                         .font(.caption)
-                                    Text("Final fallback using simple key simulation for maximum compatibility when other methods fail.")
+                                    Text("Available for testing and debugging purposes. These methods may not work consistently across all applications.")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                         .padding(.leading, 20)
                                 }
                             }
-                            
-                            Divider()
-                            
-                            Text("Application Compatibility")
-                                .font(.headline)
-                            
-                            Text("VTS automatically detects applications and uses the best insertion method. Some specialized apps like code editors, terminals, and games may require specific handling.")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
                         }
                         .padding()
                     }
@@ -158,35 +142,6 @@ struct TextInjectionTestView: View {
                                 }
                             }
                             
-                            // Application-Specific Tests
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("Application-Specific Tests")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                
-                                LazyVGrid(columns: [
-                                    GridItem(.flexible()),
-                                    GridItem(.flexible())
-                                ], spacing: 8) {
-                                    TestButton(
-                                        title: "Code Editor Test",
-                                        description: "Optimized for code editors like Cursor",
-                                        action: {
-                                            logMessages.add("🧪 Starting code editor compatibility test...")
-                                            textInjector.testCursorInjection()
-                                        }
-                                    )
-                                    
-                                    TestButton(
-                                        title: "International Text",
-                                        description: "Test Spanish characters & accents",
-                                        action: {
-                                            logMessages.add("🧪 Testing international character support...")
-                                            textInjector.testSpanishCharacters()
-                                        }
-                                    )
-                                }
-                            }
                             
                             // Advanced Tests
                             VStack(alignment: .leading, spacing: 12) {
@@ -208,11 +163,45 @@ struct TextInjectionTestView: View {
                                     )
                                     
                                     TestButton(
-                                        title: "Test Cursor Position",
-                                        description: "Verify insertion at cursor position",
+                                        title: "Emojis",
+                                        description: "Test emojis insertion",
                                         action: {
-                                            logMessages.add("🧪 Testing cursor position insertion...")
-                                            textInjector.testCursorPositionInsertion()
+                                            logMessages.add("🧪 Testing emojis insertion...")
+                                            textInjector.testEmojiCharacters()
+                                        }
+                                    )
+                                }
+                            }
+                            
+                            // Diagnostic Tests
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Method-Specific Diagnostic Tests")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                
+                                Text("Use these tests to diagnose and compare different injection methods. BOTH require accessibility permission. NOTE: Log messages here, even if they say success, can be wrong - you need to verify the text actually appears where expected.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                LazyVGrid(columns: [
+                                    GridItem(.flexible()),
+                                    GridItem(.flexible())
+                                ], spacing: 8) {
+                                    TestButton(
+                                        title: "🔬 Accessibility API Only",
+                                        description: "Test ONLY Accessibility API (no typing fallback)",
+                                        action: {
+                                            logMessages.add("🔬 Testing ONLY Accessibility API...")
+                                            textInjector.testAccessibilityOnlyInjection()
+                                        }
+                                    )
+                                    
+                                    TestButton(
+                                        title: "⌨️ Unicode Typing Only",
+                                        description: "Test ONLY typing simulation (no Accessibility API)",
+                                        action: {
+                                            logMessages.add("⌨️ Testing ONLY Unicode typing simulation...")
+                                            textInjector.testUnicodeTypingOnlyInjection()
                                         }
                                     )
                                 }
@@ -281,6 +270,12 @@ struct TextInjectionTestView: View {
                                 .font(.headline)
                             
                             VStack(alignment: .leading, spacing: 8) {
+                                
+                                TroubleshootingItem(
+                                    issue: "Permission repeatedly denied or reset",
+                                    solution: "In System Settings > Privacy & Security > Accessibility, remove any old app entries and re-add the current version."
+                                )
+                                
                                 TroubleshootingItem(
                                     issue: "Text not appearing in target application",
                                     solution: "Ensure the target application has focus with an active text field. Verify accessibility permission is enabled."
@@ -290,10 +285,10 @@ struct TextInjectionTestView: View {
                                     issue: "International characters not displaying correctly",
                                     solution: "Test the international character support. Some applications may require specific input method settings."
                                 )
-                                
+
                                 TroubleshootingItem(
-                                    issue: "Permission repeatedly denied or reset",
-                                    solution: "In System Settings > Privacy & Security > Accessibility, remove any old app entries and re-add the current version."
+                                    issue: "VS Code Terminal: Text injection reports success but text doesn't appear",
+                                    solution: "VS Code terminal has broken Accessibility API support. Use the diagnostic tests above to confirm - Accessibility API will report success but typing simulation works. This is an Electron/VS Code bug."
                                 )
                                 
                                 TroubleshootingItem(
