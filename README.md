@@ -211,18 +211,20 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS d
 - [x] **Auto-open at login**: Auto-open at login with checkbox in the preferences window (✅ Implemented)
 - [x] **Modern Release Automation**: Automated releases with release-please and GitHub Actions (✅ Implemented)
 - [x] **Sparkle Auto-Updates**: Automatic app updates with GitHub Releases appcast hosting (✅ Implemented)
+- [ ] **Support real-time APIs**: Like OpenAI Real-time Transcription API, etc.
+
 
 ### In a future or maybe pro version, to be decided/ordered by priority, your feedback and contributions are welcome!
 
 - [ ] **More models/providers**: Support for more STT providers like Google, Azure, etc.
-- [ ] **Safe auto-cut**: Auto-cut to maximum time if the user forgets to end (or accidentally starts).
+- [ ] **Safe auto-cut**: Auto-cut to maximum time if the user forgets to end (or accidentally starts). But also we could use VAD from real-time APIs?
+- [ ] **LLM step**: Use LLM to process the transcription and improve accuracy, maybe targetted to the app you're using or context in general. (Be able to easily input emojis?). I mean apply transformations based on the app you're injecting text to.
+- [ ] **Advanced Audio Processing**: Noise reduction and gain control, but also some STT providers can do this so maybe not needed?
 - [ ] **Comprehensive Test Suite**: Automated unit tests covering:
   - Core transcription functionality
   - Provider validation and error handling  
   - Device management and priority logic
   - Integration flows and edge cases
-- [ ] **LLM step**: Use LLM to process the transcription and improve accuracy, maybe targetted to the app you're using or context in general. (Be able to easily input emojis?). I mean apply transformations based on the app you're injecting text to.
-- [ ] **Advanced Audio Processing**: Noise reduction and gain control, but also some STT providers can do this so maybe not needed?.
 - [ ] **Accessibility Features**: VoiceOver support and high contrast modes
 
 ## 💬 Feedback
