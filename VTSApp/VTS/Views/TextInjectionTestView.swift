@@ -287,7 +287,7 @@ struct TextInjectionTestView: View {
                                 )
 
                                 TroubleshootingItem(
-                                    issue: "VS Code Terminal: Text injection appears successful but text doesn't appear",
+                                    issue: "VS Code Terminal: Text injection reports success but text doesn't appear",
                                     solution: "VS Code terminal has broken Accessibility API support. Use the diagnostic tests above to confirm - Accessibility API will report success but typing simulation works. This is an Electron/VS Code bug."
                                 )
                                 
