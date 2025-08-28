@@ -72,7 +72,7 @@ struct TextInjectionTestView: View {
                                 .font(.headline)
                             
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("VTS uses multiple text insertion methods for maximum app compatibility:")
+                                Text("VTS may use multiple text insertion methods for maximum app compatibility:")
                                     .font(.body)
                                 
                                 VStack(alignment: .leading, spacing: 6) {
@@ -98,15 +98,6 @@ struct TextInjectionTestView: View {
                                         .padding(.leading, 20)
                                 }
                             }
-                            
-                            Divider()
-                            
-                            Text("Application Compatibility")
-                                .font(.headline)
-                            
-                            Text("VTS automatically detects applications and uses the best insertion method. Some specialized apps like code editors, terminals, and games may require specific handling.")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
                         }
                         .padding()
                     }
@@ -158,35 +149,6 @@ struct TextInjectionTestView: View {
                                 }
                             }
                             
-                            // Application-Specific Tests
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("Application-Specific Tests")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                
-                                LazyVGrid(columns: [
-                                    GridItem(.flexible()),
-                                    GridItem(.flexible())
-                                ], spacing: 8) {
-                                    TestButton(
-                                        title: "Code Editor Test",
-                                        description: "Optimized for code editors like Cursor",
-                                        action: {
-                                            logMessages.add("🧪 Starting code editor compatibility test...")
-                                            textInjector.testCursorInjection()
-                                        }
-                                    )
-                                    
-                                    TestButton(
-                                        title: "International Text",
-                                        description: "Test Spanish characters & accents",
-                                        action: {
-                                            logMessages.add("🧪 Testing international character support...")
-                                            textInjector.testSpanishCharacters()
-                                        }
-                                    )
-                                }
-                            }
                             
                             // Advanced Tests
                             VStack(alignment: .leading, spacing: 12) {
@@ -208,11 +170,11 @@ struct TextInjectionTestView: View {
                                     )
                                     
                                     TestButton(
-                                        title: "Test Cursor Position",
-                                        description: "Verify insertion at cursor position",
+                                        title: "Emojis",
+                                        description: "Test emojis insertion",
                                         action: {
-                                            logMessages.add("🧪 Testing cursor position insertion...")
-                                            textInjector.testCursorPositionInsertion()
+                                            logMessages.add("🧪 Testing emojis insertion...")
+                                            textInjector.testEmojiCharacters()
                                         }
                                     )
                                 }
@@ -315,9 +277,10 @@ struct TextInjectionTestView: View {
                                 .font(.headline)
                             
                             VStack(alignment: .leading, spacing: 8) {
+                                
                                 TroubleshootingItem(
-                                    issue: "VS Code Terminal: Text injection appears successful but text doesn't appear",
-                                    solution: "VS Code terminal has broken Accessibility API support. Use the diagnostic tests above to confirm - Accessibility API will report success but typing simulation works. This is an Electron/VS Code bug."
+                                    issue: "Permission repeatedly denied or reset",
+                                    solution: "In System Settings > Privacy & Security > Accessibility, remove any old app entries and re-add the current version."
                                 )
                                 
                                 TroubleshootingItem(
@@ -329,10 +292,10 @@ struct TextInjectionTestView: View {
                                     issue: "International characters not displaying correctly",
                                     solution: "Test the international character support. Some applications may require specific input method settings."
                                 )
-                                
+
                                 TroubleshootingItem(
-                                    issue: "Permission repeatedly denied or reset",
-                                    solution: "In System Settings > Privacy & Security > Accessibility, remove any old app entries and re-add the current version."
+                                    issue: "VS Code Terminal: Text injection appears successful but text doesn't appear",
+                                    solution: "VS Code terminal has broken Accessibility API support. Use the diagnostic tests above to confirm - Accessibility API will report success but typing simulation works. This is an Electron/VS Code bug."
                                 )
                                 
                                 TroubleshootingItem(

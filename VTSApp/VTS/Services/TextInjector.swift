@@ -108,35 +108,18 @@ public class TextInjector: ObservableObject {
         }
     }
     
-    public func testCursorInjection() {
-        log("🧪 Starting code editor compatibility test...")
+    public func testEmojiCharacters() {
+        log("🧪 Starting emoji injection test...")
         checkPermissionStatus()
         
         if hasAccessibilityPermission {
-            log("🧪 Code editor test will begin in 3 seconds...")
-            log("🧪 Please focus on a text field in your code editor!")
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                // Test with mixed case and international characters
-                self.injectText("Hello World! Testing VTS in code editor. Mixed CaSe TeXt: 123 ABC def. Español: ñáéíóú")
-            }
-        } else {
-            log("🧪 Cannot test - accessibility permission required")
-        }
-    }
-    
-    public func testSpanishCharacters() {
-        log("🧪 Starting international character test...")
-        checkPermissionStatus()
-        
-        if hasAccessibilityPermission {
-            log("🧪 International character test will begin in 3 seconds...")
+            log("🧪 Emoji injection test will begin in 3 seconds...")
             log("🧪 Please focus on any text input field!")
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                let spanishText = "Hola, ¿cómo estás? Me gusta el español: ñáéíóúüÑÁÉÍÓÚÜ"
-                self.log("🧪 Testing international text: '\(spanishText)'")
-                self.injectText(spanishText)
+                let emojiText = "Hello! 😀😃😄😁😆😅😂🤣😊😇🙂👹👺🤡💩👽👾🤖🎃🙀😿😾"
+                self.log("🧪 Testing emoji text: '\(emojiText)'")
+                self.injectText(emojiText)
             }
         } else {
             log("🧪 Cannot test - accessibility permission required")
@@ -164,30 +147,6 @@ public class TextInjector: ObservableObject {
             }
         } else {
             log("🧪 Cannot test - accessibility permission required")
-        }
-    }
-    
-    public func testCursorPositionInsertion() {
-        log("🧪 TextInjector: Starting cursor position insertion test...")
-        checkPermissionStatus()
-        
-        if hasAccessibilityPermission {
-            log("🧪 TextInjector: This test will help verify cursor position insertion works correctly.")
-            log("🧪 TextInjector: Instructions:")
-            log("   1. Focus on a text field")
-            log("   2. Type some text: 'Hello World'")
-            log("   3. Position cursor between 'Hello' and 'World' (middle of the text)")
-            log("   4. Wait for injection in 5 seconds...")
-            log("🧪 TextInjector: Expected result: Text should be inserted AT the cursor, not at the end!")
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                let insertText = " INSERTED "
-                self.log("🧪 TextInjector: Inserting '\(insertText)' at cursor position...")
-                self.injectText(insertText)
-                self.log("🧪 TextInjector: If working correctly, text should become: 'Hello INSERTED World'")
-            }
-        } else {
-            log("🧪 TextInjector: Cannot test - no accessibility permission")
         }
     }
     
