@@ -777,19 +777,19 @@ struct PreferencesView: View {
                             Spacer()
                             
                             Toggle("", isOn: Binding(
-                                get: { AnalyticsConsentManager.shared.hasConsent },
+                                get: { appState.analyticsConsentManagerService.hasConsent },
                                 set: { newValue in
                                     if newValue {
-                                        AnalyticsConsentManager.shared.grantConsent()
+                                        appState.analyticsConsentManagerService.grantConsent()
                                     } else {
-                                        AnalyticsConsentManager.shared.revokeConsent()
+                                        appState.analyticsConsentManagerService.revokeConsent()
                                     }
                                 }
                             ))
                             .toggleStyle(.switch)
                         }
                         
-                        if AnalyticsConsentManager.shared.hasConsent {
+                        if appState.analyticsConsentManagerService.hasConsent {
                             HStack {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.green)

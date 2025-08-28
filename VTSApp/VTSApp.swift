@@ -183,6 +183,7 @@ class AppState: ObservableObject {
     private let notificationManager = NotificationManager.shared
     private let launchAtLoginManager = LaunchAtLoginManager.shared
     private let sparkleUpdaterManager = SparkleUpdaterManager.shared
+    private let analyticsConsentManager = AnalyticsConsentManager.shared
     private var cancellables = Set<AnyCancellable>()
     
     private var settingsWindowController: SettingsWindowController?
@@ -258,6 +259,10 @@ class AppState: ObservableObject {
     
     var sparkleUpdaterManagerService: SparkleUpdaterManager {
         return sparkleUpdaterManager
+    }
+    
+    var analyticsConsentManagerService: AnalyticsConsentManager {
+        return analyticsConsentManager
     }
     
     init() {
@@ -342,6 +347,12 @@ class AppState: ObservableObject {
             .store(in: &cancellables)
         
         sparkleUpdaterManager.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        analyticsConsentManager.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }
