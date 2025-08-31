@@ -222,7 +222,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS d
   - Provider validation and error handling  
   - Device management and priority logic
   - Integration flows and edge cases
-- [ ] **Accessibility Features**: VoiceOver support and high contrast modes
+- [ ] **Accessibility Features**
 
 ## 💬 Feedback
 
