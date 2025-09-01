@@ -447,9 +447,7 @@ class StreamingProviderFactory {
 - **Processing Time**: Time from recording end to final transcription received (milliseconds)
 - **Analytics Integration**: Use existing analytics service with same parameters
 
-### **B. User Experience Metrics**
-- Session completion rate
+### **B. User Experience Metrics for later analysis**
 - User preference (real-time vs traditional)
-- Error recovery effectiveness
 
 This comprehensive plan provides a clear roadmap for implementing real-time transcription while maintaining VTS's current reliability and expanding its capabilities for future streaming APIs. **The key refactoring approach ensures clear separation between REST-based and streaming-based transcription services, making the codebase more maintainable and extensible.**
