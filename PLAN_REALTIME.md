@@ -2,16 +2,16 @@
 
 ## **Executive Summary**
 
-This plan outlines the implementation of real-time transcription using OpenAI's Real-Time API with WebSocket streaming, as a beta feature alongside the existing REST API providers. The implementation will leverage the current modular architecture while introducing streaming capabilities and partial result handling.
+This plan outlines the implementation of real-time transcription using OpenAI's Real-Time API with WebSocket streaming, as a beta feature alongside the existing REST API providers. The implementation will leverage the current modular architecture while introducing streaming capabilities and partial result handling. **Key refactoring**: Existing STT providers will be renamed to REST STT providers to clearly distinguish between REST-based and streaming-based transcription services.
 
 ## **1. Current Architecture Analysis**
 
 ### **Existing Components:**
 - **CaptureEngine**: Handles audio capture using AVAudioEngine (16kHz, mono, Int16)
 - **TranscriptionService**: Orchestrates transcription with provider abstraction
-- **STTProvider Protocol**: Clean interface for provider implementations
-- **BaseSTTProvider**: Shared functionality for HTTP-based providers
-- **Provider Implementations**: OpenAI, Groq, Deepgram (all REST-based)
+- **STTProvider Protocol**: Clean interface for provider implementations (to be renamed to RestSTTProvider)
+- **BaseSTTProvider**: Shared functionality for HTTP-based providers (to be renamed to BaseRestSTTProvider)
+- **Provider Implementations**: OpenAI, Groq, Deepgram (all REST-based, to be renamed with "Rest" prefix)
 - **Modern SwiftUI**: Reactive UI with state management
 
 ### **Current Flow:**
@@ -24,8 +24,15 @@ This plan outlines the implementation of real-time transcription using OpenAI's 
 
 ### **Core Architectural Changes:**
 
-#### **A. New Protocol for Streaming Providers**
+#### **A. Protocol Separation and Refactoring**
 ```swift
+// Rename existing protocol
+protocol RestSTTProvider {
+    var providerType: STTProviderType { get }
+    // ...existing methods...
+}
+
+// New protocol for streaming providers
 protocol StreamingSTTProvider {
     var providerType: STTProviderType { get }
     
@@ -47,26 +54,36 @@ class RealtimeSession {
 ```
 
 #### **C. Service Architecture Refactor**
-- Create separate `RestTranscriptionService` and `StreamingTranscriptionService`
+- Rename `TranscriptionService` to `RestTranscriptionService`
+- Create new `StreamingTranscriptionService`
 - Extract common functionality to a base class or shared utilities
 - Partial results handling and display in status bar popup only
 - Audio buffering for connection establishment
 
 ## **3. Implementation Strategy**
 
-### **Phase 1: Foundation (Core Infrastructure)**
+### **Phase 1: Foundation (Core Infrastructure and Refactoring)**
+
+#### **Files to Refactor/Rename:**
+
+1. **STTProvider.swift → RestSTTProvider.swift** - Rename protocol and update all references
+2. **BaseSTTProvider.swift → BaseRestSTTProvider.swift** - Rename base class for REST providers
+3. **OpenAIProvider.swift → OpenAIRestProvider.swift** - Rename to clarify REST implementation
+4. **GroqProvider.swift → GroqRestProvider.swift** - Rename to clarify REST implementation  
+5. **DeepgramProvider.swift → DeepgramRestProvider.swift** - Rename to clarify REST implementation
+6. **TranscriptionService.swift → RestTranscriptionService.swift** - Rename to clarify REST service
 
 #### **New Files to Create:**
 
-1. **`StreamingSTTProvider.swift`** - New protocol for real-time providers (no inheritance from STTProvider)
-2. **`RealtimeSession.swift`** - Session management for WebSocket connections
-3. **`OpenAIRealtimeProvider.swift`** - OpenAI real-time implementation
-4. **`StreamingTranscriptionService.swift`** - Service for real-time operations
-5. **`RestTranscriptionService.swift`** - Refactored service for REST operations
+1. **`StreamingSTTProvider.swift`** - New protocol for real-time providers
+2. **`BaseStreamingSTTProvider.swift`** - Base implementation for streaming providers
+3. **`RealtimeSession.swift`** - Session management for WebSocket connections
+4. **`OpenAIStreamingProvider.swift`** - OpenAI real-time implementation
+5. **`StreamingTranscriptionService.swift`** - Service for real-time operations
 6. **`AudioBuffer.swift`** - Smart buffering for connection establishment
 7. **`PartialResultsManager.swift`** - Handles partial transcription display in popup
 
-#### **Files to Modify:**
+#### **Files to Modify (Update References):**
 
 1. **TranscriptionModels.swift** - Add real-time models, rename defaultModels to restModels, add realtimeModels
 ```swift
@@ -96,9 +113,9 @@ public enum STTProviderType: String, CaseIterable, Codable {
     }
 }
 ```
-2. **TranscriptionService.swift** - Refactor to RestTranscriptionService or extract common functionality
-3. **VTSApp.swift** - UI controls for real-time toggle and service selection
-4. **ContentView.swift** - Display partial results in status bar popup only
+2. **VTSApp.swift** - Update provider references, add UI controls for real-time toggle and service selection
+3. **ContentView.swift** - Update provider references, display partial results in status bar popup only
+4. **All other files referencing old provider names** - Update import statements and type references
 
 ### **Phase 2: OpenAI Real-Time Implementation**
 
@@ -106,7 +123,7 @@ public enum STTProviderType: String, CaseIterable, Codable {
 
 **A. WebSocket Connection Management**
 ```swift
-class OpenAIRealtimeProvider: StreamingSTTProvider {
+class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     private let realtimeURL = "wss://api.openai.com/v1/realtime?intent=transcription"
     var providerType: STTProviderType { .openai }
     
@@ -314,19 +331,21 @@ let sessionConfig = [
 ```
 VTSApp/VTS/
 ├── Protocols/
-│   ├── STTProvider.swift (modify)
+│   ├── RestSTTProvider.swift (renamed from STTProvider.swift)
 │   └── StreamingSTTProvider.swift (new)
 ├── Models/
 │   ├── TranscriptionModels.swift (modify)
 │   ├── RealtimeSession.swift (new)
 │   └── StreamingModels.swift (new)
 ├── Providers/
-│   ├── BaseSTTProvider.swift (existing)
-│   ├── OpenAIProvider.swift (existing REST)
-│   ├── OpenAIRealtimeProvider.swift (new)
-│   └── BaseStreamingProvider.swift (new)
+│   ├── BaseRestSTTProvider.swift (renamed from BaseSTTProvider.swift)
+│   ├── OpenAIRestProvider.swift (renamed from OpenAIProvider.swift)
+│   ├── GroqRestProvider.swift (renamed from GroqProvider.swift)
+│   ├── DeepgramRestProvider.swift (renamed from DeepgramProvider.swift)
+│   ├── BaseStreamingSTTProvider.swift (new)
+│   └── OpenAIStreamingProvider.swift (new)
 ├── Services/
-│   ├── RestTranscriptionService.swift (refactored from TranscriptionService)
+│   ├── RestTranscriptionService.swift (renamed from TranscriptionService.swift)
 │   ├── StreamingTranscriptionService.swift (new)
 │   ├── AudioBuffer.swift (new)
 │   └── PartialResultsManager.swift (new)
@@ -334,7 +353,7 @@ VTSApp/VTS/
 │   ├── WebSocketManager.swift (new)
 │   └── ConnectionHealthMonitor.swift (new)
 └── Views/
-    ├── ContentView.swift (modify)
+    ├── ContentView.swift (modify - update provider references)
     ├── PartialResultsView.swift (new)
     └── RealtimeStatusView.swift (new)
 ```
@@ -360,7 +379,7 @@ VTSApp/VTS/
 ### **A. Google Live API Preparation**
 ```swift
 // Structure allows easy addition of Google Live API
-class GoogleLiveProvider: BaseStreamingProvider {
+class GoogleLiveStreamingProvider: BaseStreamingSTTProvider {
     // Similar pattern, different WebSocket endpoint and protocol
 }
 ```
@@ -377,9 +396,9 @@ class StreamingProviderFactory {
     static func createProvider(_ type: StreamingProviderType) -> StreamingSTTProvider {
         switch type {
         case .openaiRealtime:
-            return OpenAIRealtimeProvider()
+            return OpenAIStreamingProvider()
         case .googleLive:
-            return GoogleLiveProvider()  // Future implementation
+            return GoogleLiveStreamingProvider()  // Future implementation
         case .deepgramStreaming:
             return DeepgramStreamingProvider()  // Future implementation
         }
@@ -434,4 +453,4 @@ class StreamingProviderFactory {
 - User preference (real-time vs traditional)
 - Error recovery effectiveness
 
-This comprehensive plan provides a clear roadmap for implementing real-time transcription while maintaining VTS's current reliability and expanding its capabilities for future streaming APIs.
+This comprehensive plan provides a clear roadmap for implementing real-time transcription while maintaining VTS's current reliability and expanding its capabilities for future streaming APIs. **The key refactoring approach ensures clear separation between REST-based and streaming-based transcription services, making the codebase more maintainable and extensible.**
