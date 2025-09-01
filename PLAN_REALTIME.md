@@ -445,7 +445,7 @@ class StreamingProviderFactory {
 ### **A. Performance Metrics (same as current REST APIs)**
 - **Audio Recording Time**: Time from recording start to recording end (milliseconds)
 - **Processing Time**: Time from recording end to final transcription received (milliseconds)
-- **Analytics Integration**: Use existing analytics service with same parameters
+- **Analytics Integration**: Use existing analytics service with same parameters but allowing to differentiate the realtime from the REST transcription events ideally adding one new parameter.
 
 ### **B. User Experience Metrics for later analysis**
 - User preference (real-time vs traditional)
