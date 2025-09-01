@@ -438,7 +438,6 @@ class StreamingProviderFactory {
 ### **C. Manual Testing**
 - Network interruption handling
 - Long session stability
-- Audio quality with various microphones
 - Multiple rapid start/stop cycles
 
 ## **10. Success Metrics**
