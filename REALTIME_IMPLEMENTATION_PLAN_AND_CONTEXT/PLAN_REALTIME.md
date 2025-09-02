@@ -83,6 +83,8 @@ class RealtimeSession {
 6. **`AudioBuffer.swift`** - Smart buffering for connection establishment
 7. **`PartialResultsManager.swift`** - Handles partial transcription display in popup
 
+NOTE: When creating these files from an coding agent, request the user to add them in Xcode before compiling so we don't run into issues.
+
 #### **Files to Modify (Update References):**
 
 1. **TranscriptionModels.swift** - Add real-time models, rename defaultModels to restModels, add realtimeModels
@@ -106,7 +108,7 @@ public enum STTProviderType: String, CaseIterable, Codable {
     public var realtimeModels: [String] {
         switch self {
         case .openai:
-            return ["gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
+            return ["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"]
         case .groq, .deepgram:
             return [] // Future support
         }
@@ -124,7 +126,7 @@ public enum STTProviderType: String, CaseIterable, Codable {
 **A. WebSocket Connection Management**
 ```swift
 class OpenAIStreamingProvider: BaseStreamingSTTProvider {
-    private let realtimeURL = "wss://api.openai.com/v1/realtime?intent=transcription"
+    private let realtimeURL = "wss://api.openai.com/v1/realtime"
     var providerType: STTProviderType { .openai }
     
     func startRealtimeSession(config: ProviderConfig) async throws -> RealtimeSession {
@@ -178,7 +180,7 @@ class PartialResultsManager {
 
 **Settings Panel Addition:**
 - Real-time transcription toggle (beta)
-- Model selection (gpt-4o-transcribe, gpt-4o-mini-transcribe)
+- Model selection
 - Simple on/off switch with beta label
 
 **Status Bar Popup Changes:**
@@ -208,10 +210,9 @@ class PartialResultsManager {
 
 **Connection Setup:**
 ```swift
-let webSocketURL = URL(string: "wss://api.openai.com/v1/realtime?intent=transcription")!
+let webSocketURL = URL(string: "wss://api.openai.com/v1/realtime")!
 var request = URLRequest(url: webSocketURL)
 request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-request.setValue("realtime=v1", forHTTPHeaderField: "openai-beta")
 
 let webSocketTask = URLSession.shared.webSocketTask(with: request)
 ```
@@ -220,8 +221,14 @@ let webSocketTask = URLSession.shared.webSocketTask(with: request)
 ```json
 {
     "type": "transcription_session.update",
-    "session": {
-        "model": "gpt-4o-transcribe"
+    "input_audio_format": "pcm16", // The format of input audio. Options are pcm16, g711_ulaw, or g711_alaw. For pcm16, input audio must be 16-bit PCM at a 24kHz sample rate, single channel (mono), and little-endian byte order.
+    "input_audio_transcription": {
+        "model": "<chosen model by user preferences>", // The options are gpt-4o-transcribe, gpt-4o-mini-transcribe, and whisper-1
+        "prompt": "<get from current user preferences>"
+    },
+    "turn_detection": null, // We wont use VAD, we will keep user toggling with hotkey behavior
+    "input_audio_noise_reduction": {
+        "type": "near_field" // Optimized for desktop dictation setup
     }
 }
 ```
@@ -317,15 +324,6 @@ class ConnectionManager {
 }
 ```
 
-### **C. Simple Session Management**
-```swift
-// Minimal session configuration, we won't use VAD
-let sessionConfig = [
-    "type": "transcription_session.update",
-    "session": ["model": config.model]
-]
-```
-
 ## **5. File Organization Structure**
 
 ```
@@ -362,7 +360,7 @@ VTSApp/VTS/
 
 ### **A. Settings Panel**
 - **Toggle**: "Enable Real-time Transcription (Beta)" - Simple checkbox
-- **Model Selection**: Dropdown with `gpt-4o-transcribe` and `gpt-4o-mini-transcribe`
+- **Model Selection**: Dropdown with `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` and `whisper-1`
 - **Info Text**: "Real-time mode improves latency and may consume more API usage"
 
 ### **B. Status Bar Icon**
