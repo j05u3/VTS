@@ -319,7 +319,7 @@ class ConnectionManager {
 
 ### **C. Simple Session Management**
 ```swift
-// Minimal session configuration without VAD
+// Minimal session configuration, we won't use VAD
 let sessionConfig = [
     "type": "transcription_session.update",
     "session": ["model": config.model]
@@ -371,7 +371,6 @@ VTSApp/VTS/
 
 ### **C. No Onboarding Changes**
 - Feature discoverable through settings
-- Graceful fallback ensures existing workflow unaffected
 - Beta label sets appropriate expectations
 
 ## **7. Extensibility for Future APIs**
