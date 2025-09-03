@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol STTProvider {
+public protocol RestSTTProvider {
     var providerType: STTProviderType { get }
     
     func transcribe(

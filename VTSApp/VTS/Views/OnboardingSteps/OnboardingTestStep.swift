@@ -12,7 +12,7 @@ struct OnboardingTestStep: View {
     @State private var testPhase: TestPhase = .ready
     
     private var captureEngine: CaptureEngine { appState.captureEngineService }
-    private var transcriptionService: TranscriptionService { appState.transcriptionServiceInstance }
+    private var transcriptionService: RestTranscriptionService { appState.restTranscriptionServiceInstance }
     private var apiKeyManager: APIKeyManager { appState.apiKeyManagerService }
     
     var body: some View {

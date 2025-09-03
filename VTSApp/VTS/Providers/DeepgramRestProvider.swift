@@ -1,6 +1,6 @@
 import Foundation
 
-public class DeepgramProvider: BaseSTTProvider {
+public class DeepgramRestProvider: BaseRestSTTProvider {
     public override var providerType: STTProviderType { .deepgram }
     
     private let baseURL = "https://api.deepgram.com/v1/listen"
@@ -44,7 +44,7 @@ public class DeepgramProvider: BaseSTTProvider {
             throw STTError.invalidAPIKey
         }
         
-        guard STTProviderType.deepgram.defaultModels.contains(config.model) else {
+        guard STTProviderType.deepgram.restModels.contains(config.model) else {
             throw STTError.invalidModel
         }
     }

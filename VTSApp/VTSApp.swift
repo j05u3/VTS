@@ -143,7 +143,7 @@ public class APIKeyManager: ObservableObject {
     
     public var selectedModel: String {
         get {
-            return userDefaults.string(forKey: selectedModelKey) ?? selectedProvider.defaultModels.first ?? ""
+            return userDefaults.string(forKey: selectedModelKey) ?? selectedProvider.restModels.first ?? ""
         }
         set {
             userDefaults.set(newValue, forKey: selectedModelKey)
@@ -176,7 +176,8 @@ extension STTProviderType {
 class AppState: ObservableObject {
     private let statusBarController = StatusBarController()
     private let captureEngine = CaptureEngine()
-    private let transcriptionService = TranscriptionService()
+    private let restTranscriptionService = RestTranscriptionService()
+    private let streamingTranscriptionService = StreamingTranscriptionService()
     private let deviceManager = DeviceManager()
     private let apiKeyManager = APIKeyManager()
     private let hotkeyManager = SimpleHotkeyManager.shared
@@ -192,7 +193,8 @@ class AppState: ObservableObject {
     // Keys for UserDefaults storage
     private let systemPromptKey = "systemPrompt"
     private let deepgramKeywordsKey = "deepgramKeywords"
-    
+    private let useRealtimeKey = "useRealtime"
+
     // Configuration state - now using APIKeyManager
     @Published var systemPrompt = "" {
         didSet {
@@ -202,6 +204,12 @@ class AppState: ObservableObject {
     @Published var deepgramKeywords: [String] = [] {
         didSet {
             saveDeepgramKeywords()
+        }
+    }
+    @Published var useRealtime: Bool = false {
+        didSet {
+            UserDefaults.standard.set(useRealtime, forKey: useRealtimeKey)
+            updateProvider()
         }
     }
     @Published var isRecording = false
@@ -220,7 +228,7 @@ class AppState: ObservableObject {
             objectWillChange.send()
             apiKeyManager.selectedProvider = newValue
             // Update model to default when provider changes
-            apiKeyManager.selectedModel = newValue.defaultModels.first ?? ""
+            apiKeyManager.selectedModel = newValue.restModels.first ?? ""
         }
     }
     
@@ -237,8 +245,12 @@ class AppState: ObservableObject {
         return captureEngine
     }
     
-    var transcriptionServiceInstance: TranscriptionService {
-        return transcriptionService
+    var restTranscriptionServiceInstance: RestTranscriptionService {
+        return restTranscriptionService
+    }
+
+    var streamingTranscriptionServiceInstance: StreamingTranscriptionService {
+        return streamingTranscriptionService
     }
     
     var deviceManagerService: DeviceManager {
@@ -268,6 +280,7 @@ class AppState: ObservableObject {
     init() {
         loadSystemPrompt()
         loadDeepgramKeywords()
+        self.useRealtime = UserDefaults.standard.bool(forKey: useRealtimeKey)
         setupTranscriptionService()
         setupObservableObjectBindings()
         
@@ -301,12 +314,18 @@ class AppState: ObservableObject {
             }
             .store(in: &cancellables)
         
-        transcriptionService.objectWillChange
+        restTranscriptionService.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }
             .store(in: &cancellables)
         
+        streamingTranscriptionService.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
         captureEngine.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
@@ -321,9 +340,19 @@ class AppState: ObservableObject {
             .store(in: &cancellables)
         
         // Sync processing state from transcription service to AppState
-        transcriptionService.$isTranscribing
+        restTranscriptionService.$isTranscribing
             .sink { [weak self] isTranscribing in
-                self?.isProcessing = isTranscribing
+                if !(self?.useRealtime ?? false) {
+                    self?.isProcessing = isTranscribing
+                }
+            }
+            .store(in: &cancellables)
+
+        streamingTranscriptionService.$isTranscribing
+            .sink { [weak self] isTranscribing in
+                if self?.useRealtime ?? false {
+                    self?.isProcessing = isTranscribing
+                }
             }
             .store(in: &cancellables)
         
@@ -374,7 +403,7 @@ class AppState: ObservableObject {
         statusBarController.initialize()
         
         // Pass the transcription service for context menu previews
-        statusBarController.setTranscriptionService(transcriptionService)
+        statusBarController.setTranscriptionService(restTranscriptionService)
         
         statusBarController.setPopoverContent {
             ContentView()
@@ -431,7 +460,7 @@ class AppState: ObservableObject {
         updateProvider()
         
         // Set up analytics callback
-        transcriptionService.onTranscriptionCompleted = { [weak self] provider, model, success, audioDurationMs, processingTimeMs in
+        restTranscriptionService.onTranscriptionCompleted = { [weak self] provider, model, success, audioDurationMs, processingTimeMs in
             AnalyticsService.shared.trackTranscriptionCompleted(
                 provider: provider,
                 model: model,
@@ -443,13 +472,17 @@ class AppState: ObservableObject {
     }
     
     private func updateProvider() {
-        switch selectedProvider {
-        case .openai:
-            transcriptionService.setProvider(OpenAIProvider())
-        case .groq:
-            transcriptionService.setProvider(GroqProvider())
-        case .deepgram:
-            transcriptionService.setProvider(DeepgramProvider())
+        if useRealtime {
+            streamingTranscriptionService.setProvider(OpenAIStreamingProvider())
+        } else {
+            switch selectedProvider {
+            case .openai:
+                restTranscriptionService.setProvider(OpenAIRestProvider())
+            case .groq:
+                restTranscriptionService.setProvider(GroqRestProvider())
+            case .deepgram:
+                restTranscriptionService.setProvider(DeepgramRestProvider())
+            }
         }
     }
     
@@ -506,20 +539,25 @@ class AppState: ObservableObject {
                 keywords: providerKeywords
             )
             
-            print("Starting transcription with \(selectedProvider.rawValue) using model \(selectedModel)")
-            
-            // Pass timing data to transcription service for analytics
-            transcriptionService.setTimingData(
-                processStart: processStartTime,
-                audioStart: audioRecordingStartTime,
-                audioEnd: nil // Will be set in stopRecording
-            )
-            
-            transcriptionService.startTranscription(
-                audioStream: audioStream,
-                config: config,
-                streamPartials: true
-            )
+            if useRealtime {
+                print("Starting real-time transcription with \(selectedProvider.rawValue) using model \(selectedModel)")
+                streamingTranscriptionService.startTranscription(config: config, audioStream: audioStream)
+            } else {
+                print("Starting transcription with \(selectedProvider.rawValue) using model \(selectedModel)")
+                
+                // Pass timing data to transcription service for analytics
+                restTranscriptionService.setTimingData(
+                    processStart: processStartTime,
+                    audioStart: audioRecordingStartTime,
+                    audioEnd: nil // Will be set in stopRecording
+                )
+                
+                restTranscriptionService.startTranscription(
+                    audioStream: audioStream,
+                    config: config,
+                    streamPartials: true
+                )
+            }
             
             isRecording = true
             statusBarController.updateRecordingState(true)
@@ -538,16 +576,18 @@ class AppState: ObservableObject {
         // Record when audio recording stops
         audioRecordingEndTime = Date()
         
-        // Update timing data in transcription service
-        transcriptionService.setTimingData(
-            processStart: processStartTime,
-            audioStart: audioRecordingStartTime,
-            audioEnd: audioRecordingEndTime
-        )
+        if useRealtime {
+            streamingTranscriptionService.stopTranscription()
+        } else {
+            // Update timing data in transcription service
+            restTranscriptionService.setTimingData(
+                processStart: processStartTime,
+                audioStart: audioRecordingStartTime,
+                audioEnd: audioRecordingEndTime
+            )
+        }
         
         captureEngine.stop()
-        // Don't cancel transcription - let it finish processing the collected audio
-        // transcriptionService.stopTranscription()  // Removed this line
         isRecording = false
         statusBarController.updateRecordingState(false)
         print("Voice recording stopped - processing audio for transcription")
@@ -566,9 +606,9 @@ class AppState: ObservableObject {
     }
     
     func showLastTranscription() {
-        if !transcriptionService.lastTranscription.isEmpty {
-            print("Last transcription: '\(transcriptionService.lastTranscription)'")
-            showTranscriptionAlert(transcriptionService.lastTranscription)
+        if !restTranscriptionService.lastTranscription.isEmpty {
+            print("Last transcription: '\(restTranscriptionService.lastTranscription)'")
+            showTranscriptionAlert(restTranscriptionService.lastTranscription)
         } else {
             print("No transcription available")
             showAlert("No Text Available", "There is no completed transcription available. Please record some speech first.")
@@ -576,8 +616,8 @@ class AppState: ObservableObject {
     }
 
     func copyLastTranscription() {
-        if transcriptionService.copyLastTranscriptionToClipboard() {
-            print("Transcribed text copied to clipboard: '\(transcriptionService.lastTranscription)'")
+        if restTranscriptionService.copyLastTranscriptionToClipboard() {
+            print("Transcribed text copied to clipboard: '\(restTranscriptionService.lastTranscription)'")
         } else {
             print("No transcription available to copy")
             showAlert("No Text Available", "There is no completed transcription to copy. Please record some speech first.")
@@ -615,7 +655,7 @@ class AppState: ObservableObject {
         // Handle the response
         switch response {
         case .alertFirstButtonReturn: // Copy button
-            if transcriptionService.copyLastTranscriptionToClipboard() {
+            if restTranscriptionService.copyLastTranscriptionToClipboard() {
                 print("Transcribed text copied to clipboard via dialog: '\(transcription)'")
             }
         case .alertSecondButtonReturn: // OK button

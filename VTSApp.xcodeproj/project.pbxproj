@@ -13,15 +13,10 @@
 		1A8E3D312C8F4E1C00123456 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A8E3D302C8F4E1C00123456 /* Preview Assets.xcassets */; };
 		1A8E3D401C8F4E1C00123457 /* CaptureEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8E3D3F1C8F4E1C00123457 /* CaptureEngine.swift */; };
 		1A8E3D411C8F4E1C00123458 /* DeviceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8E3D401C8F4E1C00123458 /* DeviceManager.swift */; };
-		1A8E3D421C8F4E1C00123459 /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8E3D411C8F4E1C00123459 /* TranscriptionService.swift */; };
-		1A8E3D431C8F4E1C00123460 /* OpenAIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8E3D421C8F4E1C00123460 /* OpenAIProvider.swift */; };
-		1A8E3D441C8F4E1C00123461 /* GroqProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8E3D431C8F4E1C00123461 /* GroqProvider.swift */; };
-		1A8E3D451C8F4E1C00123462 /* STTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8E3D441C8F4E1C00123462 /* STTProvider.swift */; };
 		1A8E3D461C8F4E1C00123463 /* TranscriptionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8E3D451C8F4E1C00123463 /* TranscriptionModels.swift */; };
 		1A8E3D471C8F4E1C00123464 /* AsyncExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8E3D461C8F4E1C00123464 /* AsyncExtensions.swift */; };
 		1A8E3D481C8F4E1C00123465 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 1A8E3D471C8F4E1C00123465 /* KeychainAccess */; };
 		1A8E3D491C8F4E1C00123466 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 1A8E3D481C8F4E1C00123466 /* KeyboardShortcuts */; };
-		CA4830A52E2B7E540085EEF7 /* BaseSTTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4830A42E2B7E540085EEF7 /* BaseSTTProvider.swift */; };
 		CA4830A72E2B85730085EEF7 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4830A62E2B85700085EEF7 /* NotificationManager.swift */; };
 		CA4830AD2E2B859F0085EEF7 /* RetryContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4830AC2E2B859C0085EEF7 /* RetryContext.swift */; };
 		CA5A13F92E3C5DA800C01C44 /* AutoScrollingTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5A13F82E3C5DA800C01C44 /* AutoScrollingTextEditor.swift */; };
@@ -43,12 +38,25 @@
 		CA98AADB2E262796004C23D7 /* TextInjectionTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AADA2E262796004C23D7 /* TextInjectionTestView.swift */; };
 		CA98AADD2E264E60004C23D7 /* SimpleHotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AADC2E264E60004C23D7 /* SimpleHotkeyManager.swift */; };
 		CA98AADF2E265823004C23D7 /* AudioLevelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA98AADE2E265823004C23D7 /* AudioLevelView.swift */; };
-		CAA00FE92E48F0B50013793D /* DeepgramProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA00FE82E48F0B50013793D /* DeepgramProvider.swift */; };
 		CAA963142E5C2C5800FA11A0 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CAA963132E5C2C5800FA11A0 /* FirebaseAnalytics */; };
 		CAA963162E5C330B00FA11A0 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA963152E5C330B00FA11A0 /* AnalyticsService.swift */; };
 		CAA963182E5C34E600FA11A0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CAA963172E5C34E600FA11A0 /* GoogleService-Info.plist */; };
 		CAA9631A2E5C40BB00FA11A0 /* AnalyticsConsentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA963192E5C40BB00FA11A0 /* AnalyticsConsentManager.swift */; };
 		CAA9631C2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA9631B2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift */; };
+		CACFBC712E68052D0026BA5F /* BaseStreamingSTTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC6D2E68052D0026BA5F /* BaseStreamingSTTProvider.swift */; };
+		CACFBC722E68052D0026BA5F /* DeepgramRestProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC6E2E68052D0026BA5F /* DeepgramRestProvider.swift */; };
+		CACFBC732E68052D0026BA5F /* GroqRestProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC6F2E68052D0026BA5F /* GroqRestProvider.swift */; };
+		CACFBC742E68052D0026BA5F /* BaseRestSTTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC6C2E68052D0026BA5F /* BaseRestSTTProvider.swift */; };
+		CACFBC752E68052D0026BA5F /* OpenAIRestProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC702E68052D0026BA5F /* OpenAIRestProvider.swift */; };
+		CACFBC7E2E6805660026BA5F /* PartialResultsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC7B2E6805660026BA5F /* PartialResultsManager.swift */; };
+		CACFBC7F2E6805660026BA5F /* StreamingTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC7D2E6805660026BA5F /* StreamingTranscriptionService.swift */; };
+		CACFBC802E6805660026BA5F /* AudioBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC7A2E6805660026BA5F /* AudioBuffer.swift */; };
+		CACFBC812E6805660026BA5F /* RestTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC7C2E6805660026BA5F /* RestTranscriptionService.swift */; };
+		CACFBC842E68068D0026BA5F /* RestSTTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC822E68068D0026BA5F /* RestSTTProvider.swift */; };
+		CACFBC852E68068D0026BA5F /* StreamingSTTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC832E68068D0026BA5F /* StreamingSTTProvider.swift */; };
+		CACFBC882E6806ED0026BA5F /* StreamingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC872E6806ED0026BA5F /* StreamingModels.swift */; };
+		CACFBC892E6806ED0026BA5F /* RealtimeSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC862E6806ED0026BA5F /* RealtimeSession.swift */; };
+		CACFBC912E6810B00026BA5F /* OpenAIStreamingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACFBC902E6810B00026BA5F /* OpenAIStreamingProvider.swift */; };
 		CADFFC2B2E3DFEFC00C29988 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -62,13 +70,8 @@
 		1A8E3D332C8F4E1C00123456 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A8E3D3F1C8F4E1C00123457 /* CaptureEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEngine.swift; sourceTree = "<group>"; };
 		1A8E3D401C8F4E1C00123458 /* DeviceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceManager.swift; sourceTree = "<group>"; };
-		1A8E3D411C8F4E1C00123459 /* TranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
-		1A8E3D421C8F4E1C00123460 /* OpenAIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIProvider.swift; sourceTree = "<group>"; };
-		1A8E3D431C8F4E1C00123461 /* GroqProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroqProvider.swift; sourceTree = "<group>"; };
-		1A8E3D441C8F4E1C00123462 /* STTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = STTProvider.swift; sourceTree = "<group>"; };
 		1A8E3D451C8F4E1C00123463 /* TranscriptionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionModels.swift; sourceTree = "<group>"; };
 		1A8E3D461C8F4E1C00123464 /* AsyncExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncExtensions.swift; sourceTree = "<group>"; };
-		CA4830A42E2B7E540085EEF7 /* BaseSTTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseSTTProvider.swift; sourceTree = "<group>"; };
 		CA4830A62E2B85700085EEF7 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		CA4830AC2E2B859C0085EEF7 /* RetryContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetryContext.swift; sourceTree = "<group>"; };
 		CA5A13F82E3C5DA800C01C44 /* AutoScrollingTextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoScrollingTextEditor.swift; sourceTree = "<group>"; };
@@ -89,11 +92,24 @@
 		CA98AADA2E262796004C23D7 /* TextInjectionTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInjectionTestView.swift; sourceTree = "<group>"; };
 		CA98AADC2E264E60004C23D7 /* SimpleHotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleHotkeyManager.swift; sourceTree = "<group>"; };
 		CA98AADE2E265823004C23D7 /* AudioLevelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioLevelView.swift; sourceTree = "<group>"; };
-		CAA00FE82E48F0B50013793D /* DeepgramProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepgramProvider.swift; sourceTree = "<group>"; };
 		CAA963152E5C330B00FA11A0 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
 		CAA963172E5C34E600FA11A0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		CAA963192E5C40BB00FA11A0 /* AnalyticsConsentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsConsentManager.swift; sourceTree = "<group>"; };
 		CAA9631B2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAnalyticsStep.swift; sourceTree = "<group>"; };
+		CACFBC6C2E68052D0026BA5F /* BaseRestSTTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseRestSTTProvider.swift; sourceTree = "<group>"; };
+		CACFBC6D2E68052D0026BA5F /* BaseStreamingSTTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseStreamingSTTProvider.swift; sourceTree = "<group>"; };
+		CACFBC6E2E68052D0026BA5F /* DeepgramRestProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepgramRestProvider.swift; sourceTree = "<group>"; };
+		CACFBC6F2E68052D0026BA5F /* GroqRestProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroqRestProvider.swift; sourceTree = "<group>"; };
+		CACFBC702E68052D0026BA5F /* OpenAIRestProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIRestProvider.swift; sourceTree = "<group>"; };
+		CACFBC7A2E6805660026BA5F /* AudioBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioBuffer.swift; sourceTree = "<group>"; };
+		CACFBC7B2E6805660026BA5F /* PartialResultsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartialResultsManager.swift; sourceTree = "<group>"; };
+		CACFBC7C2E6805660026BA5F /* RestTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTranscriptionService.swift; sourceTree = "<group>"; };
+		CACFBC7D2E6805660026BA5F /* StreamingTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamingTranscriptionService.swift; sourceTree = "<group>"; };
+		CACFBC822E68068D0026BA5F /* RestSTTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestSTTProvider.swift; sourceTree = "<group>"; };
+		CACFBC832E68068D0026BA5F /* StreamingSTTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamingSTTProvider.swift; sourceTree = "<group>"; };
+		CACFBC862E6806ED0026BA5F /* RealtimeSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealtimeSession.swift; sourceTree = "<group>"; };
+		CACFBC872E6806ED0026BA5F /* StreamingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamingModels.swift; sourceTree = "<group>"; };
+		CACFBC902E6810B00026BA5F /* OpenAIStreamingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIStreamingProvider.swift; sourceTree = "<group>"; };
 		CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -176,6 +192,10 @@
 		1A8E3D501C8F4E1C00123467 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				CACFBC7A2E6805660026BA5F /* AudioBuffer.swift */,
+				CACFBC7B2E6805660026BA5F /* PartialResultsManager.swift */,
+				CACFBC7C2E6805660026BA5F /* RestTranscriptionService.swift */,
+				CACFBC7D2E6805660026BA5F /* StreamingTranscriptionService.swift */,
 				CAA963192E5C40BB00FA11A0 /* AnalyticsConsentManager.swift */,
 				CAA963152E5C330B00FA11A0 /* AnalyticsService.swift */,
 				CA886DB42E44795800256FE9 /* SparkleUpdaterManager.swift */,
@@ -184,7 +204,6 @@
 				CA4830A62E2B85700085EEF7 /* NotificationManager.swift */,
 				1A8E3D3F1C8F4E1C00123457 /* CaptureEngine.swift */,
 				1A8E3D401C8F4E1C00123458 /* DeviceManager.swift */,
-				1A8E3D411C8F4E1C00123459 /* TranscriptionService.swift */,
 				CA98AAD32E24E862004C23D7 /* TextInjector.swift */,
 			);
 			path = Services;
@@ -193,10 +212,12 @@
 		1A8E3D511C8F4E1C00123468 /* Providers */ = {
 			isa = PBXGroup;
 			children = (
-				CAA00FE82E48F0B50013793D /* DeepgramProvider.swift */,
-				CA4830A42E2B7E540085EEF7 /* BaseSTTProvider.swift */,
-				1A8E3D421C8F4E1C00123460 /* OpenAIProvider.swift */,
-				1A8E3D431C8F4E1C00123461 /* GroqProvider.swift */,
+				CACFBC902E6810B00026BA5F /* OpenAIStreamingProvider.swift */,
+				CACFBC6C2E68052D0026BA5F /* BaseRestSTTProvider.swift */,
+				CACFBC6D2E68052D0026BA5F /* BaseStreamingSTTProvider.swift */,
+				CACFBC6E2E68052D0026BA5F /* DeepgramRestProvider.swift */,
+				CACFBC6F2E68052D0026BA5F /* GroqRestProvider.swift */,
+				CACFBC702E68052D0026BA5F /* OpenAIRestProvider.swift */,
 			);
 			path = Providers;
 			sourceTree = "<group>";
@@ -204,7 +225,8 @@
 		1A8E3D521C8F4E1C00123469 /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
-				1A8E3D441C8F4E1C00123462 /* STTProvider.swift */,
+				CACFBC822E68068D0026BA5F /* RestSTTProvider.swift */,
+				CACFBC832E68068D0026BA5F /* StreamingSTTProvider.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -212,6 +234,8 @@
 		1A8E3D531C8F4E1C00123470 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				CACFBC862E6806ED0026BA5F /* RealtimeSession.swift */,
+				CACFBC872E6806ED0026BA5F /* StreamingModels.swift */,
 				CA4830AC2E2B859C0085EEF7 /* RetryContext.swift */,
 				1A8E3D451C8F4E1C00123463 /* TranscriptionModels.swift */,
 			);
@@ -348,27 +372,33 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A8E3D2C2C8F4E1B00123456 /* ContentView.swift in Sources */,
-				CAA00FE92E48F0B50013793D /* DeepgramProvider.swift in Sources */,
-				CA4830A52E2B7E540085EEF7 /* BaseSTTProvider.swift in Sources */,
 				1A8E3D2A2C8F4E1B00123456 /* VTSApp.swift in Sources */,
 				CA98AADF2E265823004C23D7 /* AudioLevelView.swift in Sources */,
 				1A8E3D401C8F4E1C00123457 /* CaptureEngine.swift in Sources */,
 				1A8E3D411C8F4E1C00123458 /* DeviceManager.swift in Sources */,
+				CACFBC712E68052D0026BA5F /* BaseStreamingSTTProvider.swift in Sources */,
+				CACFBC722E68052D0026BA5F /* DeepgramRestProvider.swift in Sources */,
+				CACFBC732E68052D0026BA5F /* GroqRestProvider.swift in Sources */,
+				CACFBC742E68052D0026BA5F /* BaseRestSTTProvider.swift in Sources */,
+				CACFBC752E68052D0026BA5F /* OpenAIRestProvider.swift in Sources */,
 				CA98AAD52E24E862004C23D7 /* PreferencesView.swift in Sources */,
 				CA98AAD62E24E862004C23D7 /* StatusBarController.swift in Sources */,
 				CA98AAD72E24E862004C23D7 /* TextInjector.swift in Sources */,
 				CA98AADB2E262796004C23D7 /* TextInjectionTestView.swift in Sources */,
-				1A8E3D421C8F4E1C00123459 /* TranscriptionService.swift in Sources */,
 				CA98AAD92E261723004C23D7 /* SettingsWindowController.swift in Sources */,
-				1A8E3D431C8F4E1C00123460 /* OpenAIProvider.swift in Sources */,
-				1A8E3D441C8F4E1C00123461 /* GroqProvider.swift in Sources */,
-				1A8E3D451C8F4E1C00123462 /* STTProvider.swift in Sources */,
 				CA4830A72E2B85730085EEF7 /* NotificationManager.swift in Sources */,
+				CACFBC882E6806ED0026BA5F /* StreamingModels.swift in Sources */,
+				CACFBC892E6806ED0026BA5F /* RealtimeSession.swift in Sources */,
 				CA5A13F92E3C5DA800C01C44 /* AutoScrollingTextEditor.swift in Sources */,
 				CA98AADD2E264E60004C23D7 /* SimpleHotkeyManager.swift in Sources */,
 				1A8E3D461C8F4E1C00123463 /* TranscriptionModels.swift in Sources */,
+				CACFBC7E2E6805660026BA5F /* PartialResultsManager.swift in Sources */,
+				CACFBC7F2E6805660026BA5F /* StreamingTranscriptionService.swift in Sources */,
+				CACFBC802E6805660026BA5F /* AudioBuffer.swift in Sources */,
+				CACFBC812E6805660026BA5F /* RestTranscriptionService.swift in Sources */,
 				CA5A14112E3CAD7500C01C44 /* OnboardingManager.swift in Sources */,
 				CA5A141B2E3CADD900C01C44 /* OnboardingWelcomeStep.swift in Sources */,
+				CACFBC912E6810B00026BA5F /* OpenAIStreamingProvider.swift in Sources */,
 				CA886DB52E44795800256FE9 /* SparkleUpdaterManager.swift in Sources */,
 				CA5A141C2E3CADD900C01C44 /* OnboardingNotificationsStep.swift in Sources */,
 				CA5A141D2E3CADD900C01C44 /* OnboardingCompletionStep.swift in Sources */,
@@ -381,6 +411,8 @@
 				CAA9631C2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift in Sources */,
 				CA5A14222E3CADD900C01C44 /* OnboardingAPIKeyStep.swift in Sources */,
 				CAA9631A2E5C40BB00FA11A0 /* AnalyticsConsentManager.swift in Sources */,
+				CACFBC842E68068D0026BA5F /* RestSTTProvider.swift in Sources */,
+				CACFBC852E68068D0026BA5F /* StreamingSTTProvider.swift in Sources */,
 				CA4830AD2E2B859F0085EEF7 /* RetryContext.swift in Sources */,
 				1A8E3D471C8F4E1C00123464 /* AsyncExtensions.swift in Sources */,
 			);

@@ -26,13 +26,14 @@ struct ContentView: View {
                     Text("AI Provider:")
                         .frame(width: 70, alignment: .leading)
                     Picker("", selection: $appState.selectedProvider) {
-                        ForEach(STTProviderType.allCases, id: \.self) { provider in
+                        ForEach(STTProviderType.allCases, id: \.self) {
+                            provider in
                             Text(provider.rawValue).tag(provider)
                         }
                     }
                     .pickerStyle(.segmented)
                     .onChange(of: appState.selectedProvider) { _, newProvider in
-                        appState.selectedModel = newProvider.defaultModels.first ?? ""
+                        appState.selectedModel = newProvider.restModels.first ?? ""
                     }
                 }
                 
@@ -40,7 +41,8 @@ struct ContentView: View {
                     Text("AI Model:")
                         .frame(width: 70, alignment: .leading)
                     Picker("", selection: $appState.selectedModel) {
-                        ForEach(appState.selectedProvider.defaultModels, id: \.self) { model in
+                        ForEach(appState.useRealtime ? appState.selectedProvider.realtimeModels : appState.selectedProvider.restModels, id: \.self) {
+                            model in
                             Text(model).tag(model)
                         }
                     }
@@ -72,12 +74,28 @@ struct ContentView: View {
                     .buttonStyle(.bordered)
                     .controlSize(.small)
                 }
+                
+                if appState.selectedProvider == .openai {
+                    HStack {
+                        Text("Real-time (Beta):")
+                            .frame(width: 120, alignment: .leading)
+                        Toggle("", isOn: $appState.useRealtime)
+                            .toggleStyle(.switch)
+                        Spacer()
+                    }
+                }
             }
             
             Divider()
             
             // Recording Status & Controls
             VStack(spacing: 12) {
+                if appState.useRealtime {
+                    Text(appState.streamingTranscriptionServiceInstance.partialTranscript)
+                        .frame(maxWidth: .infinity, minHeight: 50, alignment: .topLeading)
+                        .lineLimit(3)
+                }
+                
                 HStack {
                     Text("Status:")
                     
@@ -122,14 +140,15 @@ struct ContentView: View {
             Divider()
             
             // Quick Actions
-            HStack {                
+            HStack {
+                
                 Button("Show \(getTranscriptionPreview())") {
                     appState.showLastTranscription()
                 }
                 .buttonStyle(.bordered)
-                .disabled(appState.transcriptionServiceInstance.lastTranscription.isEmpty)
+                .disabled(appState.restTranscriptionServiceInstance.lastTranscription.isEmpty)
                 
-                Spacer()
+                Spacer() 
                 
                 Button("Quit App") {
                     NSApplication.shared.terminate(nil)
@@ -142,7 +161,7 @@ struct ContentView: View {
     }
     
     private func getTranscriptionPreview() -> String {
-        let lastTranscription = appState.transcriptionServiceInstance.lastTranscription
+        let lastTranscription = appState.restTranscriptionServiceInstance.lastTranscription
 
         if lastTranscription.isEmpty {
             return "Last Text"
@@ -151,7 +170,7 @@ struct ContentView: View {
         // Take first n characters and add ellipsis if truncated
         let n = 11
         let preview = String(lastTranscription.prefix(n))
-        return "\"\(lastTranscription.count > n ? preview + "…" : preview)\""
+        return "\(lastTranscription.count > n ? preview + "…" : preview)"
     }
 }
 

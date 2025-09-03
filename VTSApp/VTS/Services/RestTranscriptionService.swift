@@ -3,7 +3,7 @@ import AppKit
 import Combine
 
 @MainActor
-public class TranscriptionService: ObservableObject {
+public class RestTranscriptionService: ObservableObject {
     // MARK: - Constants
     
     private enum LogMessages {
@@ -32,7 +32,7 @@ public class TranscriptionService: ObservableObject {
     @Published public var isTranscribing = false
     @Published public var error: STTError?
     
-    private var provider: STTProvider?
+    private var provider: RestSTTProvider?
     private var transcriptionTask: Task<Void, Never>?
     private let textInjector = TextInjector()
     private var lastInjectedText = ""
@@ -83,7 +83,7 @@ public class TranscriptionService: ObservableObject {
         return textInjector
     }
     
-    public func setProvider(_ provider: STTProvider) {
+    public func setProvider(_ provider: RestSTTProvider) {
         self.provider = provider
     }
     
@@ -216,7 +216,7 @@ public class TranscriptionService: ObservableObject {
     
     private func collectAudioAndTranscribe(
         stream: AsyncThrowingStream<Data, Error>,
-        provider: STTProvider,
+        provider: RestSTTProvider,
         config: ProviderConfig
     ) async throws -> (Data, String) {
         var audioData = Data()
@@ -390,7 +390,7 @@ public class TranscriptionService: ObservableObject {
         processingEndTime = Date()
     }
     
-    private func trackAnalytics(provider: STTProvider?, config: ProviderConfig?, success: Bool, providerType: STTProviderType? = nil) {
+    private func trackAnalytics(provider: RestSTTProvider?, config: ProviderConfig?, success: Bool, providerType: STTProviderType? = nil) {
         guard let onCompletion = onTranscriptionCompleted, let config = config else { return }
 
         guard let providerName = provider?.providerType.rawValue ?? providerType?.rawValue else {

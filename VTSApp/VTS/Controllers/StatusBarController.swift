@@ -21,7 +21,7 @@ public class StatusBarController: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     // Reference to transcription service for context menu
-    private weak var transcriptionService: TranscriptionService?
+    private weak var transcriptionService: RestTranscriptionService?
 
     public init() {
         // Don't setup status bar in init - will be called later when app is ready
@@ -33,7 +33,7 @@ public class StatusBarController: ObservableObject {
         setupHotkeyObservation()
     }
 
-    public func setTranscriptionService(_ service: TranscriptionService) {
+    public func setTranscriptionService(_ service: RestTranscriptionService) {
         transcriptionService = service
     }
 

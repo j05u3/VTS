@@ -6,7 +6,7 @@ struct TextInjectionTestView: View {
     @Binding var isPresented: Bool
     
     private var textInjector: TextInjector {
-        appState.transcriptionServiceInstance.injector
+        appState.restTranscriptionServiceInstance.injector
     }
     
     var body: some View {
