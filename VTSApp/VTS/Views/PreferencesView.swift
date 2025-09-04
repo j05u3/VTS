@@ -64,7 +64,7 @@ struct PreferencesView: View {
                                 get: { appState.selectedModel },
                                 set: { appState.selectedModel = $0 }
                             )) {
-                                ForEach(appState.selectedProvider.defaultModels, id: \.self) { model in
+                                ForEach(appState.selectedProvider.restModels, id: \.self) { model in
                                     Text(model).tag(model)
                                 }
                             }
