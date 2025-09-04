@@ -221,7 +221,9 @@ public class StatusBarController: ObservableObject {
         
         // Ensure the image is properly sized for the status bar
         if let image = button.image {
-            image.isTemplate = false  // Don't use template rendering for colored icons
+            // Use template rendering for idle state to adapt to menu bar theme,
+            // but not for colored states to preserve their specific colors
+            image.isTemplate = !isRecording && !isProcessing
             image.size = NSSize(width: 18, height: 18)
         }
     }
