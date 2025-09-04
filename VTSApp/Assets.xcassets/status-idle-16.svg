@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <!-- White circle for idle state -->
+  <circle cx="8" cy="8" r="7" fill="#FFFFFF" stroke="#D1D1D6" stroke-width="1"/>
+  <!-- VTS text -->
+  <text x="8" y="11" text-anchor="middle" font-family="SF Pro Text, -apple-system, sans-serif" font-size="5.5" font-weight="600" fill="#3A3A3C">VTS</text>
+</svg>

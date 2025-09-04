@@ -204,16 +204,25 @@ public class StatusBarController: ObservableObject {
 
         let hotkey = hotkeyManager.currentHotkeyString
 
+        // Clear any existing title text
+        button.title = ""
+
         // Priority: Recording > Processing > Idle
         if isRecording {
-            button.title = "🔴"
+            button.image = NSImage(named: "StatusIconRecording")
             button.toolTip = "VTS is recording audio - Press \(hotkey) to stop"
         } else if isProcessing {
-            button.title = "🔵"
+            button.image = NSImage(named: "StatusIconProcessing")
             button.toolTip = "VTS is processing audio"
         } else {
-            button.title = "⚪️"
+            button.image = NSImage(named: "StatusIcon")
             button.toolTip = "VTS is ready - Press \(hotkey) to start recording"
+        }
+        
+        // Ensure the image is properly sized for the status bar
+        if let image = button.image {
+            image.isTemplate = false  // Don't use template rendering for colored icons
+            image.size = NSSize(width: 18, height: 18)
         }
     }
 
