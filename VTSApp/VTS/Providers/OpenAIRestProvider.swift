@@ -1,9 +1,9 @@
 import Foundation
 
-public class GroqProvider: BaseSTTProvider {
-    public override var providerType: STTProviderType { .groq }
+public class OpenAIRestProvider: BaseRestSTTProvider {
+    public override var providerType: STTProviderType { .openai }
     
-    private let baseURL = "https://api.groq.com/openai/v1"
+    private let baseURL = "https://api.openai.com/v1"
     
     public override init() {
         super.init()
@@ -14,27 +14,27 @@ public class GroqProvider: BaseSTTProvider {
         config: ProviderConfig
     ) async throws -> String {
         var audioData = Data()
-        print("Groq: Starting audio collection...")
+        print("OpenAI: Starting audio collection...")
         
-        // Collect audio data for batch processing
+        // Collect audio data
         for try await chunk in stream {
             audioData.append(chunk)
-            print("Groq: Received audio chunk of \(chunk.count) bytes, total: \(audioData.count)")
+            print("OpenAI: Received audio chunk of \(chunk.count) bytes, total: \(audioData.count)")
         }
         
-        print("Groq: Audio collection completed, total size: \(audioData.count) bytes")
+        print("OpenAI: Audio collection completed, total size: \(audioData.count) bytes")
         
         // Only send if we have enough audio data (at least 1 second worth)
         let minimumBytes = Int(16000 * 2) // 1 second of 16kHz 16-bit audio
         guard audioData.count >= minimumBytes else {
-            print("Groq: Not enough audio data (\(audioData.count) bytes, minimum: \(minimumBytes))")
+            print("OpenAI: Not enough audio data (\(audioData.count) bytes, minimum: \(minimumBytes))")
             throw STTError.audioProcessingError("Not enough audio data")
         }
         
-        // Send to Groq and return result directly
-        print("Groq: Sending transcription request...")
+        // Send to OpenAI and return result directly
+        print("OpenAI: Sending transcription request...")
         let result = try await sendTranscriptionRequest(audioData: audioData, config: config)
-        print("Groq: Received transcription result: \(result)")
+        print("OpenAI: Received transcription result: \(result)")
         
         return result
     }
@@ -44,7 +44,7 @@ public class GroqProvider: BaseSTTProvider {
             throw STTError.invalidAPIKey
         }
         
-        guard STTProviderType.groq.defaultModels.contains(config.model) else {
+        guard STTProviderType.openai.restModels.contains(config.model) else {
             throw STTError.invalidModel
         }
     }
@@ -101,7 +101,7 @@ public class GroqProvider: BaseSTTProvider {
         let (data, response) = try await performNetworkRequest(
             request: request,
             audioDataSize: audioData.count,
-            providerName: "Groq"
+            providerName: "OpenAI"
         )
         
         // Enhanced error handling based on HTTP status codes
@@ -160,10 +160,10 @@ public class GroqProvider: BaseSTTProvider {
         return transcriptionResponse.text
     }
     
-    // Helper method to parse error responses from Groq API
+    // Helper method to parse error responses from OpenAI API
     private func parseErrorResponse(_ data: Data) -> String {
-        // Try to parse Groq error response format (similar to OpenAI)
-        struct GroqErrorResponse: Codable {
+        // Try to parse OpenAI error response format
+        struct OpenAIErrorResponse: Codable {
             let error: ErrorDetails
             
             struct ErrorDetails: Codable {
@@ -173,7 +173,7 @@ public class GroqProvider: BaseSTTProvider {
             }
         }
         
-        if let errorResponse = try? JSONDecoder().decode(GroqErrorResponse.self, from: data) {
+        if let errorResponse = try? JSONDecoder().decode(OpenAIErrorResponse.self, from: data) {
             return errorResponse.error.message
         }
         

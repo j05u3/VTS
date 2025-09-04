@@ -14,8 +14,8 @@ struct PreferencesView: View {
         appState.captureEngineService
     }
     
-    private var transcriptionService: TranscriptionService {
-        appState.transcriptionServiceInstance
+    private var restTranscriptionService: RestTranscriptionService {
+        appState.restTranscriptionServiceInstance
     }
     
     private var deviceManager: DeviceManager {
@@ -419,8 +419,8 @@ struct PreferencesView: View {
                         
                         // Accessibility Permission
                         HStack {
-                            Image(systemName: transcriptionService.injector.hasAccessibilityPermission ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                                .foregroundColor(transcriptionService.injector.hasAccessibilityPermission ? .green : .orange)
+                            Image(systemName: restTranscriptionService.injector.hasAccessibilityPermission ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                .foregroundColor(restTranscriptionService.injector.hasAccessibilityPermission ? .green : .orange)
                                 .font(.title2)
                             
                             VStack(alignment: .leading, spacing: 4) {
@@ -428,7 +428,7 @@ struct PreferencesView: View {
                                     Text("Accessibility Access")
                                         .font(.headline)
                                     
-                                    if transcriptionService.injector.hasAccessibilityPermission {
+                                    if restTranscriptionService.injector.hasAccessibilityPermission {
                                         Button("Debug") {
                                             showingTestInjectionView = true
                                         }
@@ -437,7 +437,7 @@ struct PreferencesView: View {
                                     }
                                 }
                                 
-                                Text(transcriptionService.injector.hasAccessibilityPermission ? "Granted - Text injection enabled" : "Required to insert text like native dictation")
+                                Text(restTranscriptionService.injector.hasAccessibilityPermission ? "Granted - Text injection enabled" : "Required to insert text like native dictation")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -445,9 +445,9 @@ struct PreferencesView: View {
                             Spacer()
                             
                             VStack(spacing: 4) {
-                                if !transcriptionService.injector.hasAccessibilityPermission {
+                                if !restTranscriptionService.injector.hasAccessibilityPermission {
                                     Button("Grant") {
-                                        transcriptionService.injector.requestAccessibilityPermission()
+                                        restTranscriptionService.injector.requestAccessibilityPermission()
                                     }
                                     .buttonStyle(.bordered)
                                 }
