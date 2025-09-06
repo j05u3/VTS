@@ -9,7 +9,6 @@
   <!-- Social and Community Badges -->
   <a href="https://github.com/j05u3/VTS/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/j05u3/VTS?style=for-the-badge&logo=github&color=gold"></a>
   <a href="https://github.com/j05u3/VTS/network/members"><img alt="GitHub Forks" src="https://img.shields.io/github/forks/j05u3/VTS?style=for-the-badge&logo=github&color=blueviolet"></a>
-  <a href="https://github.com/j05u3/VTS/graphs/contributors"><img alt="All Contributors" src="https://img.shields.io/github/all-contributors/j05u3/VTS?style=for-the-badge&color=orange"></a>
   <br>
   <!-- Status and Release Badges -->
   <a href="https://github.com/j05u3/VTS/releases/latest"><img alt="Latest Release" src="https://img.shields.io/github/v/release/j05u3/VTS?style=for-the-badge&color=brightgreen"></a>
@@ -17,7 +16,7 @@
   <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge"></a>
   <br>
   <!-- Development Activity Badges -->
-  <a href="https://github.com/j05u3/VTS/actions/workflows/release.yml"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/j05u3/VTS/release.yml?branch=main&style=for-the-badge&logo=githubactions"></a>
+  <a href="https://github.com/j05u3/VTS/actions/workflows/build-and-distribute.yml"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/j05u3/VTS/build-and-distribute.yml?style=for-the-badge&logo=githubactions"></a>
   <a href="https://github.com/j05u3/VTS/issues"><img alt="GitHub Issues" src="https://img.shields.io/github/issues/j05u3/VTS?style=for-the-badge&logo=github&color=red"></a>
   <a href="https://github.com/j05u3/VTS/pulls"><img alt="GitHub Pull Requests" src="https://img.shields.io/github/issues-pr/j05u3/VTS?style=for-the-badge&logo=github&color=yellow"></a>
   <br>
