@@ -1,15 +1,33 @@
 # VTS - Voice Typing Studio
+<p align="center">
+  <img src="public/logo.png" alt="VTS Logo" width="150">
+  <br>
+  <strong>The open-source macOS dictation replacement you've been waiting for! 🚀</strong>
+</p>
 
-[![Build Status](https://github.com/j05u3/VTS/workflows/Build%20and%20Release%20macOS%20App/badge.svg)](https://github.com/j05u3/VTS/actions/workflows/release.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Latest Release](https://img.shields.io/github/v/release/j05u3/VTS)](https://github.com/j05u3/VTS/releases/latest)
-[![Platform](https://img.shields.io/badge/platform-macOS%2014.0%2B-blue)](https://developer.apple.com/macos/)
+<p align="center">
+  <!-- Social and Community Badges -->
+  <a href="https://github.com/j05u3/VTS/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/j05u3/VTS?style=for-the-badge&logo=github&color=gold"></a>
+  <a href="https://github.com/j05u3/VTS/network/members"><img alt="GitHub Forks" src="https://img.shields.io/github/forks/j05u3/VTS?style=for-the-badge&logo=github&color=blueviolet"></a>
+  <a href="https://github.com/j05u3/VTS/graphs/contributors"><img alt="All Contributors" src="https://img.shields.io/github/all-contributors/j05u3/VTS?style=for-the-badge&color=orange"></a>
+  <br>
+  <!-- Status and Release Badges -->
+  <a href="https://github.com/j05u3/VTS/releases/latest"><img alt="Latest Release" src="https://img.shields.io/github/v/release/j05u3/VTS?style=for-the-badge&color=brightgreen"></a>
+  <a href="https://github.com/j05u3/VTS/releases"><img alt="GitHub Downloads" src="https://img.shields.io/github/downloads/j05u3/VTS/total?style=for-the-badge&logo=github&color=success"></a>
+  <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge"></a>
+  <br>
+  <!-- Development Activity Badges -->
+  <a href="https://github.com/j05u3/VTS/actions/workflows/release.yml"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/j05u3/VTS/release.yml?branch=main&style=for-the-badge&logo=githubactions"></a>
+  <a href="https://github.com/j05u3/VTS/issues"><img alt="GitHub Issues" src="https://img.shields.io/github/issues/j05u3/VTS?style=for-the-badge&logo=github&color=red"></a>
+  <a href="https://github.com/j05u3/VTS/pulls"><img alt="GitHub Pull Requests" src="https://img.shields.io/github/issues-pr/j05u3/VTS?style=for-the-badge&logo=github&color=yellow"></a>
+  <br>
+  <!-- Platform Badge -->
+  <a href="https://developer.apple.com/macos/"><img alt="Platform" src="https://img.shields.io/badge/platform-macOS%2014.0%2B-blue?style=for-the-badge&logo=apple"></a>
+</p>
 
 > **🔊 Turn on your sound!** This demo includes audio to showcase the real-time transcription experience.
 
 https://github.com/user-attachments/assets/bc77c14b-863c-418f-8564-175d6300ce2b
-
-**The open-source macOS dictation replacement you've been waiting for!** 🚀
 
 Transform your voice into text instantly with the power of **OpenAI**, **Groq**, and **Deepgram** APIs. Say goodbye to macOS dictation limitations and hello to lightning-fast, accurate transcription with your own custom hotkeys! ⚡️
 
