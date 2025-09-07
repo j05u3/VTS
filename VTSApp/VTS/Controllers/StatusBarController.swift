@@ -5,6 +5,14 @@ import SwiftUI
 
 @MainActor
 public class StatusBarController: ObservableObject {
+    
+    // MARK: - Constants
+    private enum StatusIconName {
+        static let recording = NSImage.Name("StatusIconRecording")
+        static let processing = NSImage.Name("StatusIconProcessing")
+        static let idle = NSImage.Name("StatusIcon")
+    }
+    
     private var statusBarItem: NSStatusItem?
     private var popover: NSPopover?
 
@@ -209,22 +217,23 @@ public class StatusBarController: ObservableObject {
 
         // Priority: Recording > Processing > Idle
         if isRecording {
-            button.image = NSImage(named: "StatusIconRecording")
+            button.image = NSImage(named: StatusIconName.recording)
             button.toolTip = "VTS is recording audio - Press \(hotkey) to stop"
         } else if isProcessing {
-            button.image = NSImage(named: "StatusIconProcessing")
+            button.image = NSImage(named: StatusIconName.processing)
             button.toolTip = "VTS is processing audio"
         } else {
-            button.image = NSImage(named: "StatusIcon")
+            button.image = NSImage(named: StatusIconName.idle)
             button.toolTip = "VTS is ready - Press \(hotkey) to start recording"
         }
         
         // Ensure the image is properly sized for the status bar
-        if let image = button.image {
+        if let originalImage = button.image, let image = originalImage.copy() as? NSImage {
             // Use template rendering for idle state to adapt to menu bar theme,
             // but not for colored states to preserve their specific colors
             image.isTemplate = !isRecording && !isProcessing
             image.size = NSSize(width: 18, height: 18)
+            button.image = image
         }
     }
 
