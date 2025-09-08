@@ -86,16 +86,36 @@ public enum OpenAIRealtimeMessage {
     public func toDictionary() -> [String: Any] {
         switch self {
         case .sessionUpdate(let config):
-            var dict: [String: Any] = [
-                "type": messageType
+            // For OpenAI Realtime API, the session config needs to be wrapped in a "session" object
+            var sessionDict: [String: Any] = [:]
+            
+            // Manually construct the session dictionary to ensure turn_detection is explicitly null
+            sessionDict["input_audio_format"] = config.inputAudioFormat
+            sessionDict["input_audio_noise_reduction"] = [
+                "type": config.inputAudioNoiseReduction.type
+            ]
+            var transcriptionDict: [String: Any] = [
+                "model": config.inputAudioTranscription.model
             ]
             
-            if let configData = try? JSONEncoder().encode(config),
-               let configDict = try? JSONSerialization.jsonObject(with: configData) as? [String: Any] {
-                dict.merge(configDict) { _, new in new }
+            // Only include prompt if it's not nil
+            if let prompt = config.inputAudioTranscription.prompt {
+                transcriptionDict["prompt"] = prompt
             }
             
-            return dict
+            // Only include language if it's not nil
+            if let language = config.inputAudioTranscription.language {
+                transcriptionDict["language"] = language
+            }
+            
+            sessionDict["input_audio_transcription"] = transcriptionDict
+            // Explicitly set turn_detection to null - this is crucial for OpenAI Realtime API
+            sessionDict["turn_detection"] = NSNull()
+            
+            return [
+                "type": messageType,
+                "session": sessionDict
+            ]
             
         case .inputAudioBufferAppend(let audioData):
             return [
@@ -168,46 +188,34 @@ public enum OpenAIRealtimeEvent {
 }
 
 public struct TranscriptionDelta {
-    public let eventId: String
-    public let itemId: String
-    public let contentIndex: Int
+    public let eventId: String?
     public let delta: String
     
     public static func from(_ dict: [String: Any]) -> TranscriptionDelta? {
-        guard let eventId = dict["event_id"] as? String,
-              let itemId = dict["item_id"] as? String,
-              let contentIndex = dict["content_index"] as? Int,
-              let delta = dict["delta"] as? String else {
+        // The delta field should be directly accessible, not nested
+        guard let delta = dict["delta"] as? String else {
             return nil
         }
         
         return TranscriptionDelta(
-            eventId: eventId,
-            itemId: itemId,
-            contentIndex: contentIndex,
+            eventId: dict["event_id"] as? String,
             delta: delta
         )
     }
 }
 
 public struct TranscriptionCompleted {
-    public let eventId: String
-    public let itemId: String
-    public let contentIndex: Int
+    public let eventId: String?
     public let transcript: String
     
     public static func from(_ dict: [String: Any]) -> TranscriptionCompleted? {
-        guard let eventId = dict["event_id"] as? String,
-              let itemId = dict["item_id"] as? String,
-              let contentIndex = dict["content_index"] as? Int,
-              let transcript = dict["transcript"] as? String else {
+        // The transcript field should be directly accessible, not nested
+        guard let transcript = dict["transcript"] as? String else {
             return nil
         }
         
         return TranscriptionCompleted(
-            eventId: eventId,
-            itemId: itemId,
-            contentIndex: contentIndex,
+            eventId: dict["event_id"] as? String,
             transcript: transcript
         )
     }

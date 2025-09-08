@@ -20,6 +20,7 @@ public class StreamingTranscriptionService: ObservableObject {
         static let sessionCleanedUp = "🎙️ StreamingTranscriptionService: Session cleaned up"
         static let bufferConnectionEstablished = "🎙️ StreamingTranscriptionService: Audio buffer connection established"
         static let cannotTrackAnalytics = "⚠️ Cannot track streaming analytics: missing provider or config data"
+        static let bufferedChunksReleased = "� StreamingTranscriptionService: Session confirmed - processing queued chunks"
     }
     
     // MARK: - Published Properties
@@ -41,7 +42,7 @@ public class StreamingTranscriptionService: ObservableObject {
     
     // Session management
     private var currentSession: RealtimeSession?
-    private let audioBuffer = AudioBuffer()
+    private let audioStreamingQueue = AudioStreamingQueue()
     
     // For retry functionality
     private var currentConfig: ProviderConfig?
@@ -109,10 +110,6 @@ public class StreamingTranscriptionService: ObservableObject {
         currentText = ""
         lastInjectedText = ""
         
-        // Reset components for new session
-        audioBuffer.reset()
-        partialResults.reset()
-        
         // Store context for potential retry
         currentConfig = config
         currentProviderType = provider.providerType
@@ -121,6 +118,10 @@ public class StreamingTranscriptionService: ObservableObject {
         
         transcriptionTask = Task { @MainActor in
             do {
+                // Reset components for new session
+                partialResults.reset()
+                await audioStreamingQueue.reset()
+                
                 try provider.validateConfig(config)
                 print(LogMessages.configValidated)
                 
@@ -185,17 +186,25 @@ public class StreamingTranscriptionService: ObservableObject {
         
         print(LogMessages.sessionEstablished)
         
-        // Step 2: Start processing partial results
+        // Step 2: Configure the streaming queue with provider and session
+        await audioStreamingQueue.configure(provider: provider, session: session)
+        
+        // Step 3: Set up session confirmation callback
+        session.onSessionConfirmed = { [weak self] in
+            Task {
+                guard let self = self else { return }
+                await self.audioStreamingQueue.confirmSession()
+                print(LogMessages.bufferedChunksReleased)
+            }
+        }
+        
+        // Step 4: Start processing partial results
         startPartialResultsProcessor(session: session)
         
-        // Step 3: Process audio stream with buffering
-        try await processAudioStreamWithBuffering(
-            audioStream: audioStream,
-            provider: provider,
-            session: session
-        )
+        // Step 5: Process audio stream through the sequential queue
+        try await processAudioStreamWithSequentialQueue(audioStream: audioStream)
         
-        // Step 4: Finish transcription and get final result
+        // Step 6: Finish transcription and get final result
         let finalTranscript = try await provider.finishAndGetTranscription(session)
         
         // Mark when transcription is complete
@@ -203,7 +212,7 @@ public class StreamingTranscriptionService: ObservableObject {
         
         print("\(LogMessages.receivedFinalResult) '\(finalTranscript)'")
         
-        // Step 5: Handle successful transcription
+        // Step 7: Handle successful transcription
         handleSuccessfulTranscription(finalTranscript)
         
         // Track analytics
@@ -214,38 +223,14 @@ public class StreamingTranscriptionService: ObservableObject {
         print(LogMessages.sessionCleanedUp)
     }
     
-    private func processAudioStreamWithBuffering(
-        audioStream: AsyncThrowingStream<Data, Error>,
-        provider: StreamingSTTProvider,
-        session: RealtimeSession
+    private func processAudioStreamWithSequentialQueue(
+        audioStream: AsyncThrowingStream<Data, Error>
     ) async throws {
         
-        var connectionEstablished = false
-        
         for try await audioChunk in audioStream {
-            // Handle audio with buffering logic
-            if let immediateData = audioBuffer.handleAudioChunk(audioChunk) {
-                // Connection established, stream immediately
-                try await provider.streamAudio(immediateData, to: session)
-            } else if !connectionEstablished {
-                // First time establishing connection
-                connectionEstablished = true
-                
-                // Get any buffered data
-                let bufferedData = audioBuffer.onConnectionEstablished()
-                print(LogMessages.bufferConnectionEstablished)
-                
-                // Stream buffered data first
-                if !bufferedData.isEmpty {
-                    let chunks = AudioBuffer.chunkAudioData(bufferedData, chunkSize: 1024)
-                    for chunk in chunks {
-                        try await provider.streamAudio(chunk, to: session)
-                    }
-                }
-                
-                // Stream current chunk
-                try await provider.streamAudio(audioChunk, to: session)
-            }
+            // All chunks go through the actor-based sequential queue
+            // The queue handles session confirmation and ordering automatically
+            try await audioStreamingQueue.streamChunk(audioChunk)
         }
     }
     

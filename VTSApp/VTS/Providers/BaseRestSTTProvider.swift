@@ -130,7 +130,7 @@ public class BaseRestSTTProvider: RestSTTProvider {
     
     /// Common WAV data creation method for all providers
     internal func createWAVData(from pcmData: Data) -> Data {
-        let sampleRate: UInt32 = 16000
+        let sampleRate: UInt32 = 24000
         let channels: UInt16 = 1
         let bitsPerSample: UInt16 = 16
         let byteRate = sampleRate * UInt32(channels) * UInt32(bitsPerSample) / 8

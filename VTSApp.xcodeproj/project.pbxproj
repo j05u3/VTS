@@ -57,6 +57,7 @@
 		CAA963182E5C34E600FA11A0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CAA963172E5C34E600FA11A0 /* GoogleService-Info.plist */; };
 		CAA9631A2E5C40BB00FA11A0 /* AnalyticsConsentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA963192E5C40BB00FA11A0 /* AnalyticsConsentManager.swift */; };
 		CAA9631C2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA9631B2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift */; };
+		CAB662EB2E6EA3E4003C25AB /* AudioStreamingQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB662EA2E6EA3E4003C25AB /* AudioStreamingQueue.swift */; };
 		CADFFC2B2E3DFEFC00C29988 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -110,6 +111,7 @@
 		CAA963172E5C34E600FA11A0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		CAA963192E5C40BB00FA11A0 /* AnalyticsConsentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsConsentManager.swift; sourceTree = "<group>"; };
 		CAA9631B2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingAnalyticsStep.swift; sourceTree = "<group>"; };
+		CAB662EA2E6EA3E4003C25AB /* AudioStreamingQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioStreamingQueue.swift; sourceTree = "<group>"; };
 		CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -192,6 +194,7 @@
 		1A8E3D501C8F4E1C00123467 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				CAB662EA2E6EA3E4003C25AB /* AudioStreamingQueue.swift */,
 				CA28365C2E69561900CA59D7 /* AudioBuffer.swift */,
 				CA28365D2E69561900CA59D7 /* PartialResultsManager.swift */,
 				CA28365E2E69561900CA59D7 /* RestTranscriptionService.swift */,
@@ -372,6 +375,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A8E3D2C2C8F4E1B00123456 /* ContentView.swift in Sources */,
+				CAB662EB2E6EA3E4003C25AB /* AudioStreamingQueue.swift in Sources */,
 				1A8E3D2A2C8F4E1B00123456 /* VTSApp.swift in Sources */,
 				CA98AADF2E265823004C23D7 /* AudioLevelView.swift in Sources */,
 				1A8E3D401C8F4E1C00123457 /* CaptureEngine.swift in Sources */,

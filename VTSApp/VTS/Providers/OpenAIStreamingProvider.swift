@@ -14,13 +14,16 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         // Validate configuration first
         try validateConfig(config)
         
-        // Create WebSocket connection
+        // Create WebSocket connection using protocols as per Node.js implementation
+        let protocols = [
+            "realtime",
+            "openai-insecure-api-key.\(config.apiKey)",
+            "openai-beta.realtime-v1"
+        ]
+        
         let webSocket = try await createWebSocketConnection(
             url: URL(string: realtimeURL)!,
-            headers: [
-                "Authorization": "Bearer \(config.apiKey)",
-                "OpenAI-Beta": "realtime=v1"
-            ],
+            protocols: protocols,
             providerName: "OpenAI Streaming"
         )
         
@@ -37,9 +40,6 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         // Configure the session
         try await configureSession(session: session, config: config)
         
-        // Start listening for messages
-        startMessageListener(for: session)
-        
         return session
     }
     
@@ -47,6 +47,15 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         guard session.isActive else {
             throw StreamingError.sessionError("Session is not active")
         }
+        
+        // Ensure session is confirmed before streaming audio data
+        guard session.isSessionConfirmed else {
+            throw StreamingError.sessionError("Session not yet confirmed - cannot stream audio")
+        }
+        
+        // Log audio data size for debugging (similar to JS implementation)
+        let audioSizeKB = Double(audioData.count) / 1024.0
+        print("OpenAI Streaming: Streaming audio buffer: \(String(format: "%.2f", audioSizeKB)) KB")
         
         // Create audio append message
         let message = OpenAIRealtimeMessage.inputAudioBufferAppend(audioData)
@@ -97,12 +106,14 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     private func configureSession(session: RealtimeSession, config: ProviderConfig) async throws {
         print("OpenAI Streaming: Configuring session with model: \(config.model)")
         
-        // Create session configuration
+        // Create session configuration that matches the working JS implementation
         let sessionConfig = OpenAIRealtimeSessionConfig(
             model: config.model,
             prompt: config.systemPrompt,
             language: config.language,
-            turnDetection: nil // Disable VAD - we control audio manually
+            inputAudioFormat: "pcm16",
+            turnDetection: nil, // Disable VAD - we control audio manually (must be null, not a TurnDetection object)
+            noiseReductionType: "near_field"
         )
         
         // Send session update message
@@ -113,40 +124,11 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
             providerName: "OpenAI Streaming"
         )
         
+        // Start listening for messages immediately to catch session confirmation
+        startMessageListener(for: session)
+        
         // Wait for session confirmation
-        try await waitForSessionConfirmation(session: session)
-    }
-    
-    private func waitForSessionConfirmation(session: RealtimeSession) async throws {
-        print("OpenAI Streaming: Waiting for session confirmation...")
-        
-        // Create timeout task
-        let timeoutTask = Task {
-            try await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
-            throw StreamingError.sessionError("Session configuration timeout")
-        }
-        
-        // Create confirmation wait task
-        let confirmationTask = Task {
-            // We'll implement this by listening to the message listener
-            // For now, we'll just wait a short time to allow configuration
-            try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
-        }
-        
-        // Race between timeout and confirmation
-        do {
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                group.addTask { try await timeoutTask.value }
-                group.addTask { try await confirmationTask.value }
-                
-                try await group.next()
-                group.cancelAll()
-            }
-        } catch {
-            throw error
-        }
-        
-        print("OpenAI Streaming: Session configuration completed")
+        try await session.waitForSessionConfirmation()
     }
     
     private func startMessageListener(for session: RealtimeSession) {
@@ -162,13 +144,25 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
                 }
             } catch {
                 print("OpenAI Streaming: Message listener ended with error: \(error)")
-                session.finishWithError(error)
+                
+                // If session is not yet confirmed, fail the confirmation
+                if !session.isSessionConfirmed {
+                    session.failSessionConfirmation(with: error)
+                }
+                
+                session.finishPartialResultsWithError(error)
                 await cleanupSession(session)
             }
         }
     }
     
     private func handleIncomingMessage(_ messageDict: [String: Any], session: RealtimeSession) async throws {
+        // Log the raw message for debugging
+        if let jsonData = try? JSONSerialization.data(withJSONObject: messageDict),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            print("OpenAI Streaming: Raw message received: \(jsonString)")
+        }
+        
         let event = OpenAIRealtimeEvent.from(messageDict: messageDict)
         
         switch event {
@@ -177,12 +171,14 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
             
         case .sessionUpdated(let details):
             print("OpenAI Streaming: Session updated: \(details)")
+            // Confirm the session when we receive session.updated
+            session.confirmSession()
             
         case .inputAudioBufferCommitted(let details):
             print("OpenAI Streaming: Audio buffer committed: \(details)")
             
         case .conversationItemInputAudioTranscriptionDelta(let delta):
-            print("OpenAI Streaming: Transcription delta: \(delta.delta)")
+            print("OpenAI Streaming: Transcription delta: '\(delta.delta)'")
             
             // Create partial transcription chunk
             let chunk = TranscriptionChunk(
@@ -194,7 +190,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
             session.yieldPartialResult(chunk)
             
         case .conversationItemInputAudioTranscriptionCompleted(let completed):
-            print("OpenAI Streaming: Transcription completed: \(completed.transcript)")
+            print("OpenAI Streaming: Transcription completed: '\(completed.transcript)'")
             
             // Store final transcript
             session.finalTranscript = completed.transcript
@@ -212,10 +208,22 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
             print("OpenAI Streaming: Received error: \(error.message)")
             
             let streamingError = StreamingError.sessionError("OpenAI API error: \(error.message)")
-            session.finishWithError(streamingError)
+            
+            // If session is not yet confirmed, fail the confirmation
+            if !session.isSessionConfirmed {
+                session.failSessionConfirmation(with: streamingError)
+            }
+            
+            session.finishPartialResultsWithError(streamingError)
+            // Mark session as inactive to stop the message listener loop
+            session.isActive = false
             
         case .unknown(let details):
-            print("OpenAI Streaming: Unknown message: \(details)")
+            if let type = details["type"] as? String {
+                print("OpenAI Streaming: Unknown message type '\(type)': \(details)")
+            } else {
+                print("OpenAI Streaming: Unknown message (no type): \(details)")
+            }
         }
     }
     

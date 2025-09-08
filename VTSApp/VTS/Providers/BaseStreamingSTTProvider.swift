@@ -32,23 +32,33 @@ public class BaseStreamingSTTProvider: StreamingSTTProvider {
     
     // MARK: - Protected Methods for Subclasses
     
-    /// Creates a WebSocket connection with timeout and authentication
+    /// Creates a WebSocket connection with timeout, authentication, and protocols
     internal func createWebSocketConnection(
         url: URL,
         headers: [String: String] = [:],
+        protocols: [String] = [],
         providerName: String
     ) async throws -> URLSessionWebSocketTask {
-        var request = URLRequest(url: url)
-        request.timeoutInterval = connectionTimeout
+        let webSocketTask: URLSessionWebSocketTask
         
-        // Add headers
-        for (key, value) in headers {
-            request.setValue(value, forHTTPHeaderField: key)
+        if !protocols.isEmpty {
+            // Use protocols-based WebSocket creation (preferred for OpenAI)
+            print("\(providerName): Creating WebSocket connection to \(url) with protocols: \(protocols)")
+            webSocketTask = URLSession.shared.webSocketTask(with: url, protocols: protocols)
+        } else {
+            // Use headers-based WebSocket creation (fallback for other providers)
+            var request = URLRequest(url: url)
+            request.timeoutInterval = connectionTimeout
+            
+            // Add headers
+            for (key, value) in headers {
+                request.setValue(value, forHTTPHeaderField: key)
+            }
+            
+            print("\(providerName): Creating WebSocket connection to \(url) with headers")
+            webSocketTask = URLSession.shared.webSocketTask(with: request)
         }
         
-        print("\(providerName): Creating WebSocket connection to \(url)")
-        
-        let webSocketTask = URLSession.shared.webSocketTask(with: request)
         webSocketTask.resume()
         
         // Wait for connection to be established
