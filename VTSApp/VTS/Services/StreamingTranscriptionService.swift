@@ -361,11 +361,17 @@ public class StreamingTranscriptionService: ObservableObject {
             switch streamingError {
             case .connectionFailed(let message):
                 return STTError.networkError(message)
+            case .connectionError(let message):
+                return STTError.networkError(message)
+            case .configurationError(_):
+                return STTError.invalidModel
+            case .transcriptionError(let message):
+                return STTError.transcriptionError(message)
             case .sessionError(let message):
                 return STTError.transcriptionError(message)
             case .audioStreamError(let message):
                 return STTError.audioProcessingError(message)
-            case .invalidConfiguration(let message):
+            case .invalidConfiguration(_):
                 return STTError.invalidModel
             case .partialResultsError(let message):
                 return STTError.transcriptionError(message)

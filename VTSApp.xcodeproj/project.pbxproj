@@ -17,6 +17,7 @@
 		1A8E3D471C8F4E1C00123464 /* AsyncExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8E3D461C8F4E1C00123464 /* AsyncExtensions.swift */; };
 		1A8E3D481C8F4E1C00123465 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 1A8E3D471C8F4E1C00123465 /* KeychainAccess */; };
 		1A8E3D491C8F4E1C00123466 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 1A8E3D481C8F4E1C00123466 /* KeyboardShortcuts */; };
+		CAA963222E5C2C6800FA11A3 /* OpenAIRealtime in Frameworks */ = {isa = PBXBuildFile; productRef = CAA963212E5C2C6800FA11A2 /* OpenAIRealtime */; };
 		CA2836602E69561900CA59D7 /* StreamingTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA28365F2E69561900CA59D7 /* StreamingTranscriptionService.swift */; };
 		CA2836612E69561900CA59D7 /* AudioBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA28365C2E69561900CA59D7 /* AudioBuffer.swift */; };
 		CA2836622E69561900CA59D7 /* PartialResultsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA28365D2E69561900CA59D7 /* PartialResultsManager.swift */; };
@@ -128,6 +129,7 @@
 				1A8E3D481C8F4E1C00123465 /* KeychainAccess in Frameworks */,
 				CAA963142E5C2C5800FA11A0 /* FirebaseAnalytics in Frameworks */,
 				1A8E3D491C8F4E1C00123466 /* KeyboardShortcuts in Frameworks */,
+				CAA963222E5C2C6800FA11A3 /* OpenAIRealtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -312,6 +314,7 @@
 				1A8E3D481C8F4E1C00123466 /* KeyboardShortcuts */,
 				CA886DB72E447A1A00256FE9 /* Sparkle */,
 				CAA963132E5C2C5800FA11A0 /* FirebaseAnalytics */,
+				CAA963212E5C2C6800FA11A2 /* OpenAIRealtime */,
 			);
 			productName = VTSApp;
 			productReference = 1A8E3D262C8F4E1B00123456 /* VTSApp.app */;
@@ -346,6 +349,7 @@
 				1A8E3D361C8F4E1C00123465 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 				CA886DB62E447A1A00256FE9 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				CAA963122E5C2C5800FA11A0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				CAA963202E5C2C6800FA11A1 /* XCRemoteSwiftPackageReference "swift-realtime-openai" */,
 			);
 			productRefGroup = 1A8E3D272C8F4E1B00123456 /* Products */;
 			projectDirPath = "";
@@ -656,6 +660,14 @@
 				minimumVersion = 12.1.0;
 			};
 		};
+		CAA963202E5C2C6800FA11A1 /* XCRemoteSwiftPackageReference "swift-realtime-openai" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/m1guelpf/swift-realtime-openai.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -678,6 +690,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CAA963122E5C2C5800FA11A0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
+		};
+		CAA963212E5C2C6800FA11A2 /* OpenAIRealtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CAA963202E5C2C6800FA11A1 /* XCRemoteSwiftPackageReference "swift-realtime-openai" */;
+			productName = OpenAIRealtime;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

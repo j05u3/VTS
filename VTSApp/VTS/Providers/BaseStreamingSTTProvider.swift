@@ -197,9 +197,9 @@ public class BaseStreamingSTTProvider: StreamingSTTProvider {
         // Check for StreamingError cases
         if let streamingError = error as? StreamingError {
             switch streamingError {
-            case .connectionFailed, .audioStreamError:
+            case .connectionFailed, .audioStreamError, .connectionError:
                 return true
-            case .sessionError, .invalidConfiguration, .partialResultsError:
+            case .sessionError, .invalidConfiguration, .partialResultsError, .configurationError, .transcriptionError:
                 return false
             }
         }

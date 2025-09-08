@@ -1,5 +1,5 @@
 {
-  "originHash" : "e1cf07f3a48644cb3f25866e2240ee9ed07fd121714431375a5130dd9f40c7cf",
+  "originHash" : "a3c71bf10d0b8d1de720bbab018e08c51f1e433dfdb179f673deede731c2b564",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -152,6 +152,24 @@
       "state" : {
         "revision" : "e3f69fd321d0c9fcdc16fb576a0cdd956675face",
         "version" : "1.31.0"
+      }
+    },
+    {
+      "identity" : "swift-realtime-openai",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/m1guelpf/swift-realtime-openai.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "1bd6b95c24cb7a48dd95405931148538a1582850"
+      }
+    },
+    {
+      "identity" : "webrtc",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/stasel/WebRTC.git",
+      "state" : {
+        "branch" : "latest",
+        "revision" : "d8f47164ab8180dd3a44f625d1774085c1bbd682"
       }
     }
   ],

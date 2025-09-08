@@ -11,6 +11,9 @@ public protocol StreamingSTTProvider {
 
 public enum StreamingError: Error, LocalizedError, Equatable {
     case connectionFailed(String)
+    case connectionError(String)
+    case configurationError(String)
+    case transcriptionError(String)
     case sessionError(String)
     case audioStreamError(String)
     case invalidConfiguration(String)
@@ -19,6 +22,12 @@ public enum StreamingError: Error, LocalizedError, Equatable {
     public static func == (lhs: StreamingError, rhs: StreamingError) -> Bool {
         switch (lhs, rhs) {
         case (.connectionFailed(let lhsError), .connectionFailed(let rhsError)):
+            return lhsError == rhsError
+        case (.connectionError(let lhsError), .connectionError(let rhsError)):
+            return lhsError == rhsError
+        case (.configurationError(let lhsError), .configurationError(let rhsError)):
+            return lhsError == rhsError
+        case (.transcriptionError(let lhsError), .transcriptionError(let rhsError)):
             return lhsError == rhsError
         case (.sessionError(let lhsError), .sessionError(let rhsError)):
             return lhsError == rhsError
@@ -37,14 +46,20 @@ public enum StreamingError: Error, LocalizedError, Equatable {
         switch self {
         case .connectionFailed(let error):
             return "Connection failed: \(error)"
+        case .connectionError(let error):
+            return "Connection error: \(error)"
+        case .configurationError(let error):
+            return "Configuration error: \(error)"
+        case .transcriptionError(let error):
+            return "Transcription error: \(error)"
         case .sessionError(let error):
             return "Session error: \(error)"
-        case .audioStreamError(let message):
-            return "Audio streaming error: \(message)"
-        case .invalidConfiguration(let message):
-            return "Invalid configuration: \(message)"
-        case .partialResultsError(let message):
-            return "Partial results error: \(message)"
+        case .audioStreamError(let error):
+            return "Audio stream error: \(error)"
+        case .invalidConfiguration(let error):
+            return "Invalid configuration: \(error)"
+        case .partialResultsError(let error):
+            return "Partial results error: \(error)"
         }
     }
 }

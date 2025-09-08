@@ -19,14 +19,16 @@ public struct ProviderConfig {
     public let language: String?
     public let temperature: Float?
     public let keywords: [String]?
+    public let noiseReductionType: String?
     
-    public init(apiKey: String, model: String, systemPrompt: String? = nil, language: String? = nil, temperature: Float? = nil, keywords: [String]? = nil) {
+    public init(apiKey: String, model: String, systemPrompt: String? = nil, language: String? = nil, temperature: Float? = nil, keywords: [String]? = nil, noiseReductionType: String? = nil) {
         self.apiKey = apiKey
         self.model = model
         self.systemPrompt = systemPrompt
         self.language = language
         self.temperature = temperature
         self.keywords = keywords
+        self.noiseReductionType = noiseReductionType
     }
 }
 
