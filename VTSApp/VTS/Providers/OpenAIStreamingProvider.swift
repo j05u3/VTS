@@ -3,7 +3,7 @@ import Foundation
 public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     public override var providerType: STTProviderType { .openai }
     
-    private let realtimeURL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01"
+    private let realtimeURL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview"
     private var activeSessions: [String: RealtimeSession] = [:]
     
     public override init() {
