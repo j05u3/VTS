@@ -5,6 +5,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     
     private let realtimeURL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview"
     private var activeSessions: [String: RealtimeSession] = [:]
+    private var audioChunkCounters: [String: Int] = [:] // Track audio chunks per session
     
     public override init() {
         super.init()
@@ -14,16 +15,16 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         // Validate configuration first
         try validateConfig(config)
         
-        // Create WebSocket connection using protocols as per Node.js implementation
-        let protocols = [
-            "realtime",
-            "openai-insecure-api-key.\(config.apiKey)",
-            "openai-beta.realtime-v1"
+        // Create WebSocket connection using headers like the working test implementation
+        let headers = [
+            "Authorization": "Bearer \(config.apiKey)",
+            "OpenAI-Beta": "realtime=v1"
         ]
         
         let webSocket = try await createWebSocketConnection(
             url: URL(string: realtimeURL)!,
-            protocols: protocols,
+            headers: headers,
+            protocols: [], // Don't use protocols, use headers instead
             providerName: "OpenAI Streaming"
         )
         
@@ -37,34 +38,54 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         
         print("OpenAI Streaming: Created session \(sessionId)")
         
-        // Configure the session
-        try await configureSession(session: session, config: config)
+        // Configure the session but DON'T start listening yet
+        try await configureSessionWithoutListening(session: session, config: config)
         
         return session
     }
     
+    // New method to start listening after callback is set up
+    public func startListening(for session: RealtimeSession) async throws {
+        // Start listening for messages now that callback is set up
+        startMessageListener(for: session)
+        
+        // Wait for session confirmation
+        try await session.waitForSessionConfirmation()
+    }
+    
     public override func streamAudio(_ audioData: Data, to session: RealtimeSession) async throws {
+        // Increment and log audio chunk counter
+        let currentCount = (audioChunkCounters[session.sessionId] ?? 0) + 1
+        audioChunkCounters[session.sessionId] = currentCount
+        
+        // Enhanced logging to track audio streaming calls
+        print("🎵 OpenAI Streaming: streamAudio called with \(audioData.count) bytes for session \(session.sessionId) (chunk #\(currentCount))")
+        
         guard session.isActive else {
+            print("❌ OpenAI Streaming: Session is not active, rejecting audio")
             throw StreamingError.sessionError("Session is not active")
         }
         
         // Ensure session is confirmed before streaming audio data
         guard session.isSessionConfirmed else {
+            print("❌ OpenAI Streaming: Session not yet confirmed, rejecting audio")
             throw StreamingError.sessionError("Session not yet confirmed - cannot stream audio")
         }
         
         // Log audio data size for debugging (similar to JS implementation)
         let audioSizeKB = Double(audioData.count) / 1024.0
-        print("OpenAI Streaming: Streaming audio buffer: \(String(format: "%.2f", audioSizeKB)) KB")
+        print("✅ OpenAI Streaming: Streaming audio buffer: \(String(format: "%.2f", audioSizeKB)) KB")
         
         // Create audio append message
         let message = OpenAIRealtimeMessage.inputAudioBufferAppend(audioData)
         
+        print("📤 OpenAI Streaming: Sending audio chunk to WebSocket...")
         try await sendMessage(
             message.toDictionary(),
             through: session.webSocket,
             providerName: "OpenAI Streaming"
         )
+        print("✅ OpenAI Streaming: Audio chunk sent successfully")
     }
     
     public override func finishAndGetTranscription(_ session: RealtimeSession) async throws -> String {
@@ -72,10 +93,13 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
             throw StreamingError.sessionError("Session is not active")
         }
         
-        print("OpenAI Streaming: Finishing session \(session.sessionId)")
+        let totalChunks = audioChunkCounters[session.sessionId] ?? 0
+        print("🏁 OpenAI Streaming: Finishing session \(session.sessionId)")
+        print("📊 OpenAI Streaming: Session summary - Total audio chunks sent: \(totalChunks)")
         
         // Commit the audio buffer to trigger final transcription
         let commitMessage = OpenAIRealtimeMessage.inputAudioBufferCommit
+        print("📤 OpenAI Streaming: Sending commit message to finalize audio buffer...")
         try await sendMessage(
             commitMessage.toDictionary(),
             through: session.webSocket,
@@ -85,8 +109,10 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         // Wait for final transcript or timeout
         let finalTranscript = try await waitForFinalTranscript(session: session)
         
-        // Clean up session
-        await cleanupSession(session)
+        // Clean up session asynchronously in the background to avoid blocking text injection
+        Task {
+            await cleanupSession(session)
+        }
         
         return finalTranscript
     }
@@ -131,6 +157,30 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         try await session.waitForSessionConfirmation()
     }
     
+    private func configureSessionWithoutListening(session: RealtimeSession, config: ProviderConfig) async throws {
+        print("OpenAI Streaming: Configuring session with model: \(config.model)")
+        
+        // Create session configuration that matches the working JS implementation
+        let sessionConfig = OpenAIRealtimeSessionConfig(
+            model: config.model,
+            prompt: config.systemPrompt,
+            language: config.language,
+            inputAudioFormat: "pcm16",
+            turnDetection: nil, // Disable VAD - we control audio manually (must be null, not a TurnDetection object)
+            noiseReductionType: "near_field"
+        )
+        
+        // Send session update message
+        let message = OpenAIRealtimeMessage.sessionUpdate(sessionConfig)
+        try await sendMessage(
+            message.toDictionary(),
+            through: session.webSocket,
+            providerName: "OpenAI Streaming"
+        )
+        
+        // Don't start listening yet - this will be done after callback is set up
+    }
+    
     private func startMessageListener(for session: RealtimeSession) {
         Task {
             do {
@@ -167,12 +217,13 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         
         switch event {
         case .sessionCreated(let details):
-            print("OpenAI Streaming: Session created: \(details)")
+            print("OpenAI Streaming: Session created")
             
         case .sessionUpdated(let details):
-            print("OpenAI Streaming: Session updated: \(details)")
+            print("OpenAI Streaming: Session updated")
             // Confirm the session when we receive session.updated
             session.confirmSession()
+            print("✅ OpenAI Streaming: Session confirmed! Ready to receive audio chunks.")
             
         case .inputAudioBufferCommitted(let details):
             print("OpenAI Streaming: Audio buffer committed: \(details)")
@@ -276,8 +327,9 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     private func cleanupSession(_ session: RealtimeSession) async {
         print("OpenAI Streaming: Cleaning up session \(session.sessionId)")
         
-        // Remove from active sessions
+        // Remove from active sessions and cleanup counter
         activeSessions.removeValue(forKey: session.sessionId)
+        audioChunkCounters.removeValue(forKey: session.sessionId)
         
         // Clean up the session
         await session.cleanup()

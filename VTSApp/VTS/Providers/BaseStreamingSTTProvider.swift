@@ -130,9 +130,10 @@ public class BaseStreamingSTTProvider: StreamingSTTProvider {
         providerName: String
     ) async throws {
         let jsonData = try JSONSerialization.data(withJSONObject: message)
-        let message = URLSessionWebSocketTask.Message.data(jsonData)
+        let jsonString = String(data: jsonData, encoding: .utf8) ?? "Invalid JSON"
+        let message = URLSessionWebSocketTask.Message.string(jsonString) // Use string instead of data
         
-        print("\(providerName): Sending WebSocket message: \(String(data: jsonData, encoding: .utf8) ?? "Invalid JSON")")
+        print("\(providerName): Sending WebSocket message: \(jsonString)")
         
         do {
             try await webSocket.send(message)

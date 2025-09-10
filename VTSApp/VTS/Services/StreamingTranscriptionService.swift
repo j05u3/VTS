@@ -37,7 +37,6 @@ public class StreamingTranscriptionService: ObservableObject {
     private var provider: StreamingSTTProvider?
     private var transcriptionTask: Task<Void, Never>?
     private let textInjector = TextInjector()
-    private var lastInjectedText = ""
     private var cancellables = Set<AnyCancellable>()
     
     // Session management
@@ -108,7 +107,6 @@ public class StreamingTranscriptionService: ObservableObject {
         isStreamingActive = true
         error = nil
         currentText = ""
-        lastInjectedText = ""
         
         // Store context for potential retry
         currentConfig = config
@@ -151,8 +149,8 @@ public class StreamingTranscriptionService: ObservableObject {
                 handleError(sttError)
             }
             
-            isTranscribing = false
-            isStreamingActive = false
+            // Note: UI state (isTranscribing, isStreamingActive) is updated immediately 
+            // in startPartialResultsProcessor when final result is received
         }
     }
     
@@ -179,17 +177,12 @@ public class StreamingTranscriptionService: ObservableObject {
         config: ProviderConfig
     ) async throws {
         
-        // Step 1: Establish real-time session
+        // Step 1: Establish real-time session (without starting message listening yet)
         print("🎙️ StreamingTranscriptionService: Establishing real-time session...")
         let session = try await provider.startRealtimeSession(config: config)
         currentSession = session
         
-        print(LogMessages.sessionEstablished)
-        
-        // Step 2: Configure the streaming queue with provider and session
-        await audioStreamingQueue.configure(provider: provider, session: session)
-        
-        // Step 3: Set up session confirmation callback
+        // Step 2: Set up session confirmation callback BEFORE starting message listening
         session.onSessionConfirmed = { [weak self] in
             Task {
                 guard let self = self else { return }
@@ -198,40 +191,71 @@ public class StreamingTranscriptionService: ObservableObject {
             }
         }
         
-        // Step 4: Start processing partial results
+        // Step 3: Now start message listening with callback in place
+        if let openAIProvider = provider as? OpenAIStreamingProvider {
+            try await openAIProvider.startListening(for: session)
+        }
+        
+        print(LogMessages.sessionEstablished)
+        
+        // Step 4: Configure the streaming queue with provider and session
+        await audioStreamingQueue.configure(provider: provider, session: session)
+        
+        // Step 5: Start processing partial results
         startPartialResultsProcessor(session: session)
         
-        // Step 5: Process audio stream through the sequential queue
+        // Step 6: Process audio stream through the sequential queue
+        print("🎵 StreamingTranscriptionService: About to start processing audio stream...")
         try await processAudioStreamWithSequentialQueue(audioStream: audioStream)
+        print("🎵 StreamingTranscriptionService: Audio stream processing completed")
         
-        // Step 6: Finish transcription and get final result
-        let finalTranscript = try await provider.finishAndGetTranscription(session)
+        // Step 7: Finish transcription and trigger cleanup (text injection already handled by partial results)
+        // Note: UI state and text injection are handled immediately in startPartialResultsProcessor
+        // This just ensures cleanup happens for any remaining provider state
         
-        // Mark when transcription is complete
-        endTranscriptionTiming()
+        print("🎙️ StreamingTranscriptionService: Main flow completing...")
         
-        print("\(LogMessages.receivedFinalResult) '\(finalTranscript)'")
+        // Don't await this - cleanup happens in background from partial results processor
+        let _ = try await provider.finishAndGetTranscription(session)
         
-        // Step 7: Handle successful transcription
-        handleSuccessfulTranscription(finalTranscript)
+        print("🎙️ StreamingTranscriptionService: Main flow completed")
+    }
+    
+    // MARK: - Background Cleanup
+    
+    private func performBackgroundCleanup(provider: StreamingSTTProvider?, config: ProviderConfig?) async {
+        print("🧹 StreamingTranscriptionService: Starting background cleanup...")
         
-        // Track analytics
-        trackAnalytics(provider: provider, config: config, success: true)
+        // Track analytics (using the partial results final transcript)
+        await MainActor.run {
+            trackAnalytics(provider: provider, config: config, success: true)
+        }
         
-        // Cleanup
-        currentSession = nil
-        print(LogMessages.sessionCleanedUp)
+        // Cleanup session
+        await MainActor.run {
+            currentSession = nil
+        }
+        
+        print("🧹 StreamingTranscriptionService: Background cleanup completed")
     }
     
     private func processAudioStreamWithSequentialQueue(
         audioStream: AsyncThrowingStream<Data, Error>
     ) async throws {
         
+        print("🎵 StreamingTranscriptionService: Starting to process audio stream...")
+        var chunkCount = 0
+        
         for try await audioChunk in audioStream {
+            chunkCount += 1
+            print("🎵 StreamingTranscriptionService: Processing audio chunk #\(chunkCount) (\(audioChunk.count) bytes)")
+            
             // All chunks go through the actor-based sequential queue
             // The queue handles session confirmation and ordering automatically
             try await audioStreamingQueue.streamChunk(audioChunk)
         }
+        
+        print("🎵 StreamingTranscriptionService: Finished processing audio stream. Total chunks: \(chunkCount)")
     }
     
     private func startPartialResultsProcessor(session: RealtimeSession) {
@@ -243,6 +267,24 @@ public class StreamingTranscriptionService: ObservableObject {
                     
                     if partialChunk.isFinal {
                         print("\(LogMessages.receivedFinalResult) '\(partialChunk.text)'")
+                        
+                        // 🚀 IMMEDIATE TEXT INJECTION: Handle text injection as soon as we get final result
+                        let finalTranscript = partialResults.getFinalTranscription()
+                        if !finalTranscript.isEmpty {
+                            handleSuccessfulTranscription(finalTranscript)
+                            
+                            // Mark timing completion immediately 
+                            endTranscriptionTiming()
+                            
+                            // 🎯 IMMEDIATE UI UPDATE: Update transcription state immediately after text injection
+                            isTranscribing = false
+                            isStreamingActive = false
+                            
+                            // 🔄 BACKGROUND CLEANUP: Start final cleanup and analytics in background
+                            Task.detached { [weak self] in
+                                await self?.performBackgroundCleanup(provider: self?.provider, config: self?.currentConfig)
+                            }
+                        }
                     } else {
                         print("\(LogMessages.receivedPartialResult) '\(partialChunk.text)'")
                     }
@@ -270,11 +312,7 @@ public class StreamingTranscriptionService: ObservableObject {
             
             print(LogMessages.injectingText)
             
-            // Replace previous text if any
-            let replaceText = lastInjectedText.isEmpty ? nil : lastInjectedText
-            
-            textInjector.injectText(textToInject, replaceLastText: replaceText)
-            lastInjectedText = textToInject
+            textInjector.injectText(textToInject)
             
             print("\(LogMessages.textInjectedSuccess) '\(textToInject)'")
         } else {
