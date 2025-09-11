@@ -3,7 +3,15 @@ import Foundation
 public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     public override var providerType: STTProviderType { .openai }
     
-    private let realtimeURL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview"
+    // MARK: - Constants
+    private enum Constants {
+        static let realtimeURL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview"
+        static let inputAudioFormat = "pcm16"
+        static let noiseReductionType = "near_field"
+        static let finalTranscriptTimeout: TimeInterval = 30.0
+        static let transcriptCheckInterval: TimeInterval = 0.1
+    }
+    
     private var activeSessions: [String: RealtimeSession] = [:]
     private var audioChunkCounters: [String: Int] = [:] // Track audio chunks per session
     
@@ -22,7 +30,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         ]
         
         let webSocket = try await createWebSocketConnection(
-            url: URL(string: realtimeURL)!,
+            url: URL(string: Constants.realtimeURL)!,
             headers: headers,
             protocols: [], // Don't use protocols, use headers instead
             providerName: "OpenAI Streaming"
@@ -39,7 +47,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         print("OpenAI Streaming: Created session \(sessionId)")
         
         // Configure the session but DON'T start listening yet
-        try await configureSessionWithoutListening(session: session, config: config)
+        try await configureSession(session: session, config: config, startListening: false)
         
         return session
     }
@@ -54,17 +62,15 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     }
     
     public override func streamAudio(_ audioData: Data, to session: RealtimeSession) async throws {
+        // Validate session state first
+        try validateSessionState(session, operation: "streamAudio")
+        
         // Increment and log audio chunk counter
         let currentCount = (audioChunkCounters[session.sessionId] ?? 0) + 1
         audioChunkCounters[session.sessionId] = currentCount
         
         // Enhanced logging to track audio streaming calls
         print("🎵 OpenAI Streaming: streamAudio called with \(audioData.count) bytes for session \(session.sessionId) (chunk #\(currentCount))")
-        
-        guard session.isActive else {
-            print("❌ OpenAI Streaming: Session is not active, rejecting audio")
-            throw StreamingError.sessionError("Session is not active")
-        }
         
         // Ensure session is confirmed before streaming audio data
         guard session.isSessionConfirmed else {
@@ -89,9 +95,8 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     }
     
     public override func finishAndGetTranscription(_ session: RealtimeSession) async throws -> String {
-        guard session.isActive else {
-            throw StreamingError.sessionError("Session is not active")
-        }
+        // Validate session state first
+        try validateSessionState(session, operation: "finishAndGetTranscription")
         
         let totalChunks = audioChunkCounters[session.sessionId] ?? 0
         print("🏁 OpenAI Streaming: Finishing session \(session.sessionId)")
@@ -106,7 +111,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
             providerName: "OpenAI Streaming"
         )
         
-        // Wait for final transcript or timeout
+        // Wait for final transcript with structured timeout handling
         let finalTranscript = try await waitForFinalTranscript(session: session)
         
         // Clean up session asynchronously in the background to avoid blocking text injection
@@ -129,7 +134,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     
     // MARK: - Private Methods
     
-    private func configureSession(session: RealtimeSession, config: ProviderConfig) async throws {
+    private func configureSession(session: RealtimeSession, config: ProviderConfig, startListening: Bool = true) async throws {
         print("OpenAI Streaming: Configuring session with model: \(config.model)")
         
         // Create session configuration that matches the working JS implementation
@@ -137,9 +142,9 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
             model: config.model,
             prompt: config.systemPrompt,
             language: config.language,
-            inputAudioFormat: "pcm16",
+            inputAudioFormat: Constants.inputAudioFormat,
             turnDetection: nil, // Disable VAD - we control audio manually (must be null, not a TurnDetection object)
-            noiseReductionType: "near_field"
+            noiseReductionType: Constants.noiseReductionType
         )
         
         // Send session update message
@@ -150,35 +155,13 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
             providerName: "OpenAI Streaming"
         )
         
-        // Start listening for messages immediately to catch session confirmation
-        startMessageListener(for: session)
-        
-        // Wait for session confirmation
-        try await session.waitForSessionConfirmation()
-    }
-    
-    private func configureSessionWithoutListening(session: RealtimeSession, config: ProviderConfig) async throws {
-        print("OpenAI Streaming: Configuring session with model: \(config.model)")
-        
-        // Create session configuration that matches the working JS implementation
-        let sessionConfig = OpenAIRealtimeSessionConfig(
-            model: config.model,
-            prompt: config.systemPrompt,
-            language: config.language,
-            inputAudioFormat: "pcm16",
-            turnDetection: nil, // Disable VAD - we control audio manually (must be null, not a TurnDetection object)
-            noiseReductionType: "near_field"
-        )
-        
-        // Send session update message
-        let message = OpenAIRealtimeMessage.sessionUpdate(sessionConfig)
-        try await sendMessage(
-            message.toDictionary(),
-            through: session.webSocket,
-            providerName: "OpenAI Streaming"
-        )
-        
-        // Don't start listening yet - this will be done after callback is set up
+        if startListening {
+            // Start listening for messages immediately to catch session confirmation
+            startMessageListener(for: session)
+            
+            // Wait for session confirmation
+            try await session.waitForSessionConfirmation()
+        }
     }
     
     private func startMessageListener(for session: RealtimeSession) {
@@ -216,12 +199,11 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         let event = OpenAIRealtimeEvent.from(messageDict: messageDict)
         
         switch event {
-        case .sessionCreated(let details):
+        case .sessionCreated:
             print("OpenAI Streaming: Session created")
             
-        case .sessionUpdated(let details):
+        case .sessionUpdated:
             print("OpenAI Streaming: Session updated")
-            // Confirm the session when we receive session.updated
             session.confirmSession()
             print("✅ OpenAI Streaming: Session confirmed! Ready to receive audio chunks.")
             
@@ -230,43 +212,23 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
             
         case .conversationItemInputAudioTranscriptionDelta(let delta):
             print("OpenAI Streaming: Transcription delta: '\(delta.delta)'")
-            
-            // Create partial transcription chunk
-            let chunk = TranscriptionChunk(
-                text: delta.delta,
-                isFinal: false,
-                timestamp: Date()
-            )
-            
+            let chunk = TranscriptionChunk(text: delta.delta, isFinal: false, timestamp: Date())
             session.yieldPartialResult(chunk)
             
         case .conversationItemInputAudioTranscriptionCompleted(let completed):
             print("OpenAI Streaming: Transcription completed: '\(completed.transcript)'")
-            
-            // Store final transcript
             session.finalTranscript = completed.transcript
-            
-            // Create final transcription chunk
-            let chunk = TranscriptionChunk(
-                text: completed.transcript,
-                isFinal: true,
-                timestamp: Date()
-            )
-            
+            let chunk = TranscriptionChunk(text: completed.transcript, isFinal: true, timestamp: Date())
             session.yieldPartialResult(chunk)
             
         case .error(let error):
             print("OpenAI Streaming: Received error: \(error.message)")
-            
             let streamingError = StreamingError.sessionError("OpenAI API error: \(error.message)")
             
-            // If session is not yet confirmed, fail the confirmation
             if !session.isSessionConfirmed {
                 session.failSessionConfirmation(with: streamingError)
             }
-            
             session.finishPartialResultsWithError(streamingError)
-            // Mark session as inactive to stop the message listener loop
             session.isActive = false
             
         case .unknown(let details):
@@ -278,49 +240,29 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         }
     }
     
-    private func waitForFinalTranscript(session: RealtimeSession) async throws -> String {
+    private func waitForFinalTranscript(session: RealtimeSession, timeout: TimeInterval = Constants.finalTranscriptTimeout) async throws -> String {
         print("OpenAI Streaming: Waiting for final transcript...")
         
-        // Create timeout task
-        let timeoutTask = Task {
-            try await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
-            throw StreamingError.sessionError("Final transcript timeout")
-        }
-        
-        // Create transcript wait task
-        let transcriptTask = Task {
-            var attempts = 0
-            let maxAttempts = 300 // 30 seconds at 100ms intervals
-            
-            while attempts < maxAttempts {
-                if !session.finalTranscript.isEmpty {
-                    return session.finalTranscript
+        // Use TaskGroup for cleaner timeout handling
+        return try await withThrowingTaskGroup(of: String.self) { group in
+            // Add transcript monitoring task
+            group.addTask {
+                while session.finalTranscript.isEmpty {
+                    try await Task.sleep(for: .seconds(Constants.transcriptCheckInterval))
                 }
-                
-                try await Task.sleep(nanoseconds: 100_000_000) // 100ms
-                attempts += 1
+                return session.finalTranscript
             }
             
-            throw StreamingError.sessionError("No final transcript received")
-        }
-        
-        // Race between timeout and transcript
-        do {
-            return try await withThrowingTaskGroup(of: String.self) { group in
-                group.addTask { 
-                    try await timeoutTask.value
-                    return ""
-                }
-                group.addTask { 
-                    return try await transcriptTask.value
-                }
-                
-                let result = try await group.next()!
-                group.cancelAll()
-                return result
+            // Add timeout task
+            group.addTask {
+                try await Task.sleep(for: .seconds(timeout))
+                throw StreamingError.sessionError("Final transcript timeout after \(timeout) seconds")
             }
-        } catch {
-            throw error
+            
+            // Return first completed result and cancel others
+            let result = try await group.next()!
+            group.cancelAll()
+            return result
         }
     }
     
@@ -344,9 +286,26 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     
     /// Cleans up all active sessions
     public func cleanupAllSessions() async {
+        print("OpenAI Streaming: Cleaning up \(activeSessions.count) active sessions")
         for session in activeSessions.values {
             await cleanupSession(session)
         }
         activeSessions.removeAll()
+        audioChunkCounters.removeAll()
+    }
+}
+
+// MARK: - Session State Management
+extension OpenAIStreamingProvider {
+    
+    /// Validates session state before operations
+    private func validateSessionState(_ session: RealtimeSession, operation: String) throws {
+        guard session.isActive else {
+            throw StreamingError.sessionError("Session is not active for \(operation)")
+        }
+        
+        guard activeSessions[session.sessionId] != nil else {
+            throw StreamingError.sessionError("Session \(session.sessionId) not found in active sessions")
+        }
     }
 }

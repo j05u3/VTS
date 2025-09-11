@@ -67,60 +67,80 @@ public class BaseStreamingSTTProvider: StreamingSTTProvider {
         return webSocketTask
     }
     
-    /// Waits for WebSocket connection to be established
+    /// Waits for WebSocket connection to be established using event-driven approach
     private func waitForConnectionEstablishment(
         webSocketTask: URLSessionWebSocketTask,
         providerName: String
     ) async throws {
         print("\(providerName): Waiting for WebSocket connection to establish...")
         
-        // Create a timeout task
-        let timeoutTask = Task {
-            try await Task.sleep(nanoseconds: UInt64(connectionTimeout * 1_000_000_000))
-            throw StreamingError.connectionFailed("Connection timeout after \(connectionTimeout) seconds")
-        }
-        
-        // Create a connection check task
-        let connectionTask = Task {
-            var attempts = 0
-            let maxAttempts = Int(connectionTimeout * 10) // Check every 100ms
-            
-            while attempts < maxAttempts {
-                if webSocketTask.state == .running {
-                    print("\(providerName): WebSocket connection established successfully")
-                    return
-                }
-                
-                if webSocketTask.state == .canceling || webSocketTask.state == .completed {
-                    throw StreamingError.connectionFailed("WebSocket connection failed")
-                }
-                
-                try await Task.sleep(nanoseconds: 100_000_000) // 100ms
-                attempts += 1
+        return try await withCheckedThrowingContinuation { continuation in
+            // Set up timeout
+            let timeoutTask = Task {
+                try await Task.sleep(for: .seconds(connectionTimeout))
+                continuation.resume(throwing: StreamingError.connectionFailed("Connection timeout after \(connectionTimeout) seconds"))
             }
             
-            throw StreamingError.connectionFailed("Connection establishment timeout")
-        }
-        
-        // Race between timeout and connection establishment
-        do {
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                group.addTask { try await timeoutTask.value }
-                group.addTask { try await connectionTask.value }
-                
-                // Wait for the first task to complete
-                try await group.next()
-                
-                // Cancel remaining tasks
-                group.cancelAll()
+            // Check initial state
+            let initialState = webSocketTask.state
+            switch initialState {
+            case .running:
+                print("\(providerName): WebSocket connection already established")
+                timeoutTask.cancel()
+                continuation.resume()
+                return
+            case .canceling, .completed:
+                timeoutTask.cancel()
+                continuation.resume(throwing: StreamingError.connectionFailed("WebSocket connection failed"))
+                return
+            default:
+                break
             }
-        } catch {
-            webSocketTask.cancel(with: .abnormalClosure, reason: nil)
-            throw error
+            
+            // Use a more efficient state monitoring approach
+            let stateMonitor = Task { @MainActor in
+                // Monitor state changes with minimal overhead
+                var hasResumed = false
+                
+                while !hasResumed && !Task.isCancelled {
+                    let currentState = webSocketTask.state
+                    
+                    switch currentState {
+                    case .running:
+                        print("\(providerName): WebSocket connection established successfully")
+                        if !hasResumed {
+                            hasResumed = true
+                            timeoutTask.cancel()
+                            continuation.resume()
+                        }
+                        return
+                    case .canceling, .completed:
+                        if !hasResumed {
+                            hasResumed = true
+                            timeoutTask.cancel()
+                            continuation.resume(throwing: StreamingError.connectionFailed("WebSocket connection failed"))
+                        }
+                        return
+                    case .suspended:
+                        // Use yield instead of sleep for better performance
+                        await Task.yield()
+                    @unknown default:
+                        if !hasResumed {
+                            hasResumed = true
+                            timeoutTask.cancel()
+                            continuation.resume(throwing: StreamingError.connectionFailed("Unknown WebSocket state"))
+                        }
+                        return
+                    }
+                }
+            }
+            
+            // Clean up when done
+            Task {
+                await stateMonitor.value
+                timeoutTask.cancel()
+            }
         }
-        
-        // Clean up timeout task
-        timeoutTask.cancel()
     }
     
     /// Sends a message through WebSocket with error handling
