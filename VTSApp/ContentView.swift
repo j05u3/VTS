@@ -53,17 +53,8 @@ struct ContentView: View {
                         Text("Mode:")
                             .frame(width: 70, alignment: .leading)
                         
-                        Toggle("Real-time (Beta)", isOn: $appState.useRealtime)
+                        Toggle("Faster ⚡️ (Beta)", isOn: $appState.useRealtime)
                             .toggleStyle(.switch)
-                        
-                        Spacer()
-                        
-                        if appState.useRealtime {
-                            Text("🔴 BETA")
-                                .font(.caption2)
-                                .foregroundColor(.red)
-                                .fontWeight(.bold)
-                        }
                     }
                 }
                 

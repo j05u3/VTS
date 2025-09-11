@@ -59,6 +59,11 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         
         // Wait for session confirmation
         try await session.waitForSessionConfirmation()
+        
+        // Log confirmation timing after waiting completes
+        if let durationMs = session.sessionConfirmationDurationMs {
+            print("⏱️ OpenAI Streaming: Total session setup time: \(durationMs) ms")
+        }
     }
     
     public override func streamAudio(_ audioData: Data, to session: RealtimeSession) async throws {

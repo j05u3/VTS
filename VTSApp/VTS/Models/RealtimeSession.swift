@@ -26,12 +26,23 @@ public class RealtimeSession {
     public var isSessionConfirmed: Bool = false
     private var sessionConfirmationContinuation: CheckedContinuation<Void, Error>?
     
+    // Timing tracking
+    public let sessionStartTime: Date
+    public var sessionConfirmedTime: Date?
+    
     // Callback for when session is confirmed
     public var onSessionConfirmed: (() -> Void)?
+    
+    /// Returns the time in milliseconds from session start to confirmation
+    public var sessionConfirmationDurationMs: Int? {
+        guard let confirmedTime = sessionConfirmedTime else { return nil }
+        return Int((confirmedTime.timeIntervalSince(sessionStartTime)) * 1000)
+    }
     
     public init(sessionId: String, webSocket: URLSessionWebSocketTask) {
         self.sessionId = sessionId
         self.webSocket = webSocket
+        self.sessionStartTime = Date()
         
         // Create the async stream for partial results
         let (stream, continuation) = AsyncThrowingStream.makeStream(of: TranscriptionChunk.self)
@@ -76,6 +87,7 @@ public class RealtimeSession {
     
     public func confirmSession() {
         isSessionConfirmed = true
+        sessionConfirmedTime = Date()
         sessionConfirmationContinuation?.resume()
         sessionConfirmationContinuation = nil
         
