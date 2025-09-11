@@ -63,25 +63,14 @@ public class RealtimeSession {
     }
     
     public func waitForSessionConfirmation(timeout: TimeInterval = 10.0) async throws {
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            // Add confirmation waiting task
-            group.addTask {
+        do {
+            try await withTimeout(timeout) {
                 try await withCheckedThrowingContinuation { continuation in
                     self.sessionConfirmationContinuation = continuation
                 }
             }
-            
-            // Add timeout task
-            group.addTask {
-                try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
-                throw SessionError.confirmationTimeout(timeout)
-            }
-            
-            // Wait for the first task to complete
-            try await group.next()
-            
-            // Cancel remaining tasks
-            group.cancelAll()
+        } catch is TimeoutError {
+            throw SessionError.confirmationTimeout(timeout)
         }
     }
     

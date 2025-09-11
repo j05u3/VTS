@@ -77,12 +77,6 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         // Enhanced logging to track audio streaming calls
         print("🎵 OpenAI Streaming: streamAudio called with \(audioData.count) bytes for session \(session.sessionId) (chunk #\(currentCount))")
         
-        // Ensure session is confirmed before streaming audio data
-        guard session.isSessionConfirmed else {
-            print("❌ OpenAI Streaming: Session not yet confirmed, rejecting audio")
-            throw StreamingError.sessionError("Session not yet confirmed - cannot stream audio")
-        }
-        
         // Log audio data size for debugging (similar to JS implementation)
         let audioSizeKB = Double(audioData.count) / 1024.0
         print("✅ OpenAI Streaming: Streaming audio buffer: \(String(format: "%.2f", audioSizeKB)) KB")

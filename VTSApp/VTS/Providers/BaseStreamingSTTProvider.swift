@@ -98,7 +98,7 @@ public class BaseStreamingSTTProvider: StreamingSTTProvider {
             }
             
             // Use a more efficient state monitoring approach
-            let stateMonitor = Task { @MainActor in
+            let stateMonitor = Task {
                 // Monitor state changes with minimal overhead
                 var hasResumed = false
                 

@@ -20,7 +20,7 @@ public class StreamingTranscriptionService: ObservableObject {
         static let sessionCleanedUp = "🎙️ StreamingTranscriptionService: Session cleaned up"
         static let bufferConnectionEstablished = "🎙️ StreamingTranscriptionService: Audio buffer connection established"
         static let cannotTrackAnalytics = "⚠️ Cannot track streaming analytics: missing provider or config data"
-        static let bufferedChunksReleased = "� StreamingTranscriptionService: Session confirmed - processing queued chunks"
+        static let bufferedChunksReleased = "✅ StreamingTranscriptionService: Session confirmed - processing queued chunks"
     }
     
     // MARK: - Published Properties
