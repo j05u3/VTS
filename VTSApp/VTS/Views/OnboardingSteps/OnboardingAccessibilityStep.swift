@@ -6,7 +6,7 @@ struct OnboardingAccessibilityStep: View {
     @State private var animateIcon = false
     
     private var textInjector: TextInjector {
-        appState.transcriptionServiceInstance.injector
+        appState.restTranscriptionServiceInstance.injector
     }
     
     var body: some View {

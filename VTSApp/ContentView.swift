@@ -32,7 +32,7 @@ struct ContentView: View {
                     }
                     .pickerStyle(.segmented)
                     .onChange(of: appState.selectedProvider) { _, newProvider in
-                        appState.selectedModel = newProvider.defaultModels.first ?? ""
+                        appState.selectedModel = newProvider.restModels.first ?? ""
                     }
                 }
                 
@@ -40,11 +40,24 @@ struct ContentView: View {
                     Text("AI Model:")
                         .frame(width: 70, alignment: .leading)
                     Picker("", selection: $appState.selectedModel) {
-                        ForEach(appState.selectedProvider.defaultModels, id: \.self) { model in
+                        ForEach(appState.selectedProvider.restModels, id: \.self) { model in
                             Text(model).tag(model)
                         }
                     }
                     .pickerStyle(.menu)
+                }
+                
+                // Real-time toggle (only show for providers that support it)
+                if appState.selectedProvider.supportsRealtimeStreaming {
+                    HStack {
+                        Text("Mode:")
+                            .frame(width: 70, alignment: .leading)
+                        
+                        Toggle("Faster ⚡️ (Beta, uses Realtime APIs)", isOn: $appState.useRealtime)
+                            .toggleStyle(.switch)
+                        
+                        Spacer()
+                    }
                 }
                 
                 HStack {
@@ -127,7 +140,7 @@ struct ContentView: View {
                     appState.showLastTranscription()
                 }
                 .buttonStyle(.bordered)
-                .disabled(appState.transcriptionServiceInstance.lastTranscription.isEmpty)
+                .disabled(getLastTranscription().isEmpty)
                 
                 Spacer()
                 
@@ -141,8 +154,15 @@ struct ContentView: View {
         .frame(width: 400)
     }
     
+    private func getLastTranscription() -> String {
+        // Get the most recent transcription from either service
+        let restLast = appState.restTranscriptionServiceInstance.lastTranscription
+        let streamingLast = appState.streamingTranscriptionServiceInstance.lastTranscription
+        return !streamingLast.isEmpty ? streamingLast : restLast
+    }
+    
     private func getTranscriptionPreview() -> String {
-        let lastTranscription = appState.transcriptionServiceInstance.lastTranscription
+        let lastTranscription = getLastTranscription()
 
         if lastTranscription.isEmpty {
             return "Last Text"

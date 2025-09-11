@@ -12,7 +12,7 @@ struct OnboardingTestStep: View {
     @State private var testPhase: TestPhase = .ready
     
     private var captureEngine: CaptureEngine { appState.captureEngineService }
-    private var transcriptionService: TranscriptionService { appState.transcriptionServiceInstance }
+    private var restTranscriptionService: RestTranscriptionService { appState.restTranscriptionServiceInstance }
     private var apiKeyManager: APIKeyManager { appState.apiKeyManagerService }
     
     var body: some View {
@@ -139,7 +139,7 @@ struct OnboardingTestStep: View {
         .onReceive(appState.captureEngineService.$audioLevel) { level in
             audioLevel = level
         }
-        .onReceive(transcriptionService.$isTranscribing) { isTranscribing in
+        .onReceive(restTranscriptionService.$isTranscribing) { isTranscribing in
             isProcessing = isTranscribing
             if !isTranscribing && testPhase == .processing {
                 handleTestCompletion()
@@ -172,7 +172,7 @@ struct OnboardingTestStep: View {
                 systemPrompt: "This is a test recording. Please transcribe accurately."
             )
             
-            transcriptionService.startTranscription(
+            restTranscriptionService.startTranscription(
                 audioStream: audioStream,
                 config: config,
                 streamPartials: false // Don't stream partials for test
@@ -193,7 +193,7 @@ struct OnboardingTestStep: View {
     private func handleTestCompletion() {
         testPhase = .completed
         
-        let transcribedText = transcriptionService.lastTranscription
+        let transcribedText = restTranscriptionService.lastTranscription
         
         if transcribedText.isEmpty {
             testResult = TestResult(

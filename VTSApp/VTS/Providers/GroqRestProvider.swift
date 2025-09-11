@@ -1,6 +1,6 @@
 import Foundation
 
-public class GroqProvider: BaseSTTProvider {
+public class GroqRestProvider: BaseRestSTTProvider {
     public override var providerType: STTProviderType { .groq }
     
     private let baseURL = "https://api.groq.com/openai/v1"
@@ -24,8 +24,8 @@ public class GroqProvider: BaseSTTProvider {
         
         print("Groq: Audio collection completed, total size: \(audioData.count) bytes")
         
-        // Only send if we have enough audio data (at least 1 second worth)
-        let minimumBytes = Int(16000 * 2) // 1 second of 16kHz 16-bit audio
+        // Only send if we have enough audio data (at least 0.5 seconds worth)
+        let minimumBytes = Int(24000 * 1) // 0.5 seconds of 24kHz 16-bit audio
         guard audioData.count >= minimumBytes else {
             print("Groq: Not enough audio data (\(audioData.count) bytes, minimum: \(minimumBytes))")
             throw STTError.audioProcessingError("Not enough audio data")
@@ -44,7 +44,7 @@ public class GroqProvider: BaseSTTProvider {
             throw STTError.invalidAPIKey
         }
         
-        guard STTProviderType.groq.defaultModels.contains(config.model) else {
+        guard STTProviderType.groq.restModels.contains(config.model) else {
             throw STTError.invalidModel
         }
     }

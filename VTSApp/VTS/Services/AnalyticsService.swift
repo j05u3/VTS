@@ -29,7 +29,8 @@ public class AnalyticsService: ObservableObject {
         model: String,
         success: Bool,
         audioDurationMs: Int,
-        processingTimeMs: Int
+        processingTimeMs: Int,
+        isRealtime: Bool
     ) {
         Analytics.logEvent(
             "transcription_completed",
@@ -39,10 +40,11 @@ public class AnalyticsService: ObservableObject {
                 "success": success,
                 "audio_duration_ms": audioDurationMs,
                 "processing_time_ms": processingTimeMs,
+                "is_realtime": isRealtime,
                 "platform": "macos",
             ])
         print(
-            "📊 Analytics: Tracked transcription_completed event - Provider: \(provider), Success: \(success), Audio Duration: \(audioDurationMs)ms (time user was speaking), Processing Time: \(processingTimeMs)ms (from recording end to transcription received)"
+            "📊 Analytics: Tracked transcription_completed event - Provider: \(provider), Success: \(success), Audio Duration: \(audioDurationMs)ms (time user was speaking), Processing Time: \(processingTimeMs)ms (from recording end to transcription received), Real-time: \(isRealtime)"
         )
     }
 

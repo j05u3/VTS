@@ -17,7 +17,7 @@ public class CaptureEngine: ObservableObject {
     private var converter: AVAudioConverter?
     private var continuation: AsyncThrowingStream<Data, Error>.Continuation?
     
-    private let sampleRate: Double = 16000
+    private let sampleRate: Double = 24000
     private let channelCount: UInt32 = 1
     
     // Throttling variables for reducing log frequency

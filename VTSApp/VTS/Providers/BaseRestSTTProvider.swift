@@ -1,8 +1,8 @@
 import Foundation
 
-/// Base class for STT providers that provides common networking functionality
+/// Base class for REST STT providers that provides common networking functionality
 /// with retry logic and configurable timeouts
-public class BaseSTTProvider: STTProvider {
+public class BaseRestSTTProvider: RestSTTProvider {
     public var providerType: STTProviderType {
         fatalError("Must be implemented by subclass")
     }
@@ -25,7 +25,7 @@ public class BaseSTTProvider: STTProvider {
         return min(baseTimeout + additionalTimeout, 120.0)
     }
     
-    // MARK: - STTProvider Protocol Requirements (to be implemented by subclasses)
+    // MARK: - RestSTTProvider Protocol Requirements (to be implemented by subclasses)
     
     public func transcribe(
         stream: AsyncThrowingStream<Data, Error>,
@@ -130,7 +130,7 @@ public class BaseSTTProvider: STTProvider {
     
     /// Common WAV data creation method for all providers
     internal func createWAVData(from pcmData: Data) -> Data {
-        let sampleRate: UInt32 = 16000
+        let sampleRate: UInt32 = 24000
         let channels: UInt16 = 1
         let bitsPerSample: UInt16 = 16
         let byteRate = sampleRate * UInt32(channels) * UInt32(bitsPerSample) / 8
