@@ -53,8 +53,10 @@ struct ContentView: View {
                         Text("Mode:")
                             .frame(width: 70, alignment: .leading)
                         
-                        Toggle("Faster ⚡️ (Beta)", isOn: $appState.useRealtime)
+                        Toggle("Faster ⚡️ (Beta, uses Realtime APIs)", isOn: $appState.useRealtime)
                             .toggleStyle(.switch)
+                        
+                        Spacer()
                     }
                 }
                 

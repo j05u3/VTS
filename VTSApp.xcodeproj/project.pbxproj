@@ -18,7 +18,6 @@
 		1A8E3D481C8F4E1C00123465 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 1A8E3D471C8F4E1C00123465 /* KeychainAccess */; };
 		1A8E3D491C8F4E1C00123466 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 1A8E3D481C8F4E1C00123466 /* KeyboardShortcuts */; };
 		CA2836602E69561900CA59D7 /* StreamingTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA28365F2E69561900CA59D7 /* StreamingTranscriptionService.swift */; };
-		CA2836612E69561900CA59D7 /* AudioBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA28365C2E69561900CA59D7 /* AudioBuffer.swift */; };
 		CA2836622E69561900CA59D7 /* PartialResultsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA28365D2E69561900CA59D7 /* PartialResultsManager.swift */; };
 		CA2836632E69561900CA59D7 /* RestTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA28365E2E69561900CA59D7 /* RestTranscriptionService.swift */; };
 		CA28366A2E69562A00CA59D7 /* OpenAIStreamingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2836692E69562A00CA59D7 /* OpenAIStreamingProvider.swift */; };
@@ -73,7 +72,6 @@
 		1A8E3D401C8F4E1C00123458 /* DeviceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceManager.swift; sourceTree = "<group>"; };
 		1A8E3D451C8F4E1C00123463 /* TranscriptionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionModels.swift; sourceTree = "<group>"; };
 		1A8E3D461C8F4E1C00123464 /* AsyncExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncExtensions.swift; sourceTree = "<group>"; };
-		CA28365C2E69561900CA59D7 /* AudioBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioBuffer.swift; sourceTree = "<group>"; };
 		CA28365D2E69561900CA59D7 /* PartialResultsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartialResultsManager.swift; sourceTree = "<group>"; };
 		CA28365E2E69561900CA59D7 /* RestTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTranscriptionService.swift; sourceTree = "<group>"; };
 		CA28365F2E69561900CA59D7 /* StreamingTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamingTranscriptionService.swift; sourceTree = "<group>"; };
@@ -195,7 +193,6 @@
 			isa = PBXGroup;
 			children = (
 				CAB662EA2E6EA3E4003C25AB /* AudioStreamingQueue.swift */,
-				CA28365C2E69561900CA59D7 /* AudioBuffer.swift */,
 				CA28365D2E69561900CA59D7 /* PartialResultsManager.swift */,
 				CA28365E2E69561900CA59D7 /* RestTranscriptionService.swift */,
 				CA28365F2E69561900CA59D7 /* StreamingTranscriptionService.swift */,
@@ -398,7 +395,6 @@
 				CA2836602E69561900CA59D7 /* StreamingTranscriptionService.swift in Sources */,
 				CA2836722E69563D00CA59D7 /* RestSTTProvider.swift in Sources */,
 				CA2836732E69563D00CA59D7 /* StreamingSTTProvider.swift in Sources */,
-				CA2836612E69561900CA59D7 /* AudioBuffer.swift in Sources */,
 				CA2836622E69561900CA59D7 /* PartialResultsManager.swift in Sources */,
 				CA2836632E69561900CA59D7 /* RestTranscriptionService.swift in Sources */,
 				CA98AADD2E264E60004C23D7 /* SimpleHotkeyManager.swift in Sources */,

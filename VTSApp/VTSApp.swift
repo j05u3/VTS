@@ -460,24 +460,26 @@ class AppState: ObservableObject {
         updateProvider()
         
         // Set up analytics callback for REST service
-        restTranscriptionService.onTranscriptionCompleted = { [weak self] provider, model, success, audioDurationMs, processingTimeMs in
+        restTranscriptionService.onTranscriptionCompleted = { [weak self] provider, model, success, audioDurationMs, processingTimeMs, isRealtime in
             AnalyticsService.shared.trackTranscriptionCompleted(
                 provider: provider,
                 model: model,
                 success: success,
                 audioDurationMs: audioDurationMs,
-                processingTimeMs: processingTimeMs
+                processingTimeMs: processingTimeMs,
+                isRealtime: isRealtime
             )
         }
         
         // Set up analytics callback for streaming service
-        streamingTranscriptionService.onTranscriptionCompleted = { [weak self] provider, model, success, audioDurationMs, processingTimeMs in
+        streamingTranscriptionService.onTranscriptionCompleted = { [weak self] provider, model, success, audioDurationMs, processingTimeMs, isRealtime in
             AnalyticsService.shared.trackTranscriptionCompleted(
                 provider: provider,
                 model: model,
                 success: success,
                 audioDurationMs: audioDurationMs,
-                processingTimeMs: processingTimeMs
+                processingTimeMs: processingTimeMs,
+                isRealtime: isRealtime
             )
         }
     }

@@ -51,7 +51,7 @@ public class StreamingTranscriptionService: ObservableObject {
     private let notificationManager = NotificationManager.shared
     
     // Analytics completion callback
-    public var onTranscriptionCompleted: ((String, String, Bool, Int, Int) -> Void)?
+    public var onTranscriptionCompleted: ((String, String, Bool, Int, Int, Bool) -> Void)?
     
     // Timing properties for analytics
     private var processStartTime: Date?
@@ -351,15 +351,14 @@ public class StreamingTranscriptionService: ObservableObject {
         let processingTimeMs = calculateProcessingTime()
         let audioDurationMs = calculateAudioDuration()
 
-        // Add "Streaming" suffix to differentiate from REST analytics
-        let streamingProviderName = "\(providerName) Streaming"
-
+        // Keep provider name clean, use isRealtime parameter to differentiate
         onCompletion(
-            streamingProviderName,
+            providerName,
             config.model,
             success,
             audioDurationMs,
-            processingTimeMs
+            processingTimeMs,
+            true  // isRealtime = true for streaming service
         )
     }
     

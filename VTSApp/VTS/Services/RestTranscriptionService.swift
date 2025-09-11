@@ -47,7 +47,7 @@ public class RestTranscriptionService: ObservableObject {
     private let notificationManager = NotificationManager.shared
     
     // Analytics completion callback
-    public var onTranscriptionCompleted: ((String, String, Bool, Int, Int) -> Void)?
+    public var onTranscriptionCompleted: ((String, String, Bool, Int, Int, Bool) -> Void)?
     
     // Timing properties for analytics
     private var processStartTime: Date?           // When user first presses record button
@@ -406,7 +406,8 @@ public class RestTranscriptionService: ObservableObject {
             config.model,
             success,
             audioDurationMs,
-            processingTimeMs
+            processingTimeMs,
+            false  // isRealtime = false for REST service
         )
     }
     
