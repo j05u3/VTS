@@ -7,14 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0](https://github.com/j05u3/VTS/compare/v0.13.0...v1.0.0) (2025-09-11)
 
-
-### ⚠ BREAKING CHANGES
-
-* add `Faster ⚡️` option which uses OpenAI realtime API for transcription which should improve latency ([#83](https://github.com/j05u3/VTS/issues/83))
-
 ### Features
 
-* add `Faster ⚡️` option which uses OpenAI realtime API for transcription which should improve latency ([#83](https://github.com/j05u3/VTS/issues/83)) ([2080781](https://github.com/j05u3/VTS/commit/20807812c4d985b2ac678bcb53eee73c2a0fc3e6))
+* add optional `Faster ⚡️` option which uses OpenAI realtime API for transcription which should improve latency ([#83](https://github.com/j05u3/VTS/issues/83)) ([2080781](https://github.com/j05u3/VTS/commit/20807812c4d985b2ac678bcb53eee73c2a0fc3e6))
 
 ## [0.13.0](https://github.com/j05u3/VTS/compare/v0.12.0...v0.13.0) (2025-08-28)
 
