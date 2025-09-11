@@ -225,7 +225,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS d
 - [x] **Auto-open at login**: Auto-open at login with checkbox in the preferences window (✅ Implemented)
 - [x] **Modern Release Automation**: Automated releases with release-please and GitHub Actions (✅ Implemented)
 - [x] **Sparkle Auto-Updates**: Automatic app updates with GitHub Releases appcast hosting (✅ Implemented)
-- [ ] **Support real-time APIs**: Like OpenAI Real-time Transcription API, etc.
+- [x] **Support real-time API**: OpenAI Real-time Transcription API (✅ Implemented)
 
 
 ### In a future or maybe pro version, to be decided/ordered by priority, your feedback and contributions are welcome!
