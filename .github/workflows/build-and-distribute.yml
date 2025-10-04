@@ -1,8 +1,50 @@
+# Build and Release macOS App
+#
+# This workflow supports both automatic and manual triggers:
+#
+# Automatic (tag push):
+#   - Triggered by pushing tags starting with 'v' (e.g., v0.2.3)
+#   - Runs all jobs: build → sparkle-and-release → update-homebrew-tap
+#
+# Manual (workflow_dispatch):
+#   - Allows selective retry of individual jobs
+#   - Requires tag_name input for manual runs
+#   - Job selection options:
+#     * run_build: Re-build from source (default: false)
+#     * run_sparkle: Run Sparkle signing and release update (default: true)
+#     * run_homebrew: Update Homebrew tap (default: true)
+#
+# Common retry scenarios:
+#   1. Retry Sparkle only: run_build=false, run_sparkle=true, run_homebrew=false
+#   2. Retry Homebrew only: run_build=false, run_sparkle=false, run_homebrew=true
+#   3. Retry both post-build: run_build=false, run_sparkle=true, run_homebrew=true
+
 name: Build and Release macOS App
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      run_build:
+        description: 'Run build job'
+        required: false
+        default: false
+        type: boolean
+      run_sparkle:
+        description: 'Run sparkle-and-release job'
+        required: false
+        default: true
+        type: boolean
+      run_homebrew:
+        description: 'Run update-homebrew-tap job'
+        required: false
+        default: true
+        type: boolean
+      tag_name:
+        description: 'Tag name (required for manual runs, e.g., v0.2.3)'
+        required: false
+        type: string
 
 env:
   APP_NAME: "VTS"
@@ -14,19 +56,18 @@ permissions:
 jobs:
   build:
     runs-on: macos-15
+    if: github.event_name == 'push' || inputs.run_build == true
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Fetch all history and tags
       
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
         xcode-version: '16.2'
     
-    - name: Setup Node.js
+    - name: Setup Node.js (for sindresorhus/create-dmg)
       uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -51,7 +92,17 @@ jobs:
     - name: Extract version info
       id: get_version
       run: |
-        VERSION=${GITHUB_REF#refs/tags/}
+        if [ "${{ github.event_name }}" = "push" ]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        else
+          VERSION=${{ inputs.tag_name }}
+        fi
+        
+        if [ -z "$VERSION" ]; then
+          echo "❌ No version specified for manual run"
+          exit 1
+        fi
+        
         VERSION_NUMBER=${VERSION#v}  # Remove 'v' prefix
         
         # Get the previous tag for comparison
@@ -65,6 +116,95 @@ jobs:
         echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
         echo "Building version: $VERSION_NUMBER"
         echo "Previous tag: $PREVIOUS_TAG"
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: |
+          ${{ env.APP_NAME }}-${{ steps.get_version.outputs.version_number }}-Universal.dmg
+          checksums.txt
+        retention-days: 1
+        if-no-files-found: error
+
+  sparkle-and-release:
+    needs: build
+    runs-on: macos-15
+    if: (github.event_name == 'push' || inputs.run_sparkle == true) && (success() || github.event_name == 'workflow_dispatch')
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history and tags
+
+    - name: Setup Node.js for `generate-appcast.js`
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Extract version info
+      id: get_version
+      run: |
+        if [ "${{ github.event_name }}" = "push" ]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        else
+          VERSION=${{ inputs.tag_name }}
+        fi
+        
+        if [ -z "$VERSION" ]; then
+          echo "❌ No version specified for manual run"
+          exit 1
+        fi
+        
+        VERSION_NUMBER=${VERSION#v}  # Remove 'v' prefix
+        
+        # Get the previous tag for comparison
+        PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -v "^${VERSION}$" | head -n1)
+        if [ -z "$PREVIOUS_TAG" ]; then
+          PREVIOUS_TAG="v0.2.2"  # Fallback for first release
+        fi
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+        echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION_NUMBER"
+        echo "Previous tag: $PREVIOUS_TAG"
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      if: github.event_name == 'push' || inputs.run_build == true
+      with:
+        name: build-artifacts
+        path: .
+
+    - name: Download artifacts from existing release (for manual retry)
+      if: github.event_name == 'workflow_dispatch' && inputs.run_build == false
+      env:
+        VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
+        APP_NAME: ${{ env.APP_NAME }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "📥 Downloading artifacts from existing release v${VERSION_NUMBER}..."
+        
+        # Download the DMG from the release
+        if ! gh release download "v${VERSION_NUMBER}" --pattern "${APP_NAME}-${VERSION_NUMBER}-Universal.dmg"; then
+          echo "❌ Failed to download DMG from release v${VERSION_NUMBER}"
+          echo "Available releases:"
+          gh release list --limit 5
+          exit 1
+        fi
+        
+        # Download checksums if they exist
+        if gh release download "v${VERSION_NUMBER}" --pattern "checksums.txt"; then
+          echo "✅ Downloaded checksums.txt"
+        else
+          echo "⚠️  checksums.txt not found in release, generating..."
+          shasum -a 256 "${APP_NAME}-${VERSION_NUMBER}-Universal.dmg" > checksums.txt
+        fi
+        
+        echo "✅ Downloaded artifacts for ${VERSION_NUMBER}:"
+        ls -la *.dmg *.txt || true
 
     - name: Download Sparkle Tools and Sign DMG
       env:
@@ -80,7 +220,7 @@ jobs:
         cd "$TEMP_DIR"
         
         # Download Sparkle tools
-        SPARKLE_VERSION="2.6.4"
+        SPARKLE_VERSION="2.8.0"
         SPARKLE_URL="https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
         echo "📥 Downloading Sparkle tools from: $SPARKLE_URL"
         
@@ -253,3 +393,164 @@ jobs:
         echo "🎉 Release ${{ steps.get_version.outputs.version }} has been published!"
         echo "📡 Appcast will be available as a release asset."
         echo "🔗 Appcast URL: https://github.com/j05u3/VTS/releases/latest/download/appcast.xml"
+
+  update-homebrew-tap:
+    needs: sparkle-and-release
+    runs-on: macos-15
+    if: (github.event_name == 'push' || inputs.run_homebrew == true) && (success() || github.event_name == 'workflow_dispatch')
+    
+    env:
+      CASK_TOKEN: "voice-typing-studio"
+    
+    steps:
+    - name: Checkout main repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Extract version info
+      id: get_version
+      run: |
+        if [ "${{ github.event_name }}" = "push" ]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        else
+          VERSION=${{ inputs.tag_name }}
+        fi
+        
+        if [ -z "$VERSION" ]; then
+          echo "❌ No version specified for manual run"
+          exit 1
+        fi
+        
+        VERSION_NUMBER=${VERSION#v}  # Remove 'v' prefix
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION_NUMBER"
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      if: github.event_name == 'push' || inputs.run_build == true
+      with:
+        name: build-artifacts
+        path: .
+
+    - name: Download artifacts from existing release (for manual retry)
+      if: github.event_name == 'workflow_dispatch' && inputs.run_build == false
+      env:
+        VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
+        APP_NAME: ${{ env.APP_NAME }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "📥 Downloading checksums from existing release v${VERSION_NUMBER}..."
+        
+        # Download checksums from the release
+        if ! gh release download "v${VERSION_NUMBER}" --pattern "checksums.txt"; then
+          echo "❌ Failed to download checksums.txt from release v${VERSION_NUMBER}"
+          echo "Available releases:"
+          gh release list --limit 5
+          exit 1
+        fi
+        
+        echo "✅ Downloaded checksums for ${VERSION_NUMBER}:"
+        cat checksums.txt
+
+    - name: Extract SHA256 checksum
+      id: get_checksum
+      run: |
+        # Extract SHA256 from checksums.txt (first line, first field)
+        SHA256=$(head -n1 checksums.txt | cut -d' ' -f1)
+        echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+        echo "SHA256 checksum: $SHA256"
+
+    - name: Checkout homebrew-tap repository
+      uses: actions/checkout@v4
+      with:
+        repository: j05u3/homebrew-tap
+        token: ${{ secrets.FINE_GRAINED_VTS_HOMEBREW_TAP_PAT }}
+        path: homebrew-tap
+        
+    - name: Create or update cask
+      env:
+        VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
+        VERSION: ${{ steps.get_version.outputs.version }}
+        SHA256: ${{ steps.get_checksum.outputs.sha256 }}
+        APP_NAME: ${{ env.APP_NAME }}
+        BUNDLE_ID: ${{ env.BUNDLE_ID }}
+        CASK_TOKEN: ${{ env.CASK_TOKEN }}
+      run: |
+        echo "🍺 Creating/updating Homebrew cask for ${APP_NAME}..."
+        
+        # Ensure Casks directory exists
+        mkdir -p homebrew-tap/Casks
+        
+        # Create the cask file
+        cat > homebrew-tap/Casks/${CASK_TOKEN}.rb << EOF
+        cask "${CASK_TOKEN}" do
+          version "${VERSION_NUMBER}"
+          sha256 "${SHA256}"
+
+          url "https://github.com/j05u3/VTS/releases/download/${VERSION}/${APP_NAME}-#{version}-Universal.dmg"
+          name "VTS"
+          name "Voice Typing Studio"
+          desc "Open-source macOS dictation replacement with AI-powered transcription"
+          homepage "https://github.com/j05u3/VTS"
+
+          livecheck do
+            url "https://github.com/j05u3/VTS/releases/latest/download/appcast.xml"
+            strategy :sparkle
+          end
+
+          auto_updates true
+
+          app "VTSApp.app"
+
+          zap trash: [
+            "~/Library/Preferences/${BUNDLE_ID}.plist",
+            "~/Library/Caches/${BUNDLE_ID}",
+            "~/Library/Application Support/VTS",
+            "~/Library/Saved Application State/${BUNDLE_ID}.savedState",
+          ]
+        end
+        EOF
+        
+        echo "✅ Cask file created successfully"
+        echo "📄 Cask contents:"
+        cat homebrew-tap/Casks/${CASK_TOKEN}.rb
+
+    - name: Commit and push cask update
+      env:
+        VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
+        APP_NAME: ${{ env.APP_NAME }}
+        CASK_TOKEN: ${{ env.CASK_TOKEN }}
+      run: |
+        cd homebrew-tap
+        
+        # Configure git
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        
+        # Add and commit changes
+        git add Casks/${CASK_TOKEN}.rb
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "ℹ️  No changes to commit (cask already up to date)"
+        else
+          git commit -m "Update ${APP_NAME} to ${VERSION_NUMBER}
+
+        - Updated version to ${VERSION_NUMBER}
+        - Updated SHA256 checksum
+        - Release URL: https://github.com/j05u3/VTS/releases/tag/v${VERSION_NUMBER}"
+          
+          # Push changes
+          git push origin main
+          echo "🚀 Successfully pushed cask update to homebrew-tap repository"
+        fi
+
+    - name: Homebrew tap success logs
+      if: success()
+      env:
+        CASK_TOKEN: ${{ env.CASK_TOKEN }}
+      run: |
+        echo "🍺 Homebrew tap updated successfully!"
+        echo "📦 Users can now install VTS with: brew install j05u3/tap/${CASK_TOKEN}"
