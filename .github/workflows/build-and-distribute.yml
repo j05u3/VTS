@@ -18,15 +18,13 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Fetch all history and tags
       
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
         xcode-version: '16.2'
     
-    - name: Setup Node.js
+    - name: Setup Node.js (for sindresorhus/create-dmg)
       uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -65,6 +63,55 @@ jobs:
         echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
         echo "Building version: $VERSION_NUMBER"
         echo "Previous tag: $PREVIOUS_TAG"
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: |
+          ${{ env.APP_NAME }}-${{ steps.get_version.outputs.version_number }}-Universal.dmg
+          checksums.txt
+        retention-days: 1
+        if-no-files-found: error
+
+  sparkle-and-release:
+    needs: build
+    runs-on: macos-15
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history and tags
+
+    - name: Setup Node.js for `generate-appcast.js`
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Extract version info
+      id: get_version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        VERSION_NUMBER=${VERSION#v}  # Remove 'v' prefix
+        
+        # Get the previous tag for comparison
+        PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -v "^${VERSION}$" | head -n1)
+        if [ -z "$PREVIOUS_TAG" ]; then
+          PREVIOUS_TAG="v0.2.2"  # Fallback for first release
+        fi
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+        echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION_NUMBER"
+        echo "Previous tag: $PREVIOUS_TAG"
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+        path: .
 
     - name: Download Sparkle Tools and Sign DMG
       env:
