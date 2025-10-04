@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "1A8E3D252C8F4E1B00123456"
-               BuildableName = "VTSApp.app"
+               BuildableName = "VTS.app"
                BlueprintName = "VTSApp"
                ReferencedContainer = "container:VTSApp.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "1A8E3D252C8F4E1B00123456"
-            BuildableName = "VTSApp.app"
+            BuildableName = "VTS.app"
             BlueprintName = "VTSApp"
             ReferencedContainer = "container:VTSApp.xcodeproj">
          </BuildableReference>
@@ -68,7 +68,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "1A8E3D252C8F4E1B00123456"
-            BuildableName = "VTSApp.app"
+            BuildableName = "VTS.app"
             BlueprintName = "VTSApp"
             ReferencedContainer = "container:VTSApp.xcodeproj">
          </BuildableReference>

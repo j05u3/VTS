@@ -502,7 +502,7 @@ jobs:
 
           auto_updates true
 
-          app "VTSApp.app"
+          app "VTS.app"
 
           zap trash: [
             "~/Library/Preferences/${BUNDLE_ID}.plist",
