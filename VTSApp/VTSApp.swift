@@ -196,8 +196,14 @@ class AppState: ObservableObject {
     private let useRealtimeKey = "useRealtime"
     
     // Configuration state - now using APIKeyManager
+    public static let maxSystemPromptLength = 1024
+    
     @Published var systemPrompt = "" {
         didSet {
+            // Enforce character limit
+            if systemPrompt.count > Self.maxSystemPromptLength {
+                systemPrompt = String(systemPrompt.prefix(Self.maxSystemPromptLength))
+            }
             saveSystemPrompt()
         }
     }

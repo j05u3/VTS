@@ -109,9 +109,9 @@ struct PreferencesView: View {
                                     Text("Custom Instructions:")
                                         .frame(width: 240, alignment: .leading)
                                     Spacer()
-                                    Text("\(appState.systemPrompt.count) characters")
+                                    Text("\(appState.systemPrompt.count)/\(AppState.maxSystemPromptLength) characters")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(characterCountColor(for: appState.systemPrompt.count))
                                 }
                                 
                                 ZStack(alignment: .topLeading) {
@@ -847,6 +847,19 @@ struct PreferencesView: View {
             print("Failed to delete API key: \(error)")
         }
     }
+    
+    private func characterCountColor(for count: Int) -> Color {
+        let maxLength = AppState.maxSystemPromptLength
+        let warningThreshold = Int(Double(maxLength) * 0.8) // 80% of max length
+        
+        if count >= maxLength {
+            return .red
+        } else if count >= warningThreshold {
+            return .orange
+        } else {
+            return .secondary
+        }
+    }
 }
 
 // MARK: - Keyword Management View
@@ -941,8 +954,6 @@ struct KeywordManagementView: View {
         keywords.remove(at: index)
     }
 }
-
-
 
 #Preview {
     PreferencesView(apiKeyManager: APIKeyManager())
