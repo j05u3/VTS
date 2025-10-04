@@ -1,8 +1,50 @@
+# Build and Release macOS App
+#
+# This workflow supports both automatic and manual triggers:
+#
+# Automatic (tag push):
+#   - Triggered by pushing tags starting with 'v' (e.g., v0.2.3)
+#   - Runs all jobs: build → sparkle-and-release → update-homebrew-tap
+#
+# Manual (workflow_dispatch):
+#   - Allows selective retry of individual jobs
+#   - Requires tag_name input for manual runs
+#   - Job selection options:
+#     * run_build: Re-build from source (default: false)
+#     * run_sparkle: Run Sparkle signing and release update (default: true)
+#     * run_homebrew: Update Homebrew tap (default: true)
+#
+# Common retry scenarios:
+#   1. Retry Sparkle only: run_build=false, run_sparkle=true, run_homebrew=false
+#   2. Retry Homebrew only: run_build=false, run_sparkle=false, run_homebrew=true
+#   3. Retry both post-build: run_build=false, run_sparkle=true, run_homebrew=true
+
 name: Build and Release macOS App
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      run_build:
+        description: 'Run build job'
+        required: false
+        default: false
+        type: boolean
+      run_sparkle:
+        description: 'Run sparkle-and-release job'
+        required: false
+        default: true
+        type: boolean
+      run_homebrew:
+        description: 'Run update-homebrew-tap job'
+        required: false
+        default: true
+        type: boolean
+      tag_name:
+        description: 'Tag name (required for manual runs, e.g., v0.2.3)'
+        required: false
+        type: string
 
 env:
   APP_NAME: "VTS"
@@ -14,6 +56,7 @@ permissions:
 jobs:
   build:
     runs-on: macos-15
+    if: github.event_name == 'push' || inputs.run_build == true
     
     steps:
     - name: Checkout repository
@@ -49,7 +92,17 @@ jobs:
     - name: Extract version info
       id: get_version
       run: |
-        VERSION=${GITHUB_REF#refs/tags/}
+        if [ "${{ github.event_name }}" = "push" ]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        else
+          VERSION=${{ inputs.tag_name }}
+        fi
+        
+        if [ -z "$VERSION" ]; then
+          echo "❌ No version specified for manual run"
+          exit 1
+        fi
+        
         VERSION_NUMBER=${VERSION#v}  # Remove 'v' prefix
         
         # Get the previous tag for comparison
@@ -77,6 +130,7 @@ jobs:
   sparkle-and-release:
     needs: build
     runs-on: macos-15
+    if: (github.event_name == 'push' || inputs.run_sparkle == true) && (success() || github.event_name == 'workflow_dispatch')
     
     steps:
     - name: Checkout repository
@@ -92,7 +146,17 @@ jobs:
     - name: Extract version info
       id: get_version
       run: |
-        VERSION=${GITHUB_REF#refs/tags/}
+        if [ "${{ github.event_name }}" = "push" ]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        else
+          VERSION=${{ inputs.tag_name }}
+        fi
+        
+        if [ -z "$VERSION" ]; then
+          echo "❌ No version specified for manual run"
+          exit 1
+        fi
+        
         VERSION_NUMBER=${VERSION#v}  # Remove 'v' prefix
         
         # Get the previous tag for comparison
@@ -109,9 +173,38 @@ jobs:
 
     - name: Download build artifacts
       uses: actions/download-artifact@v4
+      if: github.event_name == 'push' || inputs.run_build == true
       with:
         name: build-artifacts
         path: .
+
+    - name: Download artifacts from existing release (for manual retry)
+      if: github.event_name == 'workflow_dispatch' && inputs.run_build == false
+      env:
+        VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
+        APP_NAME: ${{ env.APP_NAME }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "📥 Downloading artifacts from existing release v${VERSION_NUMBER}..."
+        
+        # Download the DMG from the release
+        if ! gh release download "v${VERSION_NUMBER}" --pattern "${APP_NAME}-${VERSION_NUMBER}-Universal.dmg"; then
+          echo "❌ Failed to download DMG from release v${VERSION_NUMBER}"
+          echo "Available releases:"
+          gh release list --limit 5
+          exit 1
+        fi
+        
+        # Download checksums if they exist
+        if gh release download "v${VERSION_NUMBER}" --pattern "checksums.txt"; then
+          echo "✅ Downloaded checksums.txt"
+        else
+          echo "⚠️  checksums.txt not found in release, generating..."
+          shasum -a 256 "${APP_NAME}-${VERSION_NUMBER}-Universal.dmg" > checksums.txt
+        fi
+        
+        echo "✅ Downloaded artifacts for ${VERSION_NUMBER}:"
+        ls -la *.dmg *.txt || true
 
     - name: Download Sparkle Tools and Sign DMG
       env:
@@ -304,7 +397,7 @@ jobs:
   update-homebrew-tap:
     needs: sparkle-and-release
     runs-on: macos-15
-    if: success()
+    if: (github.event_name == 'push' || inputs.run_homebrew == true) && (success() || github.event_name == 'workflow_dispatch')
     
     env:
       CASK_TOKEN: "voice-typing-studio"
@@ -318,7 +411,17 @@ jobs:
     - name: Extract version info
       id: get_version
       run: |
-        VERSION=${GITHUB_REF#refs/tags/}
+        if [ "${{ github.event_name }}" = "push" ]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        else
+          VERSION=${{ inputs.tag_name }}
+        fi
+        
+        if [ -z "$VERSION" ]; then
+          echo "❌ No version specified for manual run"
+          exit 1
+        fi
+        
         VERSION_NUMBER=${VERSION#v}  # Remove 'v' prefix
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
@@ -326,9 +429,30 @@ jobs:
 
     - name: Download build artifacts
       uses: actions/download-artifact@v4
+      if: github.event_name == 'push' || inputs.run_build == true
       with:
         name: build-artifacts
         path: .
+
+    - name: Download artifacts from existing release (for manual retry)
+      if: github.event_name == 'workflow_dispatch' && inputs.run_build == false
+      env:
+        VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
+        APP_NAME: ${{ env.APP_NAME }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "📥 Downloading checksums from existing release v${VERSION_NUMBER}..."
+        
+        # Download checksums from the release
+        if ! gh release download "v${VERSION_NUMBER}" --pattern "checksums.txt"; then
+          echo "❌ Failed to download checksums.txt from release v${VERSION_NUMBER}"
+          echo "Available releases:"
+          gh release list --limit 5
+          exit 1
+        fi
+        
+        echo "✅ Downloaded checksums for ${VERSION_NUMBER}:"
+        cat checksums.txt
 
     - name: Extract SHA256 checksum
       id: get_checksum
