@@ -324,6 +324,9 @@ public class StreamingTranscriptionService: ObservableObject {
         self.error = error
         isTranscribing = false
         isStreamingActive = false
+        
+        // Show notification for the error
+        notificationManager.showTranscriptionError(error)
     }
     
     // MARK: - Analytics Helper Methods
@@ -399,6 +402,10 @@ public class StreamingTranscriptionService: ObservableObject {
             case .connectionFailed(let message):
                 return STTError.networkError(message)
             case .sessionError(let message):
+                // Check for specific OpenAI prompt length error
+                if message.contains("string too long") && message.contains("prompt") {
+                    return STTError.transcriptionError("System prompt too long: \(message)")
+                }
                 return STTError.transcriptionError(message)
             case .audioStreamError(let message):
                 return STTError.audioProcessingError(message)

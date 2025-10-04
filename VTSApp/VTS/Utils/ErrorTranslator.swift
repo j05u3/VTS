@@ -109,6 +109,13 @@ public struct ErrorTranslator {
                     canRetry: false,
                     needsSettings: true
                 )
+            } else if details.contains("System prompt too long") || (details.contains("string too long") && details.contains("prompt")) {
+                return ErrorTranslation(
+                    message: "System prompt too long",
+                    hint: "Your custom prompt exceeds the 1024 character limit. Please shorten it in Settings",
+                    canRetry: false,
+                    needsSettings: true
+                )
             } else if details.contains("quota") || details.contains("billing") {
                 return ErrorTranslation(
                     message: "Account quota exceeded",
