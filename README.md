@@ -62,13 +62,13 @@ Transform your voice into text instantly with the power of **OpenAI**, **Groq**,
 - [Longer Demo](#-longer-demo)
 - [Screenshots](#-screenshots)
 - [Privacy & Security](#-privacy--security)
-- [Troubleshooting](#-troubleshooting)
-- [Development](#-development)
+- [Troubleshooting](#%EF%B8%8F-troubleshooting)
+- [Development](#%E2%80%8D-development)
   - [Requirements](#development-requirements)
   - [Building from Source](#building-from-source)
   - [Architecture](#architecture)
   - [Contributing](#contributing)
-- [Roadmap](#-roadmap)
+- [Roadmap](#%EF%B8%8F-roadmap)
 - [Feedback](#-feedback)
 - [License](#-license)
 - [Acknowledgements](#-acknowledgements)
@@ -125,9 +125,10 @@ After installing VTS, you'll need an API key from one of these providers:
 
 https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
 
-Onboarding:
+Getting started in 34 seconds:
 
-https://youtu.be/NTQmVCvkZQQ
+[![Getting started in 34 seconds](https://img.youtube.com/vi/NTQmVCvkZQQ/0.jpg)](https://www.youtube.com/watch?v=NTQmVCvkZQQ)
+
 
 ## 📷 Screenshots
 
@@ -228,6 +229,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to VTS d
 - [x] **Modern Release Automation**: Automated releases with release-please and GitHub Actions (✅ Implemented)
 - [x] **Sparkle Auto-Updates**: Automatic app updates with GitHub Releases appcast hosting (✅ Implemented)
 - [x] **Support real-time API**: OpenAI Real-time Transcription API (✅ Implemented)
+- [ ] **Per-app prompt**: Be able to customize the prompts in a per-app basis.
 
 
 ### In a future or maybe pro version, to be decided/ordered by priority, your feedback and contributions are welcome!
