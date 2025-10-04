@@ -5,6 +5,30 @@
   <strong>The open-source macOS dictation replacement you've been waiting for! 🚀</strong>
 </p>
 
+> **🔊 Turn on your sound!** This demo includes audio to showcase the real-time transcription experience.
+
+https://github.com/user-attachments/assets/bc77c14b-863c-418f-8564-175d6300ce2b
+
+<p align="center">
+  <strong>🚀 Sub-second dictation. BYO key. Types where your cursor is.</strong>
+</p>
+
+---
+
+<p align="center">
+  <a href="https://github.com/j05u3/VTS/releases/latest">
+    <img src="https://img.shields.io/badge/📦%20Download%20DMG-Latest%20Release-brightgreen?style=for-the-badge&logo=apple&logoColor=white&labelColor=000000&color=007ACC" alt="Download DMG" width="300">
+  </a>
+</p>
+
+<p align="center">
+  <strong>Or install with Homebrew:</strong>
+</p>
+
+```bash
+brew install j05u3/tap/voice-typing-studio
+```
+
 <p align="center">
   <!-- Social and Community Badges -->
   <a href="https://github.com/j05u3/VTS/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/j05u3/VTS?style=for-the-badge&logo=github&color=gold"></a>
@@ -24,23 +48,19 @@
   <a href="https://developer.apple.com/macos/"><img alt="Platform" src="https://img.shields.io/badge/platform-macOS%2014.0%2B-blue?style=for-the-badge&logo=apple"></a>
 </p>
 
-> **🔊 Turn on your sound!** This demo includes audio to showcase the real-time transcription experience.
-
-https://github.com/user-attachments/assets/bc77c14b-863c-418f-8564-175d6300ce2b
+---
 
 Transform your voice into text instantly with the power of **OpenAI**, **Groq**, and **Deepgram** APIs. Say goodbye to macOS dictation limitations and hello to lightning-fast, accurate transcription with your own custom hotkeys! ⚡️
 
 ## 📋 Table of Contents
 
-- [Demo](#-demo)
 - [Why Choose VTS?](#-why-choose-vts)
-- [Screenshots](#-screenshots)
-- [Getting Started](#-getting-started)
-  - [Installation](#-installation)
-  - [API Key Setup](#api-key-setup)
+- [API Key Setup](#api-key-setup)
 - [Usage Guide](#-usage-guide)
   - [Basic Transcription](#basic-transcription)
   - [Advanced Features](#advanced-features)
+- [Longer Demo](#-longer-demo)
+- [Screenshots](#-screenshots)
 - [Privacy & Security](#-privacy--security)
 - [Troubleshooting](#-troubleshooting)
 - [Development](#-development)
@@ -63,42 +83,7 @@ Transform your voice into text instantly with the power of **OpenAI**, **Groq**,
 - 💬 **Context-Aware**: Custom system prompt boosts accuracy for your specific needs  
 - 🔓 **100% Open Source**: Full transparency, community-driven, modify as you wish
 
-## 📷 Screenshots
-
-<img width="350" alt="image" src="https://github.com/user-attachments/assets/57fdf28d-120e-4bfb-9dfd-5413e7c65127" /> <img width="350" alt="image" src="https://github.com/user-attachments/assets/d165c874-9df4-41af-b49d-f4220896d699" />
- <img width="350" alt="image" src="https://github.com/user-attachments/assets/b7aacf73-842a-4292-9418-d9fb7df13eee" />
-
-## 🎬 Longer Demo
-
-https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
-
-Onboarding:
-
-https://youtu.be/NTQmVCvkZQQ
-
-## 🚀 Getting Started
-
-### 📦 Installation
-
-**Ready to use VTS?** Head over to our [**Releases Page**](https://github.com/j05u3/VTS/releases/latest) to download the latest version.
-
-#### Download
-- **Universal Binary (Intel + Apple Silicon)**: Download the DMG from the releases page
-
-#### Installation Steps
-1. Download the DMG file from the [releases page](https://github.com/j05u3/VTS/releases/latest)
-2. Open the DMG
-3. Drag VTS to Applications folder
-4. Launch from Applications
-
-#### Verification
-All releases are code-signed and notarized by Apple for security.
-
-#### Requirements
-- **macOS 14.0+** (Apple Silicon & Intel supported)
-- **API key** from OpenAI, Groq, or Deepgram (see setup below)
-
-### API Key Setup
+## API Key Setup
 
 After installing VTS, you'll need an API key from one of these providers:
 
@@ -107,6 +92,10 @@ After installing VTS, you'll need an API key from one of these providers:
 - **Deepgram**: [Get your API key here](https://console.deepgram.com/project/keys)
 
 *Only one API key is required - choose the provider you prefer!*
+
+**Requirements:**
+- **macOS 14.0+** (Apple Silicon & Intel supported)
+- **API key** from OpenAI, Groq, or Deepgram
 
 ## 📖 Usage Guide
 
@@ -131,6 +120,19 @@ After installing VTS, you'll need an API key from one of these providers:
 - Add context-specific prompts to improve transcription accuracy
 - Examples: "Medical terminology", "Technical jargon", "Names: John, Sarah, Mike"
 - Prompts help the AI better understand domain-specific language
+
+## 🎬 Longer Demo
+
+https://github.com/user-attachments/assets/f69c365a-4f1a-42f1-b2de-66d61643fea0
+
+Onboarding:
+
+https://youtu.be/NTQmVCvkZQQ
+
+## 📷 Screenshots
+
+<img width="350" alt="image" src="https://github.com/user-attachments/assets/57fdf28d-120e-4bfb-9dfd-5413e7c65127" /> <img width="350" alt="image" src="https://github.com/user-attachments/assets/d165c874-9df4-41af-b49d-f4220896d699" />
+ <img width="350" alt="image" src="https://github.com/user-attachments/assets/b7aacf73-842a-4292-9418-d9fb7df13eee" />
 
 
 ## 🔒 Privacy & Security
