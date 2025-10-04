@@ -5,6 +5,14 @@ All notable changes to VTS - Voice Typing Studio will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0](https://github.com/j05u3/VTS/compare/v1.0.0...v1.1.0) (2025-10-04)
+
+
+### Features
+
+* add homebrew for easier installation ([#91](https://github.com/j05u3/VTS/issues/91)) ([d3cfbf6](https://github.com/j05u3/VTS/commit/d3cfbf674a18b509b14ecc563f868e83883b109d))
+* change app name from "VTSApp" to "VTS" to be cleaner ([#90](https://github.com/j05u3/VTS/issues/90)) ([989866f](https://github.com/j05u3/VTS/commit/989866f5ef72123b4a64564db304fb4a4cc6f497))
+
 ## [1.0.0](https://github.com/j05u3/VTS/compare/v0.13.0...v1.0.0) (2025-09-11)
 
 ### Features
