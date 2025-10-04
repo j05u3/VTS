@@ -300,3 +300,133 @@ jobs:
         echo "🎉 Release ${{ steps.get_version.outputs.version }} has been published!"
         echo "📡 Appcast will be available as a release asset."
         echo "🔗 Appcast URL: https://github.com/j05u3/VTS/releases/latest/download/appcast.xml"
+
+  update-homebrew-tap:
+    needs: sparkle-and-release
+    runs-on: macos-15
+    if: success()
+    
+    env:
+      CASK_TOKEN: "voice-typing-studio"
+    
+    steps:
+    - name: Checkout main repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Extract version info
+      id: get_version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        VERSION_NUMBER=${VERSION#v}  # Remove 'v' prefix
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION_NUMBER"
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+        path: .
+
+    - name: Extract SHA256 checksum
+      id: get_checksum
+      run: |
+        # Extract SHA256 from checksums.txt (first line, first field)
+        SHA256=$(head -n1 checksums.txt | cut -d' ' -f1)
+        echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+        echo "SHA256 checksum: $SHA256"
+
+    - name: Checkout homebrew-tap repository
+      uses: actions/checkout@v4
+      with:
+        repository: j05u3/homebrew-tap
+        token: ${{ secrets.FINE_GRAINED_VTS_HOMEBREW_TAP_PAT }}
+        path: homebrew-tap
+        
+    - name: Create or update cask
+      env:
+        VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
+        VERSION: ${{ steps.get_version.outputs.version }}
+        SHA256: ${{ steps.get_checksum.outputs.sha256 }}
+        APP_NAME: ${{ env.APP_NAME }}
+        BUNDLE_ID: ${{ env.BUNDLE_ID }}
+        CASK_TOKEN: ${{ env.CASK_TOKEN }}
+      run: |
+        echo "🍺 Creating/updating Homebrew cask for ${APP_NAME}..."
+        
+        # Ensure Casks directory exists
+        mkdir -p homebrew-tap/Casks
+        
+        # Create the cask file
+        cat > homebrew-tap/Casks/${CASK_TOKEN}.rb << EOF
+        cask "${CASK_TOKEN}" do
+          version "${VERSION_NUMBER}"
+          sha256 "${SHA256}"
+
+          url "https://github.com/j05u3/VTS/releases/download/${VERSION}/${APP_NAME}-#{version}-Universal.dmg"
+          name "VTS"
+          name "Voice Typing Studio"
+          desc "Open-source macOS dictation replacement with AI-powered transcription"
+          homepage "https://github.com/j05u3/VTS"
+
+          livecheck do
+            url "https://github.com/j05u3/VTS/releases/latest/download/appcast.xml"
+            strategy :sparkle
+          end
+
+          auto_updates true
+
+          app "VTSApp.app"
+
+          zap trash: [
+            "~/Library/Preferences/${BUNDLE_ID}.plist",
+            "~/Library/Caches/${BUNDLE_ID}",
+            "~/Library/Application Support/VTS",
+            "~/Library/Saved Application State/${BUNDLE_ID}.savedState",
+          ]
+        end
+        EOF
+        
+        echo "✅ Cask file created successfully"
+        echo "📄 Cask contents:"
+        cat homebrew-tap/Casks/${CASK_TOKEN}.rb
+
+    - name: Commit and push cask update
+      env:
+        VERSION_NUMBER: ${{ steps.get_version.outputs.version_number }}
+        APP_NAME: ${{ env.APP_NAME }}
+        CASK_TOKEN: ${{ env.CASK_TOKEN }}
+      run: |
+        cd homebrew-tap
+        
+        # Configure git
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        
+        # Add and commit changes
+        git add Casks/${CASK_TOKEN}.rb
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "ℹ️  No changes to commit (cask already up to date)"
+        else
+          git commit -m "Update ${APP_NAME} to ${VERSION_NUMBER}
+
+        - Updated version to ${VERSION_NUMBER}
+        - Updated SHA256 checksum
+        - Release URL: https://github.com/j05u3/VTS/releases/tag/v${VERSION_NUMBER}"
+          
+          # Push changes
+          git push origin main
+          echo "🚀 Successfully pushed cask update to homebrew-tap repository"
+        fi
+
+    - name: Homebrew tap success logs
+      if: success()
+      env:
+        CASK_TOKEN: ${{ env.CASK_TOKEN }}
+      run: |
+        echo "🍺 Homebrew tap updated successfully!"
+        echo "📦 Users can now install VTS with: brew install j05u3/tap/${CASK_TOKEN}"
