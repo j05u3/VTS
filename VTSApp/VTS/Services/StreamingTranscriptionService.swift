@@ -404,7 +404,7 @@ public class StreamingTranscriptionService: ObservableObject {
             case .sessionError(let message):
                 // Check for specific OpenAI prompt length error
                 if message.contains("string too long") && message.contains("prompt") {
-                    return STTError.transcriptionError("System prompt too long: \(message)")
+                    return STTError.transcriptionError("System prompt too long")
                 }
                 return STTError.transcriptionError(message)
             case .audioStreamError(let message):
