@@ -50,7 +50,9 @@ public enum STTProviderType: String, CaseIterable, Codable {
         switch self {
         case .openai:
             return ["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"]
-        case .groq, .deepgram:
+        case .deepgram:
+            return ["nova-3", "nova-2"]
+        case .groq:
             return [] // Future support
         }
     }

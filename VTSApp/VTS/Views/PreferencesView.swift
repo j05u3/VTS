@@ -70,7 +70,30 @@ struct PreferencesView: View {
                             }
                             .pickerStyle(.menu)
                         }
-                        
+
+                        // Real-time Streaming Toggle
+                        HStack {
+                            Text("Real-time Mode:")
+                                .frame(width: 120, alignment: .leading)
+                            Toggle("", isOn: Binding(
+                                get: { appState.useRealtime },
+                                set: { appState.useRealtime = $0 }
+                            ))
+                            .toggleStyle(.switch)
+                            .disabled(!appState.selectedProvider.supportsRealtimeStreaming)
+                            Spacer()
+                        }
+
+                        if appState.selectedProvider.supportsRealtimeStreaming {
+                            Text("Text appears live at your cursor as you speak. Supports auto-corrections as more context arrives.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        } else {
+                            Text("Real-time streaming is not yet available for \(appState.selectedProvider.rawValue).")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                        }
+
                         // Custom Instructions / Keywords based on provider
                         if appState.selectedProvider == .deepgram {
                             // Check if Nova3 is selected

@@ -1,4 +1,7 @@
 import Foundation
+import os
+
+private let logger = Logger(subsystem: "com.voicetypestudio.app", category: "RealtimeSession")
 
 // Local error types for RealtimeSession
 public enum SessionError: Error, LocalizedError {
@@ -17,7 +20,7 @@ public enum SessionError: Error, LocalizedError {
 
 public class RealtimeSession {
     public let sessionId: String
-    public let webSocket: URLSessionWebSocketTask
+    public var webSocket: URLSessionWebSocketTask  // var to allow reassignment during reconnection
     public let partialResultsStream: AsyncThrowingStream<TranscriptionChunk, Error>
     private let partialResultsContinuation: AsyncThrowingStream<TranscriptionChunk, Error>.Continuation
     
@@ -63,23 +66,47 @@ public class RealtimeSession {
     }
     
     public func waitForSessionConfirmation(timeout: TimeInterval = 10.0) async throws {
+        logger.debug("waitForSessionConfirmation() called, isSessionConfirmed=\(self.isSessionConfirmed)")
+
+        // If already confirmed (race condition - metadata arrived before we started waiting), return immediately
+        if isSessionConfirmed {
+            logger.debug("Session already confirmed, returning immediately")
+            return
+        }
+
         do {
             try await withTimeout(timeout) {
                 try await withCheckedThrowingContinuation { continuation in
+                    logger.debug("Setting up continuation, isSessionConfirmed=\(self.isSessionConfirmed)")
+                    // Double-check after setting continuation (another race condition guard)
+                    if self.isSessionConfirmed {
+                        logger.debug("Already confirmed inside continuation setup, resuming")
+                        continuation.resume()
+                        return
+                    }
                     self.sessionConfirmationContinuation = continuation
+                    logger.debug("Continuation set, waiting for confirmSession()")
                 }
             }
+            logger.debug("Confirmation received successfully")
         } catch is TimeoutError {
+            logger.warning("Timeout waiting for confirmation")
             throw SessionError.confirmationTimeout(timeout)
         }
     }
     
     public func confirmSession() {
+        logger.debug("confirmSession() called, continuation is \(self.sessionConfirmationContinuation == nil ? "nil" : "set")")
         isSessionConfirmed = true
         sessionConfirmedTime = Date()
-        sessionConfirmationContinuation?.resume()
-        sessionConfirmationContinuation = nil
-        
+        if let continuation = sessionConfirmationContinuation {
+            logger.debug("Resuming continuation")
+            continuation.resume()
+            sessionConfirmationContinuation = nil
+        } else {
+            logger.debug("No continuation to resume (will be caught by isSessionConfirmed check)")
+        }
+
         // Notify callback that session is confirmed
         onSessionConfirmed?()
     }

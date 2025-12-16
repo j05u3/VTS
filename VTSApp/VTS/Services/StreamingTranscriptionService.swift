@@ -38,6 +38,9 @@ public class StreamingTranscriptionService: ObservableObject {
     private var transcriptionTask: Task<Void, Never>?
     private let textInjector = TextInjector()
     private var cancellables = Set<AnyCancellable>()
+
+    // Overlay window for displaying live transcription
+    public let overlayWindow = TranscriptionOverlayWindow()
     
     // Session management
     private var currentSession: RealtimeSession?
@@ -52,19 +55,24 @@ public class StreamingTranscriptionService: ObservableObject {
     
     // Analytics completion callback
     public var onTranscriptionCompleted: ((String, String, Bool, Int, Int, Bool) -> Void)?
-    
+
     // Timing properties for analytics
     private var processStartTime: Date?
     private var audioRecordingStartTime: Date?
     private var audioRecordingEndTime: Date?
     private var processingStartTime: Date?
     private var processingEndTime: Date?
-    
+
     public init() {
         partialResults = PartialResultsManager()
         setupTextInjectorObservation()
     }
-    
+
+    /// Update the hotkey string displayed in the overlay
+    public func setHotkeyString(_ hotkey: String) {
+        overlayWindow.hotkeyString = hotkey
+    }
+
     private func setupTextInjectorObservation() {
         // Bridge TextInjector changes to this ObservableObject
         textInjector.objectWillChange
@@ -107,11 +115,14 @@ public class StreamingTranscriptionService: ObservableObject {
         isStreamingActive = true
         error = nil
         currentText = ""
-        
+
+        // Show the overlay window for live transcription display
+        overlayWindow.show()
+
         // Store context for potential retry
         currentConfig = config
         currentProviderType = provider.providerType
-        
+
         print("\(LogMessages.startingTranscription) \(provider.providerType)")
         
         transcriptionTask = Task { @MainActor in
@@ -159,7 +170,10 @@ public class StreamingTranscriptionService: ObservableObject {
         transcriptionTask = nil
         isTranscribing = false
         isStreamingActive = false
-        
+
+        // Hide overlay if visible
+        overlayWindow.hide()
+
         // Cleanup current session if active
         if let session = currentSession {
             Task {
@@ -182,7 +196,7 @@ public class StreamingTranscriptionService: ObservableObject {
         let session = try await provider.startRealtimeSession(config: config)
         currentSession = session
         
-        // Step 2: Set up session confirmation callback BEFORE starting message listening
+        // Step 2: Set up session confirmation callback for providers that confirm asynchronously
         session.onSessionConfirmed = { [weak self] in
             Task {
                 guard let self = self else { return }
@@ -190,7 +204,15 @@ public class StreamingTranscriptionService: ObservableObject {
                 print(LogMessages.bufferedChunksReleased)
             }
         }
-        
+
+        // Step 2b: For providers like Deepgram that confirm synchronously during startRealtimeSession,
+        // the callback wasn't set yet when confirmSession() ran, so check and confirm now
+        if session.isSessionConfirmed {
+            print("🎙️ StreamingTranscriptionService: Session already confirmed, notifying audio queue")
+            await audioStreamingQueue.confirmSession()
+            print(LogMessages.bufferedChunksReleased)
+        }
+
         // Step 3: Now start message listening with callback in place
         if let openAIProvider = provider as? OpenAIStreamingProvider {
             try await openAIProvider.startListening(for: session)
@@ -264,67 +286,67 @@ public class StreamingTranscriptionService: ObservableObject {
                 for try await partialChunk in session.partialResultsStream {
                     // Process partial result through the manager
                     partialResults.processPartialResult(partialChunk)
-                    
+
                     if partialChunk.isFinal {
                         print("\(LogMessages.receivedFinalResult) '\(partialChunk.text)'")
-                        
-                        // 🚀 IMMEDIATE TEXT INJECTION: Handle text injection as soon as we get final result
-                        let finalTranscript = partialResults.getFinalTranscription()
-                        if !finalTranscript.isEmpty {
-                            handleSuccessfulTranscription(finalTranscript)
-                            
-                            // Mark timing completion immediately 
-                            endTranscriptionTiming()
-                            
-                            // 🎯 IMMEDIATE UI UPDATE: Update transcription state immediately after text injection
-                            isTranscribing = false
-                            isStreamingActive = false
-                            
-                            // 🔄 BACKGROUND CLEANUP: Start final cleanup and analytics in background
-                            Task.detached { [weak self] in
-                                await self?.performBackgroundCleanup(provider: self?.provider, config: self?.currentConfig)
-                            }
-                        }
                     } else {
                         print("\(LogMessages.receivedPartialResult) '\(partialChunk.text)'")
                     }
-                    
-                    // Update current text with complete transcription for display
-                    currentText = partialResults.getCompleteTranscription()
+
+                    // Update overlay with current transcription (no direct injection)
+                    let completeText = partialResults.getCompleteTranscription()
+                    currentText = completeText
+                    overlayWindow.updateText(completeText)
+                }
+
+                // Stream ended - keep overlay visible until user presses Enter
+                print("🎙️ StreamingTranscriptionService: Partial results stream ended, waiting for user to finalize...")
+                endTranscriptionTiming()
+                isTranscribing = false
+                isStreamingActive = false
+
+                // 🔄 BACKGROUND CLEANUP
+                Task.detached { [weak self] in
+                    await self?.performBackgroundCleanup(provider: self?.provider, config: self?.currentConfig)
                 }
             } catch {
                 print("StreamingTranscriptionService: Partial results processor ended: \(error)")
             }
         }
     }
-    
-    private func handleSuccessfulTranscription(_ finalText: String) {
-        // Get the final transcript from partial results manager
-        let processedFinalText = partialResults.getFinalTranscription()
-        let textToInject = processedFinalText.isEmpty ? finalText.trimmingCharacters(in: .whitespaces) : processedFinalText
-        
-        // Update UI
-        currentText = textToInject
-        
-        // Store as last transcription if we have content
-        if !textToInject.isEmpty {
-            lastTranscription = textToInject
-            
+
+    /// Called when user presses hotkey to finalize transcription
+    /// Hides overlay and injects text at cursor position
+    public func finalizeTranscription() {
+        let finalText = overlayWindow.finalizeAndHide()
+
+        if !finalText.isEmpty {
+            lastTranscription = finalText
             print(LogMessages.injectingText)
-            
-            textInjector.injectText(textToInject)
-            
-            print("\(LogMessages.textInjectedSuccess) '\(textToInject)'")
+            textInjector.injectText(finalText)
+            print("\(LogMessages.textInjectedSuccess) '\(finalText)'")
         } else {
             print(LogMessages.noTextToInject)
         }
+    }
+
+    /// Cancels transcription without injecting text
+    public func cancelTranscription() {
+        // stopTranscription handles overlay hiding
+        stopTranscription()
     }
     
     private func handleError(_ error: STTError) {
         self.error = error
         isTranscribing = false
         isStreamingActive = false
-        
+
+        // Hide overlay window on error
+        overlayWindow.hide()
+
+        // Stop terminal dictation monitoring
+        textInjector.stopDictationSession()
+
         // Show notification for the error
         notificationManager.showTranscriptionError(error)
     }
