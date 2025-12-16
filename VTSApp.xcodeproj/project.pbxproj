@@ -26,6 +26,8 @@
 		CA28366D2E69562A00CA59D7 /* BaseStreamingSTTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2836652E69562A00CA59D7 /* BaseStreamingSTTProvider.swift */; };
 		CA28366E2E69562A00CA59D7 /* DeepgramRestProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2836662E69562A00CA59D7 /* DeepgramRestProvider.swift */; };
 		CA28366F2E69562A00CA59D7 /* OpenAIRestProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2836682E69562A00CA59D7 /* OpenAIRestProvider.swift */; };
+		CA28367B2E69562A00CA59D7 /* DeepgramStreamingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA28367A2E69562A00CA59D7 /* DeepgramStreamingProvider.swift */; };
+		CA28367D2E69562A00CA59D7 /* DeepgramStreamingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA28367C2E69562A00CA59D7 /* DeepgramStreamingModels.swift */; };
 		CA2836722E69563D00CA59D7 /* RestSTTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2836702E69563D00CA59D7 /* RestSTTProvider.swift */; };
 		CA2836732E69563D00CA59D7 /* StreamingSTTProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2836712E69563D00CA59D7 /* StreamingSTTProvider.swift */; };
 		CA2836762E69564800CA59D7 /* StreamingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2836752E69564800CA59D7 /* StreamingModels.swift */; };
@@ -58,6 +60,7 @@
 		CAA9631C2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA9631B2E5C40DE00FA11A0 /* OnboardingAnalyticsStep.swift */; };
 		CAB662EB2E6EA3E4003C25AB /* AudioStreamingQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB662EA2E6EA3E4003C25AB /* AudioStreamingQueue.swift */; };
 		CADFFC2B2E3DFEFC00C29988 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADFFC2A2E3DFEFC00C29988 /* LaunchAtLoginManager.swift */; };
+		CA0EA305151204142E6FB001 /* TranscriptionOverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0EA304151204142E6FB001 /* TranscriptionOverlayWindow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,6 +82,8 @@
 		CA2836652E69562A00CA59D7 /* BaseStreamingSTTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseStreamingSTTProvider.swift; sourceTree = "<group>"; };
 		CA2836662E69562A00CA59D7 /* DeepgramRestProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepgramRestProvider.swift; sourceTree = "<group>"; };
 		CA2836672E69562A00CA59D7 /* GroqRestProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroqRestProvider.swift; sourceTree = "<group>"; };
+		CA28367A2E69562A00CA59D7 /* DeepgramStreamingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepgramStreamingProvider.swift; sourceTree = "<group>"; };
+		CA28367C2E69562A00CA59D7 /* DeepgramStreamingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepgramStreamingModels.swift; sourceTree = "<group>"; };
 		CA2836682E69562A00CA59D7 /* OpenAIRestProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIRestProvider.swift; sourceTree = "<group>"; };
 		CA2836692E69562A00CA59D7 /* OpenAIStreamingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIStreamingProvider.swift; sourceTree = "<group>"; };
 		CA2836702E69563D00CA59D7 /* RestSTTProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestSTTProvider.swift; sourceTree = "<group>"; };
@@ -103,6 +108,7 @@
 		CA98AAD32E24E862004C23D7 /* TextInjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInjector.swift; sourceTree = "<group>"; };
 		CA98AAD82E261723004C23D7 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		CA98AADA2E262796004C23D7 /* TextInjectionTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextInjectionTestView.swift; sourceTree = "<group>"; };
+		CA0EA304151204142E6FB001 /* TranscriptionOverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionOverlayWindow.swift; sourceTree = "<group>"; };
 		CA98AADC2E264E60004C23D7 /* SimpleHotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleHotkeyManager.swift; sourceTree = "<group>"; };
 		CA98AADE2E265823004C23D7 /* AudioLevelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioLevelView.swift; sourceTree = "<group>"; };
 		CAA963152E5C330B00FA11A0 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
@@ -215,6 +221,7 @@
 				CA2836642E69562A00CA59D7 /* BaseRestSTTProvider.swift */,
 				CA2836652E69562A00CA59D7 /* BaseStreamingSTTProvider.swift */,
 				CA2836662E69562A00CA59D7 /* DeepgramRestProvider.swift */,
+				CA28367A2E69562A00CA59D7 /* DeepgramStreamingProvider.swift */,
 				CA2836672E69562A00CA59D7 /* GroqRestProvider.swift */,
 				CA2836682E69562A00CA59D7 /* OpenAIRestProvider.swift */,
 				CA2836692E69562A00CA59D7 /* OpenAIStreamingProvider.swift */,
@@ -234,6 +241,7 @@
 		1A8E3D531C8F4E1C00123470 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				CA28367C2E69562A00CA59D7 /* DeepgramStreamingModels.swift */,
 				CA2836742E69564800CA59D7 /* RealtimeSession.swift */,
 				CA2836752E69564800CA59D7 /* StreamingModels.swift */,
 				CA4830AC2E2B859C0085EEF7 /* RetryContext.swift */,
@@ -258,6 +266,7 @@
 				CA5A13F82E3C5DA800C01C44 /* AutoScrollingTextEditor.swift */,
 				CA98AAD12E24E862004C23D7 /* PreferencesView.swift */,
 				CA98AADA2E262796004C23D7 /* TextInjectionTestView.swift */,
+				CA0EA304151204142E6FB001 /* TranscriptionOverlayWindow.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -383,6 +392,7 @@
 				CA98AAD62E24E862004C23D7 /* StatusBarController.swift in Sources */,
 				CA98AAD72E24E862004C23D7 /* TextInjector.swift in Sources */,
 				CA98AADB2E262796004C23D7 /* TextInjectionTestView.swift in Sources */,
+				CA0EA305151204142E6FB001 /* TranscriptionOverlayWindow.swift in Sources */,
 				CA98AAD92E261723004C23D7 /* SettingsWindowController.swift in Sources */,
 				CA4830A72E2B85730085EEF7 /* NotificationManager.swift in Sources */,
 				CA28366A2E69562A00CA59D7 /* OpenAIStreamingProvider.swift in Sources */,
@@ -390,6 +400,8 @@
 				CA28366C2E69562A00CA59D7 /* BaseRestSTTProvider.swift in Sources */,
 				CA28366D2E69562A00CA59D7 /* BaseStreamingSTTProvider.swift in Sources */,
 				CA28366E2E69562A00CA59D7 /* DeepgramRestProvider.swift in Sources */,
+				CA28367B2E69562A00CA59D7 /* DeepgramStreamingProvider.swift in Sources */,
+				CA28367D2E69562A00CA59D7 /* DeepgramStreamingModels.swift in Sources */,
 				CA28366F2E69562A00CA59D7 /* OpenAIRestProvider.swift in Sources */,
 				CA5A13F92E3C5DA800C01C44 /* AutoScrollingTextEditor.swift in Sources */,
 				CA2836602E69561900CA59D7 /* StreamingTranscriptionService.swift in Sources */,

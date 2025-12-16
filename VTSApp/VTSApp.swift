@@ -488,6 +488,16 @@ class AppState: ObservableObject {
                 isRealtime: isRealtime
             )
         }
+
+        // Set up hotkey string for overlay display
+        streamingTranscriptionService.setHotkeyString(hotkeyManager.currentHotkeyString)
+
+        // Update hotkey string when it changes
+        hotkeyManager.$currentHotkeyString
+            .sink { [weak self] newHotkey in
+                self?.streamingTranscriptionService.setHotkeyString(newHotkey)
+            }
+            .store(in: &cancellables)
     }
     
     private func updateProvider() {
@@ -501,11 +511,13 @@ class AppState: ObservableObject {
             restTranscriptionService.setProvider(DeepgramRestProvider())
         }
         
-        // Set up streaming providers (only OpenAI supported for now)
+        // Set up streaming providers
         switch selectedProvider {
         case .openai:
             streamingTranscriptionService.setProvider(OpenAIStreamingProvider())
-        case .groq, .deepgram:
+        case .deepgram:
+            streamingTranscriptionService.setProvider(DeepgramStreamingProvider())
+        case .groq:
             // Future support - no streaming providers available yet
             break
         }
@@ -612,10 +624,10 @@ class AppState: ObservableObject {
     private func stopRecording() {
         // Record when audio recording stops
         audioRecordingEndTime = Date()
-        
+
         // Determine which service was being used
         let wasUsingStreaming = useRealtime && selectedProvider.supportsRealtimeStreaming
-        
+
         // Update timing data in the appropriate transcription service
         if wasUsingStreaming {
             streamingTranscriptionService.setTimingData(
@@ -630,12 +642,17 @@ class AppState: ObservableObject {
                 audioEnd: audioRecordingEndTime
             )
         }
-        
+
         captureEngine.stop()
-        // Don't cancel transcription - let it finish processing the collected audio
         isRecording = false
         statusBarController.updateRecordingState(false)
-        print("Voice recording stopped - processing audio for transcription")
+
+        // For streaming mode, finalize transcription (hide overlay and inject text)
+        if wasUsingStreaming {
+            streamingTranscriptionService.finalizeTranscription()
+        }
+
+        print("Voice recording stopped")
     }
     
     func showPreferences() {
@@ -726,7 +743,7 @@ class AppState: ObservableObject {
             break
         }
     }
-    
+
     // MARK: - Configuration Persistence
     
     private func saveSystemPrompt() {
