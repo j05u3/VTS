@@ -2,7 +2,12 @@ import Foundation
 
 public protocol StreamingSTTProvider {
     var providerType: STTProviderType { get }
-    
+
+    /// Whether this provider supports the live overlay with partial results display.
+    /// Providers that return true will show the transcription overlay window.
+    /// Providers that return false will use the original behavior (inject text on completion).
+    var supportsLiveOverlay: Bool { get }
+
     func startRealtimeSession(config: ProviderConfig) async throws -> RealtimeSession
     func streamAudio(_ audioData: Data, to session: RealtimeSession) async throws
     func finishAndGetTranscription(_ session: RealtimeSession) async throws -> String
