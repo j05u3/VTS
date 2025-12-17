@@ -287,7 +287,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     
     /// Cleans up all active sessions
     public func cleanupAllSessions() async {
-        logger.info("Cleaning up \(activeSessions.count) active sessions")
+        logger.info("Cleaning up \(self.activeSessions.count) active sessions")
         for session in activeSessions.values {
             await cleanupSession(session)
         }
