@@ -197,16 +197,22 @@ public class StreamingTranscriptionService: ObservableObject {
                 print(LogMessages.transcriptionCompleted)
                 
             } catch {
+                // Check if this was a cancellation (e.g., during restart) - don't treat as error
+                if Task.isCancelled || error is CancellationError {
+                    print("🎙️ StreamingTranscriptionService: Task was cancelled (likely restart)")
+                    return
+                }
+
                 print("\(LogMessages.transcriptionError) \(error)")
-                
+
                 // Mark when transcription failed
                 endTranscriptionTiming()
-                
+
                 let sttError = convertToSTTError(error)
-                
+
                 // Track analytics
                 trackAnalytics(provider: provider, config: config, success: false)
-                
+
                 handleError(sttError)
             }
             
