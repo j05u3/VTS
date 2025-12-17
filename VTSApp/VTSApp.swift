@@ -194,6 +194,7 @@ class AppState: ObservableObject {
     private let systemPromptKey = "systemPrompt"
     private let deepgramKeywordsKey = "deepgramKeywords"
     private let useRealtimeKey = "useRealtime"
+    private let streamingInactivityTimeoutKey = "streamingInactivityTimeout"
     
     // Configuration state - now using APIKeyManager
     public static let maxSystemPromptLength = 1024
@@ -216,6 +217,13 @@ class AppState: ObservableObject {
         didSet {
             saveUseRealtime()
             updateProvider() // Update provider when mode changes
+        }
+    }
+    /// Inactivity timeout for streaming mode (seconds). 0 = disabled.
+    @Published var streamingInactivityTimeout: TimeInterval = 5.0 {
+        didSet {
+            saveStreamingInactivityTimeout()
+            streamingTranscriptionService.inactivityTimeout = streamingInactivityTimeout
         }
     }
     @Published var isRecording = false
@@ -296,6 +304,7 @@ class AppState: ObservableObject {
         loadSystemPrompt()
         loadDeepgramKeywords()
         loadUseRealtime()
+        loadStreamingInactivityTimeout()
         setupTranscriptionServices()
         setupObservableObjectBindings()
         
@@ -347,10 +356,11 @@ class AppState: ObservableObject {
             }
             .store(in: &cancellables)
         
-        // Sync audio level from capture engine
+        // Sync audio level from capture engine to AppState and streaming overlay
         captureEngine.$audioLevel
             .sink { [weak self] level in
                 self?.audioLevel = level
+                self?.streamingTranscriptionService.updateAudioLevel(level)
             }
             .store(in: &cancellables)
         
@@ -498,6 +508,48 @@ class AppState: ObservableObject {
                 self?.streamingTranscriptionService.setHotkeyString(newHotkey)
             }
             .store(in: &cancellables)
+
+        // Set up restart callback for streaming service (clear button)
+        streamingTranscriptionService.onRestartRequested = { [weak self] in
+            self?.restartStreaming()
+        }
+
+        // Set up auto-stop callback for inactivity timeout
+        streamingTranscriptionService.onAutoStopRequested = { [weak self] in
+            guard let self = self, self.isRecording else { return }
+            print("⏰ AppState: Auto-stopping due to inactivity timeout")
+            self.stopRecording()
+        }
+
+        // Set up finish button callback (same as hotkey - finalize and inject)
+        streamingTranscriptionService.onFinishRequested = { [weak self] in
+            guard let self = self, self.isRecording else { return }
+            print("✅ AppState: Finish button clicked - finalizing")
+            self.stopRecording()
+        }
+
+        // Sync initial timeout value to service
+        streamingTranscriptionService.inactivityTimeout = streamingInactivityTimeout
+    }
+
+    /// Restarts streaming transcription - stops recording and immediately restarts
+    private func restartStreaming() {
+        guard isRecording else { return }
+
+        print("🔄 AppState: Restarting streaming transcription...")
+
+        // Stop current recording (this cancels the current session)
+        captureEngine.stop()
+        streamingTranscriptionService.stopTranscription()
+
+        // Reset state
+        isRecording = false
+
+        // Small delay to ensure cleanup, then restart
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 50_000_000) // 50ms
+            self.startRecording()
+        }
     }
     
     private func updateProvider() {
@@ -771,8 +823,18 @@ class AppState: ObservableObject {
     private func saveUseRealtime() {
         UserDefaults.standard.set(useRealtime, forKey: useRealtimeKey)
     }
-    
+
     private func loadUseRealtime() {
         useRealtime = UserDefaults.standard.bool(forKey: useRealtimeKey)
+    }
+
+    private func saveStreamingInactivityTimeout() {
+        UserDefaults.standard.set(streamingInactivityTimeout, forKey: streamingInactivityTimeoutKey)
+    }
+
+    private func loadStreamingInactivityTimeout() {
+        let saved = UserDefaults.standard.double(forKey: streamingInactivityTimeoutKey)
+        // Use default of 5 if not set (0 means it was never saved)
+        streamingInactivityTimeout = saved > 0 ? saved : 5.0
     }
 }

@@ -22,7 +22,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     public override func startRealtimeSession(config: ProviderConfig) async throws -> RealtimeSession {
         // Validate configuration first
         try validateConfig(config)
-        
+
         // Create WebSocket connection using headers like the working test implementation
         let headers = [
             "Authorization": "Bearer \(config.apiKey)",
@@ -223,7 +223,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         case .error(let error):
             print("OpenAI Streaming: Received error: \(error.message)")
             let streamingError = StreamingError.sessionError("OpenAI API error: \(error.message)")
-            
+
             if !session.isSessionConfirmed {
                 session.failSessionConfirmation(with: streamingError)
             }

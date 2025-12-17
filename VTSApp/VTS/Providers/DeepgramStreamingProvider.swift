@@ -6,6 +6,9 @@ private let logger = Logger(subsystem: "com.voicetypestudio.app", category: "Dee
 public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
     public override var providerType: STTProviderType { .deepgram }
 
+    /// Deepgram supports live overlay with real-time partial results
+    public override var supportsLiveOverlay: Bool { true }
+
     // MARK: - Constants
     private enum Constants {
         static let baseURL = "wss://api.deepgram.com/v1/listen"
@@ -34,6 +37,9 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
 
     public override func startRealtimeSession(config: ProviderConfig) async throws -> RealtimeSession {
         try validateConfig(config)
+
+        // Notify that we're connecting
+        onConnectionStateChanged?(.connecting)
 
         // Build WebSocket URL with query parameters
         let url = try buildWebSocketURL(config: config)
@@ -64,6 +70,9 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
         // Confirm session so audio can start flowing
         session.confirmSession()
         logger.debug("Session confirmed (Deepgram accepts audio immediately)")
+
+        // Notify that we're connected
+        onConnectionStateChanged?(.connected)
 
         logger.info("Session \(sessionId) established")
         return session
@@ -279,6 +288,9 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
         let currentAttempt = (reconnectAttempts[sessionId] ?? 0) + 1
         reconnectAttempts[sessionId] = currentAttempt
 
+        // Notify about reconnection attempt
+        onConnectionStateChanged?(.reconnecting(attempt: currentAttempt, maxAttempts: Constants.maxReconnectAttempts))
+
         // Calculate exponential backoff delay
         let delay = min(
             Constants.initialReconnectDelay * pow(2.0, Double(currentAttempt - 1)),
@@ -305,6 +317,9 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
             reconnectAttempts[sessionId] = 0
             isReconnecting[sessionId] = false
 
+            // Notify that we're connected again
+            onConnectionStateChanged?(.connected)
+
             // Restart message listener for the new connection
             startMessageListener(for: session)
 
@@ -314,6 +329,8 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
 
             if currentAttempt >= Constants.maxReconnectAttempts {
                 logger.error("Max reconnect attempts reached, giving up")
+                // Notify about connection failure
+                onConnectionStateChanged?(.error(message: "Connection lost"))
                 session.finishPartialResultsWithError(StreamingError.connectionFailed("Connection lost after \(currentAttempt) reconnect attempts"))
                 await cleanupSession(session)
             }

@@ -6,11 +6,19 @@ public class BaseStreamingSTTProvider: StreamingSTTProvider {
     public var providerType: STTProviderType {
         fatalError("Must be implemented by subclass")
     }
-    
+
+    /// Default to false - subclasses override if they support live overlay
+    public var supportsLiveOverlay: Bool {
+        return false
+    }
+
     // Connection configuration
     private let connectionTimeout: TimeInterval = 10.0 // seconds
     private let maxReconnectAttempts = 3
     private let baseRetryDelay: TimeInterval = 1.0 // seconds
+
+    /// Callback for connection state changes - set by StreamingTranscriptionService
+    public var onConnectionStateChanged: ((ConnectionState) -> Void)?
     
     // MARK: - StreamingSTTProvider Protocol Requirements (to be implemented by subclasses)
     
