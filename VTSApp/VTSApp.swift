@@ -699,12 +699,22 @@ class AppState: ObservableObject {
         isRecording = false
         statusBarController.updateRecordingState(false)
 
-        // For streaming mode, finalize transcription (hide overlay and inject text)
+        // For overlay providers (Deepgram), finalize and inject text when hotkey is released
+        // For non-overlay providers (OpenAI), let transcription complete naturally via partial results
         if wasUsingStreaming {
-            streamingTranscriptionService.finalizeTranscription()
+            // Check if the provider supports live overlay (currently only Deepgram)
+            let usesOverlay = selectedProvider == .deepgram
+            if usesOverlay {
+                // Overlay providers: finalize and hide overlay, inject accumulated text
+                streamingTranscriptionService.finalizeTranscription()
+                print("Voice recording stopped - finalizing overlay transcription")
+            } else {
+                // Non-overlay providers: let transcription complete naturally (don't cleanup session prematurely)
+                print("Voice recording stopped - processing audio for transcription")
+            }
+        } else {
+            print("Voice recording stopped - processing audio for transcription")
         }
-
-        print("Voice recording stopped")
     }
     
     func showPreferences() {

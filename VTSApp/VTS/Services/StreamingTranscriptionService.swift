@@ -352,25 +352,36 @@ public class StreamingTranscriptionService: ObservableObject {
                     if partialChunk.isFinal {
                         print("\(LogMessages.receivedFinalResult) '\(partialChunk.text)'")
 
-                        // For non-overlay providers, inject text immediately on final result
+                        // For non-overlay providers (like OpenAI), inject text immediately and stop
                         if !usesOverlay {
-                            let finalText = partialResults.getFinalTranscription()
-                            if !finalText.isEmpty {
-                                lastTranscription = finalText
-                                print(LogMessages.injectingText)
-                                textInjector.injectText(finalText)
-                                print("\(LogMessages.textInjectedSuccess) '\(finalText)'")
+                            // 🚀 IMMEDIATE TEXT INJECTION: Handle text injection as soon as we get final result
+                            let finalTranscript = partialResults.getFinalTranscription()
+                            if !finalTranscript.isEmpty {
+                                handleSuccessfulTranscription(finalTranscript)
+
+                                // Mark timing completion immediately
+                                endTranscriptionTiming()
+
+                                // 🎯 IMMEDIATE UI UPDATE: Update transcription state immediately after text injection
+                                isTranscribing = false
+                                isStreamingActive = false
+
+                                // 🔄 BACKGROUND CLEANUP: Start final cleanup and analytics in background
+                                Task.detached { [weak self] in
+                                    await self?.performBackgroundCleanup(provider: self?.provider, config: self?.currentConfig)
+                                }
                             }
                         }
                     } else {
                         print("\(LogMessages.receivedPartialResult) '\(partialChunk.text)'")
                     }
 
-                    // Update overlay with current transcription (only if using overlay)
+                    // Always update currentText for UI display
+                    currentText = partialResults.getCompleteTranscription()
+
+                    // For overlay providers, also update the overlay window
                     if usesOverlay {
-                        let completeText = partialResults.getCompleteTranscription()
-                        currentText = completeText
-                        overlayWindow.updateText(completeText)
+                        overlayWindow.updateText(currentText)
 
                         // Reset inactivity timeout whenever we receive new text
                         if !partialChunk.text.isEmpty {
@@ -409,6 +420,11 @@ public class StreamingTranscriptionService: ObservableObject {
     /// Called when user presses hotkey to finalize transcription
     /// Hides overlay and injects text at cursor position
     public func finalizeTranscription() {
+        // Cancel timeout and reset state
+        cancelInactivityTimeout()
+        isTranscribing = false
+        isStreamingActive = false
+
         let finalText = overlayWindow.finalizeAndHide()
 
         if !finalText.isEmpty {
@@ -419,12 +435,42 @@ public class StreamingTranscriptionService: ObservableObject {
         } else {
             print(LogMessages.noTextToInject)
         }
+
+        // Clean up session in background
+        if let session = currentSession {
+            currentSession = nil
+            Task {
+                await session.cleanup()
+            }
+        }
     }
 
     /// Cancels transcription without injecting text
     public func cancelTranscription() {
         // stopTranscription handles overlay hiding
         stopTranscription()
+    }
+
+    private func handleSuccessfulTranscription(_ finalText: String) {
+        // Get the final transcript from partial results manager
+        let processedFinalText = partialResults.getFinalTranscription()
+        let textToInject = processedFinalText.isEmpty ? finalText.trimmingCharacters(in: .whitespaces) : processedFinalText
+
+        // Update UI
+        currentText = textToInject
+
+        // Store as last transcription if we have content
+        if !textToInject.isEmpty {
+            lastTranscription = textToInject
+
+            print(LogMessages.injectingText)
+
+            textInjector.injectText(textToInject)
+
+            print("\(LogMessages.textInjectedSuccess) '\(textToInject)'")
+        } else {
+            print(LogMessages.noTextToInject)
+        }
     }
 
     // MARK: - Inactivity Timeout

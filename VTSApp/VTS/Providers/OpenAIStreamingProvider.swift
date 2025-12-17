@@ -1,7 +1,10 @@
 import Foundation
+import os
 
 public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     public override var providerType: STTProviderType { .openai }
+
+    private let logger = Logger(subsystem: "com.voicetypestudio.app", category: "OpenAIStreaming")
     
     // MARK: - Constants
     private enum Constants {
@@ -43,9 +46,9 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         
         // Store active session
         activeSessions[sessionId] = session
-        
-        print("OpenAI Streaming: Created session \(sessionId)")
-        
+
+        logger.info("Created session \(sessionId)")
+
         // Configure the session but DON'T start listening yet
         try await configureSession(session: session, config: config, startListening: false)
         
@@ -62,7 +65,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         
         // Log confirmation timing after waiting completes
         if let durationMs = session.sessionConfirmationDurationMs {
-            print("⏱️ OpenAI Streaming: Total session setup time: \(durationMs) ms")
+            logger.debug("Total session setup time: \(durationMs) ms")
         }
     }
     
@@ -75,22 +78,22 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         audioChunkCounters[session.sessionId] = currentCount
         
         // Enhanced logging to track audio streaming calls
-        print("🎵 OpenAI Streaming: streamAudio called with \(audioData.count) bytes for session \(session.sessionId) (chunk #\(currentCount))")
+        logger.debug("streamAudio called with \(audioData.count) bytes for session \(session.sessionId) (chunk #\(currentCount))")
         
         // Log audio data size for debugging (similar to JS implementation)
         let audioSizeKB = Double(audioData.count) / 1024.0
-        print("✅ OpenAI Streaming: Streaming audio buffer: \(String(format: "%.2f", audioSizeKB)) KB")
+        logger.debug("Streaming audio buffer: \(String(format: "%.2f", audioSizeKB)) KB")
         
         // Create audio append message
         let message = OpenAIRealtimeMessage.inputAudioBufferAppend(audioData)
         
-        print("📤 OpenAI Streaming: Sending audio chunk to WebSocket...")
+        logger.debug("Sending audio chunk to WebSocket...")
         try await sendMessage(
             message.toDictionary(),
             through: session.webSocket,
             providerName: "OpenAI Streaming"
         )
-        print("✅ OpenAI Streaming: Audio chunk sent successfully")
+        logger.debug("Audio chunk sent successfully")
     }
     
     public override func finishAndGetTranscription(_ session: RealtimeSession) async throws -> String {
@@ -98,12 +101,12 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         try validateSessionState(session, operation: "finishAndGetTranscription")
         
         let totalChunks = audioChunkCounters[session.sessionId] ?? 0
-        print("🏁 OpenAI Streaming: Finishing session \(session.sessionId)")
-        print("📊 OpenAI Streaming: Session summary - Total audio chunks sent: \(totalChunks)")
+        logger.info("Finishing session \(session.sessionId)")
+        logger.debug("Session summary - Total audio chunks sent: \(totalChunks)")
         
         // Commit the audio buffer to trigger final transcription
         let commitMessage = OpenAIRealtimeMessage.inputAudioBufferCommit
-        print("📤 OpenAI Streaming: Sending commit message to finalize audio buffer...")
+        logger.debug("Sending commit message to finalize audio buffer...")
         try await sendMessage(
             commitMessage.toDictionary(),
             through: session.webSocket,
@@ -134,7 +137,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     // MARK: - Private Methods
     
     private func configureSession(session: RealtimeSession, config: ProviderConfig, startListening: Bool = true) async throws {
-        print("OpenAI Streaming: Configuring session with model: \(config.model)")
+        logger.info("Configuring session with model: \(config.model)")
         
         // Create session configuration that matches the working JS implementation
         let sessionConfig = OpenAIRealtimeSessionConfig(
@@ -175,7 +178,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
                     try await handleIncomingMessage(messageDict, session: session)
                 }
             } catch {
-                print("OpenAI Streaming: Message listener ended with error: \(error)")
+                logger.error("Message listener ended with error: \(error)")
                 
                 // If session is not yet confirmed, fail the confirmation
                 if !session.isSessionConfirmed {
@@ -192,36 +195,35 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
         // Log the raw message for debugging
         if let jsonData = try? JSONSerialization.data(withJSONObject: messageDict),
            let jsonString = String(data: jsonData, encoding: .utf8) {
-            print("OpenAI Streaming: Raw message received: \(jsonString)")
+            logger.debug("Raw message received: \(jsonString)")
         }
         
         let event = OpenAIRealtimeEvent.from(messageDict: messageDict)
         
         switch event {
         case .sessionCreated:
-            print("OpenAI Streaming: Session created")
+            logger.info("Session created")
             
         case .sessionUpdated:
-            print("OpenAI Streaming: Session updated")
+            logger.info("Session updated")
             session.confirmSession()
-            print("✅ OpenAI Streaming: Session confirmed! Ready to receive audio chunks.")
+            logger.info("Session confirmed! Ready to receive audio chunks.")
             
         case .inputAudioBufferCommitted(let details):
-            print("OpenAI Streaming: Audio buffer committed: \(details)")
+            logger.debug("Audio buffer committed: \(details)")
             
         case .conversationItemInputAudioTranscriptionDelta(let delta):
-            print("OpenAI Streaming: Transcription delta: '\(delta.delta)'")
             let chunk = TranscriptionChunk(text: delta.delta, isFinal: false, timestamp: Date())
             session.yieldPartialResult(chunk)
-            
+
         case .conversationItemInputAudioTranscriptionCompleted(let completed):
-            print("OpenAI Streaming: Transcription completed: '\(completed.transcript)'")
+            logger.info("Transcription completed: '\(completed.transcript)'")
             session.finalTranscript = completed.transcript
             let chunk = TranscriptionChunk(text: completed.transcript, isFinal: true, timestamp: Date())
             session.yieldPartialResult(chunk)
             
         case .error(let error):
-            print("OpenAI Streaming: Received error: \(error.message)")
+            logger.error("Received error: \(error.message)")
             let streamingError = StreamingError.sessionError("OpenAI API error: \(error.message)")
 
             if !session.isSessionConfirmed {
@@ -232,15 +234,15 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
             
         case .unknown(let details):
             if let type = details["type"] as? String {
-                print("OpenAI Streaming: Unknown message type '\(type)': \(details)")
+                logger.debug("Unknown message type '\(type)': \(details)")
             } else {
-                print("OpenAI Streaming: Unknown message (no type): \(details)")
+                logger.debug("Unknown message (no type): \(details)")
             }
         }
     }
     
     private func waitForFinalTranscript(session: RealtimeSession, timeout: TimeInterval = Constants.finalTranscriptTimeout) async throws -> String {
-        print("OpenAI Streaming: Waiting for final transcript...")
+        logger.debug("Waiting for final transcript...")
         
         // Use TaskGroup for cleaner timeout handling
         return try await withThrowingTaskGroup(of: String.self) { group in
@@ -266,7 +268,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     }
     
     private func cleanupSession(_ session: RealtimeSession) async {
-        print("OpenAI Streaming: Cleaning up session \(session.sessionId)")
+        logger.info("Cleaning up session \(session.sessionId)")
         
         // Remove from active sessions and cleanup counter
         activeSessions.removeValue(forKey: session.sessionId)
@@ -285,7 +287,7 @@ public class OpenAIStreamingProvider: BaseStreamingSTTProvider {
     
     /// Cleans up all active sessions
     public func cleanupAllSessions() async {
-        print("OpenAI Streaming: Cleaning up \(activeSessions.count) active sessions")
+        logger.info("Cleaning up \(activeSessions.count) active sessions")
         for session in activeSessions.values {
             await cleanupSession(session)
         }
