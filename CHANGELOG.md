@@ -5,6 +5,13 @@ All notable changes to VTS - Voice Typing Studio will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3](https://github.com/j05u3/VTS/compare/v1.1.2...v1.1.3) (2026-01-04)
+
+
+### Bug Fixes
+
+* trim whitespace from API keys in PreferencesView ([#96](https://github.com/j05u3/VTS/issues/96)) ([8e711a0](https://github.com/j05u3/VTS/commit/8e711a04efda0945b88d9abe7ebca130d8f4092d))
+
 ## [1.1.2](https://github.com/j05u3/VTS/compare/v1.1.1...v1.1.2) (2025-10-05)
 
 
