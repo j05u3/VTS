@@ -830,10 +830,18 @@ struct PreferencesView: View {
     }
     
     private func saveAPIKey(for provider: STTProviderType) {
-        guard let key = editingAPIKeys[provider], !key.isEmpty else { return }
-        
+        guard let key = editingAPIKeys[provider] else { return }
+
+        // Trim whitespace first, then check if empty
+        let trimmedKey = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedKey.isEmpty else {
+            // Key is empty after trimming - exit edit mode like Cancel
+            editingAPIKeys[provider] = nil
+            return
+        }
+
         do {
-            try apiKeyManager.storeAPIKey(key, for: provider)
+            try apiKeyManager.storeAPIKey(trimmedKey, for: provider)
             editingAPIKeys[provider] = nil
         } catch {
             print("Failed to store API key: \(error)")
