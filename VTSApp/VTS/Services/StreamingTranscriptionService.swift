@@ -108,6 +108,8 @@ public class StreamingTranscriptionService: ObservableObject {
 
     /// Update the connection state displayed in the overlay
     public func updateConnectionState(_ state: ConnectionState) {
+        // Don't let provider callbacks overwrite the finalizing state
+        if overlayWindow.connectionState == .finalizing { return }
         overlayWindow.connectionState = state
     }
 
@@ -425,21 +427,30 @@ public class StreamingTranscriptionService: ObservableObject {
         isTranscribing = false
         isStreamingActive = false
 
-        let finalText = overlayWindow.finalizeAndHide()
+        // Show finalizing state — keep progress bar where it was (depleted)
+        overlayWindow.connectionState = .finalizing
+        overlayWindow.inactivityTimeoutProgress = 0
 
-        if !finalText.isEmpty {
-            lastTranscription = finalText
-            print(LogMessages.injectingText)
-            textInjector.injectText(finalText)
-            print("\(LogMessages.textInjectedSuccess) '\(finalText)'")
-        } else {
-            print(LogMessages.noTextToInject)
-        }
+        let session = currentSession
+        currentSession = nil
 
-        // Clean up session in background
-        if let session = currentSession {
-            currentSession = nil
-            Task {
+        Task {
+            // Brief delay to let any in-flight partial results from Deepgram arrive
+            try? await Task.sleep(for: .milliseconds(500))
+
+            let finalText = overlayWindow.finalizeAndHide()
+
+            if !finalText.isEmpty {
+                lastTranscription = finalText
+                print(LogMessages.injectingText)
+                textInjector.injectText(finalText)
+                print("\(LogMessages.textInjectedSuccess) '\(finalText)'")
+            } else {
+                print(LogMessages.noTextToInject)
+            }
+
+            // Clean up session in background
+            if let session = session {
                 await session.cleanup()
             }
         }

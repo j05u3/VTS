@@ -411,58 +411,12 @@ public class TextInjector: ObservableObject {
             deleteText(count: lastText.count)
         }
 
-        // Use clipboard paste as the primary method (most reliable)
-        if pasteViaClipboard(text) {
-            lastInjectionTime = Date()
-            return
-        }
-
-        // Fallback to Unicode typing simulation
         if simulateModernUnicodeTyping(text) {
             lastInjectionTime = Date()
             return
         }
 
         print("❌ TextInjector: All injection methods failed")
-    }
-
-    private func pasteViaClipboard(_ text: String) -> Bool {
-        // Save current clipboard contents
-        let pasteboard = NSPasteboard.general
-        let oldContents = pasteboard.string(forType: .string)
-
-        // Set new text to clipboard
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-
-        // Small delay to ensure clipboard is ready
-        Thread.sleep(forTimeInterval: 0.05)
-
-        // Simulate Cmd+V
-        let source = CGEventSource(stateID: .hidSystemState)
-
-        guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: true),
-              let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: false) else {
-            return false
-        }
-
-        // Add Command modifier
-        keyDown.flags = .maskCommand
-        keyUp.flags = .maskCommand
-
-        // Post the events
-        keyDown.post(tap: .cgSessionEventTap)
-        Thread.sleep(forTimeInterval: 0.01)
-        keyUp.post(tap: .cgSessionEventTap)
-
-        // Small delay then restore old clipboard
-        Thread.sleep(forTimeInterval: 0.1)
-        if let oldContents = oldContents {
-            pasteboard.clearContents()
-            pasteboard.setString(oldContents, forType: .string)
-        }
-
-        return true
     }
     
     private struct AppInfo {

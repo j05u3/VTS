@@ -8,6 +8,7 @@ public enum ConnectionState: Equatable {
     case idle
     case connecting
     case connected
+    case finalizing
     case reconnecting(attempt: Int, maxAttempts: Int)
     case error(message: String)
 
@@ -58,11 +59,12 @@ public class TranscriptionOverlayWindow: NSObject, ObservableObject {
     }
 
     deinit {
-        // Remove NotificationCenter observer to prevent memory leak
         if let panel = panel {
             NotificationCenter.default.removeObserver(self, name: NSWindow.didMoveNotification, object: panel)
+            DispatchQueue.main.async {
+                panel.close()
+            }
         }
-        panel?.close()
     }
 
     // MARK: - Public Methods
@@ -537,6 +539,16 @@ struct ConnectionStatusView: View {
 
             case .connected:
                 vtsBranding
+
+            case .finalizing:
+                HStack(spacing: 4) {
+                    ProgressView()
+                        .scaleEffect(0.5)
+                        .frame(width: 12, height: 12)
+                    Text("Finalizing...")
+                        .font(.system(size: 9, weight: .medium, design: .rounded))
+                        .foregroundColor(.secondary.opacity(0.7))
+                }
 
             case .reconnecting(let attempt, let maxAttempts):
                 HStack(spacing: 4) {

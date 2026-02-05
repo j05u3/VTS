@@ -20,14 +20,16 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
         static let maxReconnectDelay: TimeInterval = 4.0
     }
 
-    private var activeSessions: [String: RealtimeSession] = [:]
-    private var audioChunkCounters: [String: Int] = [:]
-    private var urlSessions: [String: URLSession] = [:]  // Keep strong reference to prevent deallocation
+    private struct SessionState {
+        let session: RealtimeSession
+        var audioChunkCounter: Int = 0
+        var urlSession: URLSession
+        let config: ProviderConfig
+        var reconnectAttempts: Int = 0
+        var isReconnecting: Bool = false
+    }
 
-    // Reconnection state
-    private var sessionConfigs: [String: ProviderConfig] = [:]  // Store config for reconnection
-    private var reconnectAttempts: [String: Int] = [:]
-    private var isReconnecting: [String: Bool] = [:]
+    private var sessions: [String: SessionState] = [:]
 
     public override init() {
         super.init()
@@ -51,15 +53,15 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
         logger.debug("API Key length = \(config.apiKey.count)")
 
         // Create WebSocket with custom URLSession that has auth header in configuration
-        let webSocket = try await createDeepgramWebSocket(url: url, apiKey: config.apiKey, sessionId: sessionId)
+        let (webSocket, urlSession) = try await createDeepgramWebSocket(url: url, apiKey: config.apiKey)
         let session = RealtimeSession(sessionId: sessionId, webSocket: webSocket)
         session.isActive = true
 
-        activeSessions[sessionId] = session
-        audioChunkCounters[sessionId] = 0
-        sessionConfigs[sessionId] = config  // Store for potential reconnection
-        reconnectAttempts[sessionId] = 0
-        isReconnecting[sessionId] = false
+        sessions[sessionId] = SessionState(
+            session: session,
+            urlSession: urlSession,
+            config: config
+        )
 
         // Start the background listener for metadata and transcripts BEFORE confirming
         // This ensures we're ready to receive responses before audio starts flowing
@@ -82,7 +84,7 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
         try validateSessionState(session, operation: "streamAudio")
 
         // Check if we're currently reconnecting - buffer or fail
-        if isReconnecting[session.sessionId] == true {
+        if sessions[session.sessionId]?.isReconnecting == true {
             throw StreamingError.audioStreamError("Cannot stream audio while reconnecting")
         }
 
@@ -91,8 +93,8 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
         let message = URLSessionWebSocketTask.Message.data(audioData)
         try await session.webSocket.send(message)
 
-        let currentCount = (audioChunkCounters[session.sessionId] ?? 0) + 1
-        audioChunkCounters[session.sessionId] = currentCount
+        sessions[session.sessionId]?.audioChunkCounter += 1
+        let currentCount = sessions[session.sessionId]?.audioChunkCounter ?? 0
 
         if currentCount % 50 == 0 {
             logger.debug("Sent audio chunk #\(currentCount) (\(audioData.count) bytes)")
@@ -135,7 +137,7 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
 
     /// Creates a WebSocket connection to Deepgram with proper authentication
     /// URLSessionWebSocketTask doesn't properly send custom headers, so we use a delegate-based approach
-    private func createDeepgramWebSocket(url: URL, apiKey: String, sessionId: String) async throws -> URLSessionWebSocketTask {
+    private func createDeepgramWebSocket(url: URL, apiKey: String) async throws -> (URLSessionWebSocketTask, URLSession) {
         var request = URLRequest(url: url)
         request.setValue("Token \(apiKey)", forHTTPHeaderField: "Authorization")
         request.timeoutInterval = 10.0
@@ -145,8 +147,6 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
         config.httpAdditionalHeaders = ["Authorization": "Token \(apiKey)"]
 
         let urlSession = URLSession(configuration: config)
-        // Store strong reference to prevent deallocation
-        urlSessions[sessionId] = urlSession
 
         let webSocket = urlSession.webSocketTask(with: request)
 
@@ -155,21 +155,20 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
 
         // Wait for connection using event-driven approach
         logger.debug("Waiting for connection...")
-        try await waitForWebSocketConnection(webSocket: webSocket, sessionId: sessionId)
+        try await waitForWebSocketConnection(webSocket: webSocket)
 
         logger.info("WebSocket connected successfully")
-        return webSocket
+        return (webSocket, urlSession)
     }
 
     /// Waits for WebSocket connection using event-driven polling instead of fixed sleep
-    private func waitForWebSocketConnection(webSocket: URLSessionWebSocketTask, sessionId: String, timeout: TimeInterval = 10.0) async throws {
+    private func waitForWebSocketConnection(webSocket: URLSessionWebSocketTask, timeout: TimeInterval = 10.0) async throws {
         let startTime = Date()
 
         while true {
             let elapsed = Date().timeIntervalSince(startTime)
 
             if elapsed >= timeout {
-                urlSessions.removeValue(forKey: sessionId)
                 throw StreamingError.connectionFailed("WebSocket connection timeout after \(timeout) seconds")
             }
 
@@ -177,13 +176,11 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
             case .running:
                 return  // Connected successfully
             case .completed, .canceling:
-                urlSessions.removeValue(forKey: sessionId)
                 throw StreamingError.connectionFailed("WebSocket connection failed - state: \(webSocket.state)")
             case .suspended:
                 // Still connecting, yield to allow state updates
                 await Task.yield()
             @unknown default:
-                urlSessions.removeValue(forKey: sessionId)
                 throw StreamingError.connectionFailed("Unknown WebSocket state: \(webSocket.state)")
             }
         }
@@ -247,8 +244,8 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
 
                 // Check if this is a connection error we can recover from
                 let isConnectionError = isRecoverableConnectionError(error)
-                let currentAttempts = reconnectAttempts[session.sessionId] ?? 0
-                let alreadyReconnecting = isReconnecting[session.sessionId] ?? false
+                let currentAttempts = sessions[session.sessionId]?.reconnectAttempts ?? 0
+                let alreadyReconnecting = sessions[session.sessionId]?.isReconnecting ?? false
 
                 if isConnectionError && currentAttempts < Constants.maxReconnectAttempts && !alreadyReconnecting && session.isActive {
                     logger.warning("Connection lost, attempting reconnect (\(currentAttempts + 1)/\(Constants.maxReconnectAttempts))...")
@@ -279,14 +276,16 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
 
     private func attemptReconnect(session: RealtimeSession) async {
         let sessionId = session.sessionId
-        guard let config = sessionConfigs[sessionId] else {
-            logger.error("Cannot reconnect - no stored config for session \(sessionId)")
+        guard sessions[sessionId] != nil else {
+            logger.error("Cannot reconnect - no stored state for session \(sessionId)")
             return
         }
 
-        isReconnecting[sessionId] = true
-        let currentAttempt = (reconnectAttempts[sessionId] ?? 0) + 1
-        reconnectAttempts[sessionId] = currentAttempt
+        let config = sessions[sessionId]!.config
+        sessions[sessionId]!.isReconnecting = true
+        // Increment attempt counter (initialized to 0 in SessionState, so first call yields 1)
+        sessions[sessionId]!.reconnectAttempts += 1
+        let currentAttempt = sessions[sessionId]!.reconnectAttempts
 
         // Notify about reconnection attempt
         onConnectionStateChanged?(.reconnecting(attempt: currentAttempt, maxAttempts: Constants.maxReconnectAttempts))
@@ -303,19 +302,19 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
 
             // Clean up old WebSocket
             session.webSocket.cancel(with: .goingAway, reason: nil)
-            urlSessions.removeValue(forKey: sessionId)
 
             // Create new WebSocket connection
             let url = try buildWebSocketURL(config: config)
-            let newWebSocket = try await createDeepgramWebSocket(url: url, apiKey: config.apiKey, sessionId: sessionId)
+            let (newWebSocket, newURLSession) = try await createDeepgramWebSocket(url: url, apiKey: config.apiKey)
 
-            // Update session with new WebSocket
+            // Update session with new WebSocket and URLSession
             session.webSocket = newWebSocket
+            sessions[sessionId]?.urlSession = newURLSession
             logger.info("Reconnected successfully (attempt \(currentAttempt))")
 
             // Reset reconnect state on success
-            reconnectAttempts[sessionId] = 0
-            isReconnecting[sessionId] = false
+            sessions[sessionId]?.reconnectAttempts = 0
+            sessions[sessionId]?.isReconnecting = false
 
             // Notify that we're connected again
             onConnectionStateChanged?(.connected)
@@ -325,7 +324,7 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
 
         } catch {
             logger.error("Reconnect attempt \(currentAttempt) failed: \(error)")
-            isReconnecting[sessionId] = false
+            sessions[sessionId]?.isReconnecting = false
 
             if currentAttempt >= Constants.maxReconnectAttempts {
                 logger.error("Max reconnect attempts reached, giving up")
@@ -450,12 +449,7 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
     }
 
     private func cleanupSession(_ session: RealtimeSession) async {
-        activeSessions.removeValue(forKey: session.sessionId)
-        audioChunkCounters.removeValue(forKey: session.sessionId)
-        urlSessions.removeValue(forKey: session.sessionId)
-        sessionConfigs.removeValue(forKey: session.sessionId)
-        reconnectAttempts.removeValue(forKey: session.sessionId)
-        isReconnecting.removeValue(forKey: session.sessionId)
+        sessions.removeValue(forKey: session.sessionId)
         await session.cleanup()
         logger.info("Session \(session.sessionId) cleaned up")
     }
@@ -464,7 +458,7 @@ public class DeepgramStreamingProvider: BaseStreamingSTTProvider {
         guard session.isActive else {
             throw StreamingError.sessionError("Session is not active for \(operation)")
         }
-        guard activeSessions[session.sessionId] != nil else {
+        guard sessions[session.sessionId] != nil else {
             throw StreamingError.sessionError("Session \(session.sessionId) not found")
         }
     }

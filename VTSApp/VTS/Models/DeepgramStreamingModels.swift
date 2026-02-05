@@ -114,12 +114,13 @@ public func parseDeepgramResponse(_ data: Data) throws -> DeepgramResponse {
 
     case "Error":
         // Error responses may have nested "error" object or flat structure
-        if let errorResponse = try? decoder.decode(DeepgramNestedError.self, from: data) {
+        do {
+            let errorResponse = try decoder.decode(DeepgramNestedError.self, from: data)
             return .error(errorResponse.error)
+        } catch {
+            let flatError = try decoder.decode(DeepgramError.self, from: data)
+            return .error(flatError)
         }
-        // Fall back to flat error structure
-        let error = try decoder.decode(DeepgramError.self, from: data)
-        return .error(error)
 
     default:
         return .unknown(responseType.type)
