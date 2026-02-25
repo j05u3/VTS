@@ -70,7 +70,68 @@ struct PreferencesView: View {
                             }
                             .pickerStyle(.menu)
                         }
-                        
+
+                        // Real-time Streaming Toggle
+                        HStack {
+                            Text("Real-time Mode:")
+                                .frame(width: 120, alignment: .leading)
+                            Toggle("", isOn: Binding(
+                                get: { appState.useRealtime },
+                                set: { appState.useRealtime = $0 }
+                            ))
+                            .toggleStyle(.switch)
+                            .disabled(!appState.selectedProvider.supportsRealtimeStreaming)
+                            Spacer()
+                        }
+
+                        if appState.selectedProvider.supportsRealtimeStreaming {
+                            Text("Text appears live at your cursor as you speak. Supports auto-corrections as more context arrives.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+
+                            // Inactivity Timeout (only shown for Deepgram which has live overlay support)
+                            if appState.useRealtime && appState.selectedProvider == .deepgram {
+                                Divider()
+                                    .padding(.vertical, 4)
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack {
+                                        Text("Auto-stop after silence:")
+                                            .frame(width: 160, alignment: .leading)
+
+                                        HStack(spacing: 8) {
+                                            TextField("", value: Binding(
+                                                get: { Int(appState.streamingInactivityTimeout) },
+                                                set: { appState.streamingInactivityTimeout = TimeInterval(max(2, $0)) }
+                                            ), format: .number)
+                                            .textFieldStyle(.roundedBorder)
+                                            .frame(width: 60)
+                                            .multilineTextAlignment(.center)
+
+                                            Stepper("", value: Binding(
+                                                get: { appState.streamingInactivityTimeout },
+                                                set: { appState.streamingInactivityTimeout = max(2, $0) }
+                                            ), in: 2...600, step: 1)
+                                            .labelsHidden()
+
+                                            Text("seconds")
+                                                .foregroundColor(.secondary)
+                                        }
+
+                                        Spacer()
+                                    }
+
+                                    Text("Automatically finalize transcription if no speech is detected. The progress bar at the bottom of the overlay shows time remaining. (Min: 2s)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        } else {
+                            Text("Real-time streaming is not yet available for \(appState.selectedProvider.rawValue).")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                        }
+
                         // Custom Instructions / Keywords based on provider
                         if appState.selectedProvider == .deepgram {
                             // Check if Nova3 is selected

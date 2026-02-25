@@ -5,7 +5,10 @@ import Combine
 @MainActor
 public class StreamingTranscriptionService: ObservableObject {
     // MARK: - Constants
-    
+
+    /// Inactivity timeout: auto-finalize if no new text for this duration
+    private static let inactivityTimeoutSeconds: TimeInterval = 30.0
+
     private enum LogMessages {
         static let startingTranscription = "🎙️ StreamingTranscriptionService: Starting streaming transcription with provider:"
         static let configValidated = "🎙️ StreamingTranscriptionService: Provider config validated"
@@ -36,8 +39,12 @@ public class StreamingTranscriptionService: ObservableObject {
     
     private var provider: StreamingSTTProvider?
     private var transcriptionTask: Task<Void, Never>?
+    private var inactivityTimeoutTask: Task<Void, Never>?
     private let textInjector = TextInjector()
     private var cancellables = Set<AnyCancellable>()
+
+    // Overlay window for displaying live transcription
+    public let overlayWindow = TranscriptionOverlayWindow()
     
     // Session management
     private var currentSession: RealtimeSession?
@@ -52,19 +59,60 @@ public class StreamingTranscriptionService: ObservableObject {
     
     // Analytics completion callback
     public var onTranscriptionCompleted: ((String, String, Bool, Int, Int, Bool) -> Void)?
-    
+
+    // Restart callback - called when user clicks clear button to restart stream
+    public var onRestartRequested: (() -> Void)?
+
     // Timing properties for analytics
     private var processStartTime: Date?
     private var audioRecordingStartTime: Date?
     private var audioRecordingEndTime: Date?
     private var processingStartTime: Date?
     private var processingEndTime: Date?
-    
+
     public init() {
         partialResults = PartialResultsManager()
         setupTextInjectorObservation()
+        setupOverlayCallbacks()
     }
-    
+
+    private func setupOverlayCallbacks() {
+        // X button - cancel transcription without injecting text
+        overlayWindow.onClose = { [weak self] in
+            self?.cancelTranscription()
+        }
+
+        // Clear button - clear text and restart stream
+        overlayWindow.onClear = { [weak self] in
+            self?.onRestartRequested?()
+        }
+
+        // Finish button - finalize and inject text (same as hotkey)
+        overlayWindow.onFinish = { [weak self] in
+            self?.onFinishRequested?()
+        }
+    }
+
+    /// Callback for finish button - AppState should stop recording and finalize
+    public var onFinishRequested: (() -> Void)?
+
+    /// Update the hotkey string displayed in the overlay
+    public func setHotkeyString(_ hotkey: String) {
+        overlayWindow.hotkeyString = hotkey
+    }
+
+    /// Update the audio level displayed in the overlay
+    public func updateAudioLevel(_ level: Float) {
+        overlayWindow.audioLevel = level
+    }
+
+    /// Update the connection state displayed in the overlay
+    public func updateConnectionState(_ state: ConnectionState) {
+        // Don't let provider callbacks overwrite the finalizing state
+        if overlayWindow.connectionState == .finalizing { return }
+        overlayWindow.connectionState = state
+    }
+
     private func setupTextInjectorObservation() {
         // Bridge TextInjector changes to this ObservableObject
         textInjector.objectWillChange
@@ -80,6 +128,15 @@ public class StreamingTranscriptionService: ObservableObject {
     
     public func setProvider(_ provider: StreamingSTTProvider) {
         self.provider = provider
+
+        // Wire up connection state callback only for providers that support live overlay
+        if provider.supportsLiveOverlay, let baseProvider = provider as? BaseStreamingSTTProvider {
+            baseProvider.onConnectionStateChanged = { [weak self] state in
+                Task { @MainActor in
+                    self?.updateConnectionState(state)
+                }
+            }
+        }
     }
     
     public func setTimingData(processStart: Date?, audioStart: Date?, audioEnd: Date?) {
@@ -107,11 +164,17 @@ public class StreamingTranscriptionService: ObservableObject {
         isStreamingActive = true
         error = nil
         currentText = ""
-        
+
         // Store context for potential retry
         currentConfig = config
         currentProviderType = provider.providerType
-        
+
+        // Only show overlay and timeout for providers that support live overlay
+        if provider.supportsLiveOverlay {
+            overlayWindow.show()
+            resetInactivityTimeout()
+        }
+
         print("\(LogMessages.startingTranscription) \(provider.providerType)")
         
         transcriptionTask = Task { @MainActor in
@@ -136,16 +199,22 @@ public class StreamingTranscriptionService: ObservableObject {
                 print(LogMessages.transcriptionCompleted)
                 
             } catch {
+                // Check if this was a cancellation (e.g., during restart) - don't treat as error
+                if Task.isCancelled || error is CancellationError {
+                    print("🎙️ StreamingTranscriptionService: Task was cancelled (likely restart)")
+                    return
+                }
+
                 print("\(LogMessages.transcriptionError) \(error)")
-                
+
                 // Mark when transcription failed
                 endTranscriptionTiming()
-                
+
                 let sttError = convertToSTTError(error)
-                
+
                 // Track analytics
                 trackAnalytics(provider: provider, config: config, success: false)
-                
+
                 handleError(sttError)
             }
             
@@ -159,7 +228,14 @@ public class StreamingTranscriptionService: ObservableObject {
         transcriptionTask = nil
         isTranscribing = false
         isStreamingActive = false
-        
+
+        // Only handle overlay cleanup if provider supports it
+        if provider?.supportsLiveOverlay ?? false {
+            cancelInactivityTimeout()
+            overlayWindow.connectionState = .idle
+            overlayWindow.hide()
+        }
+
         // Cleanup current session if active
         if let session = currentSession {
             Task {
@@ -182,7 +258,7 @@ public class StreamingTranscriptionService: ObservableObject {
         let session = try await provider.startRealtimeSession(config: config)
         currentSession = session
         
-        // Step 2: Set up session confirmation callback BEFORE starting message listening
+        // Step 2: Set up session confirmation callback for providers that confirm asynchronously
         session.onSessionConfirmed = { [weak self] in
             Task {
                 guard let self = self else { return }
@@ -190,7 +266,15 @@ public class StreamingTranscriptionService: ObservableObject {
                 print(LogMessages.bufferedChunksReleased)
             }
         }
-        
+
+        // Step 2b: For providers like Deepgram that confirm synchronously during startRealtimeSession,
+        // the callback wasn't set yet when confirmSession() ran, so check and confirm now
+        if session.isSessionConfirmed {
+            print("🎙️ StreamingTranscriptionService: Session already confirmed, notifying audio queue")
+            await audioStreamingQueue.confirmSession()
+            print(LogMessages.bufferedChunksReleased)
+        }
+
         // Step 3: Now start message listening with callback in place
         if let openAIProvider = provider as? OpenAIStreamingProvider {
             try await openAIProvider.startListening(for: session)
@@ -259,72 +343,247 @@ public class StreamingTranscriptionService: ObservableObject {
     }
     
     private func startPartialResultsProcessor(session: RealtimeSession) {
+        let usesOverlay = provider?.supportsLiveOverlay ?? false
+
         Task { @MainActor in
             do {
                 for try await partialChunk in session.partialResultsStream {
                     // Process partial result through the manager
                     partialResults.processPartialResult(partialChunk)
-                    
+
                     if partialChunk.isFinal {
                         print("\(LogMessages.receivedFinalResult) '\(partialChunk.text)'")
-                        
-                        // 🚀 IMMEDIATE TEXT INJECTION: Handle text injection as soon as we get final result
-                        let finalTranscript = partialResults.getFinalTranscription()
-                        if !finalTranscript.isEmpty {
-                            handleSuccessfulTranscription(finalTranscript)
-                            
-                            // Mark timing completion immediately 
-                            endTranscriptionTiming()
-                            
-                            // 🎯 IMMEDIATE UI UPDATE: Update transcription state immediately after text injection
-                            isTranscribing = false
-                            isStreamingActive = false
-                            
-                            // 🔄 BACKGROUND CLEANUP: Start final cleanup and analytics in background
-                            Task.detached { [weak self] in
-                                await self?.performBackgroundCleanup(provider: self?.provider, config: self?.currentConfig)
+
+                        // For non-overlay providers (like OpenAI), inject text immediately and stop
+                        if !usesOverlay {
+                            // 🚀 IMMEDIATE TEXT INJECTION: Handle text injection as soon as we get final result
+                            let finalTranscript = partialResults.getFinalTranscription()
+                            if !finalTranscript.isEmpty {
+                                handleSuccessfulTranscription(finalTranscript)
+
+                                // Mark timing completion immediately
+                                endTranscriptionTiming()
+
+                                // 🎯 IMMEDIATE UI UPDATE: Update transcription state immediately after text injection
+                                isTranscribing = false
+                                isStreamingActive = false
+
+                                // 🔄 BACKGROUND CLEANUP: Start final cleanup and analytics in background
+                                Task.detached { [weak self] in
+                                    await self?.performBackgroundCleanup(provider: self?.provider, config: self?.currentConfig)
+                                }
                             }
                         }
                     } else {
                         print("\(LogMessages.receivedPartialResult) '\(partialChunk.text)'")
                     }
-                    
-                    // Update current text with complete transcription for display
+
+                    // Always update currentText for UI display
                     currentText = partialResults.getCompleteTranscription()
+
+                    // For overlay providers, also update the overlay window
+                    if usesOverlay {
+                        overlayWindow.updateText(currentText)
+
+                        // Reset inactivity timeout whenever we receive new text
+                        if !partialChunk.text.isEmpty {
+                            resetInactivityTimeout()
+                        }
+                    }
+                }
+
+                // Stream ended
+                if usesOverlay {
+                    cancelInactivityTimeout()
+                    print("🎙️ StreamingTranscriptionService: Partial results stream ended, waiting for user to finalize...")
+                }
+                endTranscriptionTiming()
+                isTranscribing = false
+                isStreamingActive = false
+
+                // 🔄 BACKGROUND CLEANUP
+                Task.detached { [weak self] in
+                    await self?.performBackgroundCleanup(provider: self?.provider, config: self?.currentConfig)
                 }
             } catch {
-                print("StreamingTranscriptionService: Partial results processor ended: \(error)")
+                print("StreamingTranscriptionService: Partial results processor ended with error: \(error)")
+                // Handle the error properly - this prevents the overlay from getting stuck
+                endTranscriptionTiming()
+                isTranscribing = false
+                isStreamingActive = false
+
+                // Convert and handle the error to show notification and hide overlay
+                let sttError = convertToSTTError(error)
+                handleError(sttError)
             }
         }
     }
-    
+
+    /// Called when user presses hotkey to finalize transcription
+    /// Hides overlay and injects text at cursor position
+    public func finalizeTranscription() {
+        // Cancel timeout and reset state
+        cancelInactivityTimeout()
+        isTranscribing = false
+        isStreamingActive = false
+
+        // Show finalizing state — keep progress bar where it was (depleted)
+        overlayWindow.connectionState = .finalizing
+        overlayWindow.inactivityTimeoutProgress = 0
+
+        let session = currentSession
+        currentSession = nil
+
+        Task {
+            // Brief delay to let any in-flight partial results from Deepgram arrive
+            try? await Task.sleep(for: .milliseconds(500))
+
+            let finalText = overlayWindow.finalizeAndHide()
+
+            if !finalText.isEmpty {
+                lastTranscription = finalText
+                print(LogMessages.injectingText)
+                textInjector.injectText(finalText)
+                print("\(LogMessages.textInjectedSuccess) '\(finalText)'")
+            } else {
+                print(LogMessages.noTextToInject)
+            }
+
+            // Clean up session in background
+            if let session = session {
+                await session.cleanup()
+            }
+        }
+    }
+
+    /// Cancels transcription without injecting text
+    public func cancelTranscription() {
+        // stopTranscription handles overlay hiding
+        stopTranscription()
+    }
+
     private func handleSuccessfulTranscription(_ finalText: String) {
         // Get the final transcript from partial results manager
         let processedFinalText = partialResults.getFinalTranscription()
         let textToInject = processedFinalText.isEmpty ? finalText.trimmingCharacters(in: .whitespaces) : processedFinalText
-        
+
         // Update UI
         currentText = textToInject
-        
+
         // Store as last transcription if we have content
         if !textToInject.isEmpty {
             lastTranscription = textToInject
-            
+
             print(LogMessages.injectingText)
-            
+
             textInjector.injectText(textToInject)
-            
+
             print("\(LogMessages.textInjectedSuccess) '\(textToInject)'")
         } else {
             print(LogMessages.noTextToInject)
         }
     }
-    
+
+    // MARK: - Inactivity Timeout
+
+    /// Configurable timeout duration (can be set from AppState/settings)
+    public var inactivityTimeout: TimeInterval = StreamingTranscriptionService.inactivityTimeoutSeconds
+
+    /// Starts or restarts the inactivity timeout timer
+    /// Called whenever new text is received to reset the countdown
+    private func resetInactivityTimeout() {
+        // Cancel existing timeout
+        inactivityTimeoutTask?.cancel()
+
+        // Don't start timeout if not actively streaming or if timeout is disabled
+        guard isStreamingActive, inactivityTimeout > 0 else {
+            overlayWindow.inactivityTimeoutProgress = 1.0
+            return
+        }
+
+        // Reset progress to full
+        overlayWindow.inactivityTimeoutProgress = 1.0
+
+        // Start new timeout with progress tracking
+        let timeoutDuration = inactivityTimeout
+        let updateInterval: TimeInterval = 0.5 // Update progress every 500ms
+        let startTime = Date()
+
+        inactivityTimeoutTask = Task { @MainActor [weak self] in
+            do {
+                while true {
+                    try await Task.sleep(nanoseconds: UInt64(updateInterval * 1_000_000_000))
+
+                    guard let self = self, self.isStreamingActive else { return }
+
+                    let elapsed = Date().timeIntervalSince(startTime)
+                    let remaining = timeoutDuration - elapsed
+                    let progress = max(0, remaining / timeoutDuration)
+
+                    self.overlayWindow.inactivityTimeoutProgress = progress
+
+                    if remaining <= 0 {
+                        // Set progress to exactly 0
+                        self.overlayWindow.inactivityTimeoutProgress = 0
+
+                        // Audio-aware grace period: wait until we're confident there's no active speech
+                        // Check audio level every 50ms - only auto-stop if audio stays quiet
+                        let audioThreshold: Float = 0.02  // Above this = speech detected
+                        let quietDurationRequired: TimeInterval = 0.8  // Need 800ms of quiet to confirm no speech
+                        var quietDuration: TimeInterval = 0
+                        let checkInterval: TimeInterval = 0.05  // 50ms
+
+                        while quietDuration < quietDurationRequired {
+                            try await Task.sleep(nanoseconds: UInt64(checkInterval * 1_000_000_000))
+
+                            // Check if still active (task may have been cancelled by new speech)
+                            guard self.isStreamingActive else { return }
+
+                            let currentAudioLevel = self.overlayWindow.audioLevel
+                            if currentAudioLevel > audioThreshold {
+                                // Speech detected - reset quiet duration and keep waiting
+                                quietDuration = 0
+                                print("⏰ Audio detected during grace period (level: \(currentAudioLevel)), waiting for transcription...")
+                            } else {
+                                quietDuration += checkInterval
+                            }
+                        }
+
+                        // Confirmed quiet for required duration - safe to auto-stop
+                        guard self.isStreamingActive else { return }
+
+                        print("⏰ StreamingTranscriptionService: Inactivity timeout (\(timeoutDuration)s) - auto-finalizing (confirmed quiet)")
+                        self.onAutoStopRequested?()
+                        return
+                    }
+                }
+            } catch {
+                // Task was cancelled - this is expected when text is received
+            }
+        }
+    }
+
+    /// Cancels the inactivity timeout (called when streaming stops)
+    private func cancelInactivityTimeout() {
+        inactivityTimeoutTask?.cancel()
+        inactivityTimeoutTask = nil
+        overlayWindow.inactivityTimeoutProgress = 1.0
+    }
+
+    /// Callback for auto-stop due to inactivity - AppState should stop recording
+    public var onAutoStopRequested: (() -> Void)?
+
     private func handleError(_ error: STTError) {
         self.error = error
         isTranscribing = false
         isStreamingActive = false
-        
+
+        // Hide overlay window on error
+        overlayWindow.hide()
+
+        // Stop terminal dictation monitoring
+        textInjector.stopDictationSession()
+
         // Show notification for the error
         notificationManager.showTranscriptionError(error)
     }

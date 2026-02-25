@@ -9,18 +9,152 @@ public protocol TextInjectorLogging: AnyObject {
     func log(_ message: String)
 }
 
+/// Bundle IDs for common terminal applications on macOS
+private let terminalBundleIds = [
+    "com.googlecode.iterm2",       // iTerm2
+    "com.apple.Terminal",          // Terminal.app
+    "dev.warp.Warp-Stable",        // Warp
+    "net.kovidgoyal.kitty",        // Kitty
+    "co.zeit.hyper",               // Hyper
+    "com.github.wez.wezterm",      // WezTerm
+    "io.alacritty",                // Alacritty
+    "com.mitchellh.ghostty",       // Ghostty
+    "org.tabby",                   // Tabby
+    "io.raphamorim.rio"            // Rio
+]
+
 @MainActor
 public class TextInjector: ObservableObject {
     @Published public private(set) var hasAccessibilityPermission = false
     public weak var loggingDelegate: TextInjectorLogging?
-    
+
+    // Terminal dictation mode properties
+    private var isInTerminalDictationMode = false
+    private var keyEventMonitor: Any?
+    private var lastInjectionTime: Date = .distantPast  // Track when we last injected text
+    private let injectionIgnoreWindow: TimeInterval = 0.5  // Ignore key events within 500ms of injection
+
+    /// Callback invoked when user types during terminal dictation (should stop recording)
+    public var onUserTypedDuringDictation: (() -> Void)?
+
     public init() {
         updatePermissionStatus()
         setupNotifications()
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
+        // Directly remove monitor since deinit can't call MainActor methods
+        if let monitor = keyEventMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
+    }
+
+    // MARK: - Terminal Dictation Mode
+
+    /// Call when dictation starts - if in a terminal, monitors for user typing
+    public func startDictationSession() {
+        // Debug: show all running apps to help diagnose
+        if let frontmost = NSWorkspace.shared.frontmostApplication {
+            print("🔍 TextInjector: NSWorkspace.frontmostApplication = '\(frontmost.localizedName ?? "nil")' bundleId='\(frontmost.bundleIdentifier ?? "nil")'")
+        } else {
+            print("🔍 TextInjector: NSWorkspace.frontmostApplication is nil!")
+        }
+
+        let appInfo = getCurrentAppInfo()
+        print("🔍 TextInjector: getCurrentAppInfo() = name: '\(appInfo.name)', bundleId: '\(appInfo.bundleIdentifier ?? "nil")'")
+        print("🔍 TextInjector: Terminal bundle IDs we're checking: \(terminalBundleIds)")
+
+        guard let bundleId = appInfo.bundleIdentifier, terminalBundleIds.contains(bundleId) else {
+            print("📝 TextInjector: Not in terminal (bundleId '\(appInfo.bundleIdentifier ?? "nil")' not in list), standard dictation mode")
+            isInTerminalDictationMode = false
+            return
+        }
+
+        print("🖥️ TextInjector: Terminal detected (\(appInfo.name), \(bundleId)), starting terminal dictation mode")
+        isInTerminalDictationMode = true
+
+        // Start monitoring for user keystrokes
+        startKeyEventMonitoring()
+    }
+
+    /// Call when dictation ends - cleans up monitoring
+    public func stopDictationSession() {
+        if isInTerminalDictationMode {
+            print("🖥️ TextInjector: Stopping terminal dictation mode")
+        }
+        isInTerminalDictationMode = false
+        stopTerminalDictationMonitoring()
+    }
+
+    private func startKeyEventMonitoring() {
+        // Remove any existing monitor
+        stopTerminalDictationMonitoring()
+
+        print("👀 TextInjector: Starting key event monitoring for user typing")
+
+        // Monitor global key events to catch typing in terminal while VTS is in background
+        keyEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            Task { @MainActor in
+                self?.handleKeyEvent(event)
+            }
+        }
+
+        if keyEventMonitor != nil {
+            print("✅ TextInjector: Key event monitor registered successfully")
+        } else {
+            print("❌ TextInjector: Failed to register key event monitor (accessibility permission issue?)")
+        }
+    }
+
+    private func stopTerminalDictationMonitoring() {
+        if let monitor = keyEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyEventMonitor = nil
+            print("👀 TextInjector: Stopped key event monitoring")
+        }
+    }
+
+    private func handleKeyEvent(_ event: NSEvent) {
+        // Ignore if we're no longer in terminal dictation mode (late-arriving events)
+        guard isInTerminalDictationMode else {
+            return
+        }
+
+        // Ignore key events within the injection window (our own simulated typing)
+        let timeSinceInjection = Date().timeIntervalSince(lastInjectionTime)
+        guard timeSinceInjection > injectionIgnoreWindow else {
+            return
+        }
+
+        // Ignore modifier-only key presses (no actual character)
+        guard let chars = event.characters, !chars.isEmpty else {
+            return
+        }
+
+        // Ignore control characters (ASCII < 32) - these come from Ctrl+key combinations
+        // BUT allow Enter/Return (10, 13) to stop recording
+        if let firstChar = chars.unicodeScalars.first, firstChar.value < 32 {
+            let isEnterKey = firstChar.value == 10 || firstChar.value == 13
+            if !isEnterKey {
+                return
+            }
+        }
+
+        // Ignore multi-character events - real keyboard typing produces exactly 1 character per event
+        // Our Unicode injection posts events with multiple characters
+        guard chars.count == 1 else {
+            return
+        }
+
+        // User typed something while we're in terminal dictation mode
+        print("⌨️ TextInjector: User typed '\(chars)' during dictation, triggering stop")
+        onUserTypedDuringDictation?()
+    }
+
+    /// Returns whether we're currently in terminal dictation mode
+    public var isTerminalDictationActive: Bool {
+        return isInTerminalDictationMode
     }
     
     private func setupNotifications() {
@@ -265,33 +399,23 @@ public class TextInjector: ObservableObject {
     public func injectText(_ text: String, replaceLastText: String? = nil) {
         guard hasAccessibilityPermission else {
             print("❌ TextInjector: No accessibility permission - cannot inject text")
-            print("📋 TextInjector: VTS requires accessibility permission for text injection functionality")
-            print("📋 TextInjector: Please grant accessibility permission in System Settings > Privacy & Security > Accessibility")
             return
         }
-        
-        print("🔄 TextInjector: Starting text injection process...")
-        print("📝 TextInjector: Text to inject: '\(text)'")
-        if let lastText = replaceLastText {
-            print("🔄 TextInjector: Will replace previous text: '\(lastText)'")
-        }
-        
-        // Delete previous text if needed
+
+        // Track injection time so key event monitor ignores our keystrokes
+        lastInjectionTime = Date()
+
+        // Handle previous text replacement - always delete old and type new for reliability
         if let lastText = replaceLastText, !lastText.isEmpty {
-            print("🗑️ TextInjector: Attempting to delete \(lastText.count) characters...")
+            if text == lastText { return }
             deleteText(count: lastText.count)
         }
-        
-        // Get app info for logging
-        let appInfo = getCurrentAppInfo()
-        print("📱 TextInjector: Target app: \(appInfo.name)")
-        
-        // Use Unicode typing simulation as the primary method
+
         if simulateModernUnicodeTyping(text) {
-            print("✅ TextInjector: Successfully injected via Unicode typing")
+            lastInjectionTime = Date()
             return
         }
-        
+
         print("❌ TextInjector: All injection methods failed")
     }
     
@@ -301,14 +425,23 @@ public class TextInjector: ObservableObject {
     }
     
     private func getCurrentAppInfo() -> AppInfo {
+        // Use NSWorkspace for reliable bundle ID detection (AXBundleIdentifier is not standard)
+        if let frontmostApp = NSWorkspace.shared.frontmostApplication {
+            return AppInfo(
+                name: frontmostApp.localizedName ?? "Unknown",
+                bundleIdentifier: frontmostApp.bundleIdentifier
+            )
+        }
+
+        // Fallback to accessibility API for app name only
         let systemWideElement = AXUIElementCreateSystemWide()
-        
+
         var focusedApp: CFTypeRef?
         guard AXUIElementCopyAttributeValue(systemWideElement, kAXFocusedApplicationAttribute as CFString, &focusedApp) == .success,
               let app = focusedApp else {
             return AppInfo(name: "Unknown", bundleIdentifier: nil)
         }
-        
+
         // Get app name
         var appNameRef: CFTypeRef?
         let appName: String
@@ -318,18 +451,8 @@ public class TextInjector: ObservableObject {
         } else {
             appName = "Unknown"
         }
-        
-        // Try to get bundle identifier
-        var bundleIdRef: CFTypeRef?
-        let bundleId: String?
-        if AXUIElementCopyAttributeValue(app as! AXUIElement, "AXBundleIdentifier" as CFString, &bundleIdRef) == .success,
-           let id = bundleIdRef as? String {
-            bundleId = id
-        } else {
-            bundleId = nil
-        }
-        
-        return AppInfo(name: appName, bundleIdentifier: bundleId)
+
+        return AppInfo(name: appName, bundleIdentifier: nil)
     }
     
     private func deleteTextViaKeyboard(count: Int) {
@@ -351,21 +474,33 @@ public class TextInjector: ObservableObject {
     
     private func deleteText(count: Int) {
         guard count > 0 else { return }
-        
+
         print("🗑️ TextInjector: Deleting \(count) characters")
-        
-        // Try accessibility deletion first
-        print("🎯 TextInjector: Attempting accessibility deletion...")
-        if tryAccessibilityDeletion(count: count) {
-            print("✅ TextInjector: Successfully deleted via Accessibility API")
+
+        // Track deletion time so key event monitor ignores our key events
+        lastInjectionTime = Date()
+
+        let appInfo = getCurrentAppInfo()
+
+        // For terminal apps, use backspaces (Ctrl+U only clears current line, not multi-line text)
+        if let bundleId = appInfo.bundleIdentifier, terminalBundleIds.contains(bundleId) {
+            print("⚡ TextInjector: Terminal detected (\(appInfo.name)), using backspaces for \(count) chars")
+            deleteTextViaKeyboard(count: count)
             return
         }
-        
-        // Fallback to keyboard simulation
-        print("⚠️ TextInjector: Accessibility deletion failed, using keyboard simulation...")
+
+        // For non-terminal apps, try accessibility-based deletion first (instant)
+        print("🔍 TextInjector: Non-terminal app (\(appInfo.name)), trying accessibility deletion...")
+        if tryAccessibilityDeletion(count: count) {
+            print("✅ TextInjector: Accessibility deletion succeeded")
+            return
+        }
+
+        // Fall back to keyboard simulation (backspaces) if accessibility fails
+        print("⚠️ TextInjector: Accessibility deletion failed, falling back to keyboard simulation")
         deleteTextViaKeyboard(count: count)
     }
-    
+
     private func tryAccessibilityDeletion(count: Int) -> Bool {
         print("🔍 TextInjector: Starting accessibility deletion process...")
         
@@ -606,22 +741,29 @@ public class TextInjector: ObservableObject {
     }
     
     private func insertUnicodeChunk(_ chunk: String, using source: CGEventSource) -> Bool {
-        // Create a keyboard event for Unicode text input
-        guard let keyboardEvent = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: true) else {
-            print("❌ TextInjector: Failed to create keyboard event for chunk")
+        // Create a keyboard event for Unicode text input (keyDown)
+        guard let keyDownEvent = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: true) else {
             return false
         }
-        
+
         // Convert text to UTF-16 representation which CGEvent can handle
         let utf16Array = Array(chunk.utf16)
-        
+
         // Set the Unicode string for this event (handles emojis and complex Unicode)
-        keyboardEvent.keyboardSetUnicodeString(stringLength: utf16Array.count, unicodeString: utf16Array)
-        
-        // Post the event
-        keyboardEvent.post(tap: .cghidEventTap)
-        
-        print("✅ TextInjector: Posted Unicode chunk: '\(chunk)' (\(utf16Array.count) UTF-16 units)")
+        keyDownEvent.keyboardSetUnicodeString(stringLength: utf16Array.count, unicodeString: utf16Array)
+
+        // Post the keyDown event
+        keyDownEvent.post(tap: .cgSessionEventTap)
+
+        // Small delay between keyDown and keyUp
+        Thread.sleep(forTimeInterval: 0.01)
+
+        // Create and post keyUp event
+        guard let keyUpEvent = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: false) else {
+            return false
+        }
+        keyUpEvent.post(tap: .cgSessionEventTap)
+
         return true
     }
     
